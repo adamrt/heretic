@@ -8,6 +8,6 @@ It uses C, CMake, Sokol.
 - `./build.sh wasm` for the browser (WebGPU)
 
 This will fetch `sokol-shdc` for your platform, compile the shader for your
-backend, build the application and run it.
+backend, build the app and run it.
 
 
