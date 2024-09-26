@@ -4,70 +4,75 @@ set -eou pipefail
 
 OS=$(uname)
 
-# Check if a parameter was provided
-if [ "$#" -ne 1 ]; then
+# Validate parameters
+if [[ $# -ne 1 || ! "$1" =~ ^(native|wasm)$ ]]; then
     echo "Usage: ./build.sh [native|wasm]"
     exit 1
 fi
 
-# Download the sokol-shdc shader compiler for the current platform
+TARGET="$1"
+
+# Determine the number of CPU cores based on the OS
+get_num_cores() {
+    case "$OS" in
+        Linux) NUMCORES=$(nproc) ;;
+        Darwin) NUMCORES=$(sysctl -n hw.ncpu) ;;
+        *) echo "Unsupported OS: $OS" && return 1 ;;
+    esac
+}
+
+get_num_cores
+
+# Function to download the sokol-shdc shader compiler
 download_shader_compiler() {
-    if [[ "$OS" == "Linux" ]]; then
-        OSPATH="linux"
-    elif [[ "$OS" == "Darwin" ]]; then
-        OSPATH="osx_arm64"
-    else
-        echo "Unsupported OS: $OS"
-        return 1
-    fi
+    case "$OS" in
+        Linux) OSPATH="linux" ;;
+        Darwin) OSPATH="osx_arm64" ;;
+        *) echo "Unsupported OS: $OS" && return 1 ;;
+    esac
 
-    # Download the sokol-shdc shader compiler
     wget -q https://github.com/floooh/sokol-tools-bin/raw/master/bin/${OSPATH}/sokol-shdc
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to download sokol-shdc"
-        return 1
-    fi
-
     chmod +x sokol-shdc
     echo "sokol-shdc downloaded and made executable."
 }
 
-# Check if the file exists before calling the function
+# Download shader compiler if not present
 if [[ ! -f "sokol-shdc" ]]; then
     echo "sokol-shdc not found. Downloading..."
     download_shader_compiler
 fi
 
-# compile the shader
-if [[ "$1" = "wasm" ]]; then
-    ./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l glsl300es
-elif [[ "$OS" == "Linux" ]]; then
-    ./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l glsl430
-elif [[ "$OS" == "Darwin" ]]; then
-    ./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l metal_macos
-else
-    echo "Unsupported OS: $OS"
-fi
+# Determine shader language based on target and OS
+case "$TARGET" in
+    wasm) SHADER_LANG="glsl300es" ;;
+    native)
+        case "$OS" in
+            Linux) SHADER_LANG="glsl430" ;;
+            Darwin) SHADER_LANG="metal_macos" ;;
+            *) echo "Unsupported OS: $OS" && exit 1 ;;
+        esac
+        ;;
+    *) echo "Invalid target: $TARGET" && exit 1 ;;
+esac
 
-# Remove the existing build directory and recreate it
-rm -rf build
-mkdir build
-cd build
+# Compile the shader
+./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l "$SHADER_LANG"
 
-if [ "$1" = "wasm" ]; then
-    echo "Building for WebAssembly..."
-    emcmake cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
-    cmake --build .
-    emrun starterkit.html
+# Create and enter the build directory
+rm -rf build && mkdir -p build && cd build
 
-elif [ "$1" = "native" ]; then
-    echo "Building natively..."
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
-    cmake --build .
-    ./starterkit
-
-else
-    echo "Invalid build target. Use 'native' or 'wasm'."
-    exit 1
-fi
-
+# Build process
+case "$TARGET" in
+    wasm)
+        echo "Building for WebAssembly..."
+        emcmake cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
+        cmake --build . -j"$NUMCORES"
+        emrun starterkit.html
+        ;;
+    native)
+        echo "Building natively..."
+        cmake -DCMAKE_BUILD_TYPE=Debug ..
+        cmake --build . -j"$NUMCORES"
+        ./starterkit
+        ;;
+esac
