@@ -7,9 +7,11 @@
 
 // application state
 static struct {
-    sg_pipeline pip;
-    sg_bindings bind;
-    sg_pass_action pass_action;
+    struct {
+        sg_pipeline pip;
+        sg_bindings bind;
+        sg_pass_action pass_action;
+    } gfx;
 } state;
 
 // forward declarations
@@ -46,13 +48,13 @@ static void init(void)
         0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
         -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f
     };
-    state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc) {
+    state.gfx.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(vertices),
         .label = "triangle-vertices" });
 
     sg_shader shd = sg_make_shader(triangle_shader_desc(sg_query_backend()));
 
-    state.pip = sg_make_pipeline(&(sg_pipeline_desc) {
+    state.gfx.pip = sg_make_pipeline(&(sg_pipeline_desc) {
         .shader = shd,
         .layout = {
             .attrs = {
@@ -63,7 +65,7 @@ static void init(void)
         .label = "triangle-pipeline",
     });
 
-    state.pass_action = (sg_pass_action) {
+    state.gfx.pass_action = (sg_pass_action) {
         .colors[0] = {
             .load_action = SG_LOADACTION_CLEAR,
             .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
@@ -73,9 +75,9 @@ static void init(void)
 
 static void frame(void)
 {
-    sg_begin_pass(&(sg_pass) { .action = state.pass_action, .swapchain = sglue_swapchain() });
-    sg_apply_pipeline(state.pip);
-    sg_apply_bindings(&state.bind);
+    sg_begin_pass(&(sg_pass) { .action = state.gfx.pass_action, .swapchain = sglue_swapchain() });
+    sg_apply_pipeline(state.gfx.pip);
+    sg_apply_bindings(&state.gfx.bind);
     sg_draw(0, 3, 1);
     sg_end_pass();
     sg_commit();
