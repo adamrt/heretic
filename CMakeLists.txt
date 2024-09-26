@@ -8,12 +8,15 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(Threads REQUIRED)
 endif()
 
+# Enable compile commands export for tools like clang-tidy
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Add Sokol library
-add_library(sokol STATIC lib/sokol/sokol.c)
+add_library(sokol STATIC lib/sokol.c)
 target_include_directories(sokol PUBLIC lib/sokol)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    # compile sokol.c as Objective-C
+    # Compile sokol.c as Objective-C
     target_compile_options(sokol PRIVATE -x objective-c)
     target_link_libraries(sokol
         "-framework QuartzCore"
@@ -23,31 +26,28 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
         "-framework OpenGL"
         "-framework AudioToolbox")
 elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
-    target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL asound dl m)
-    target_link_libraries(sokol PUBLIC Threads::Threads)
+    # Linux specific settings
+    target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL asound dl m Threads::Threads)
 endif()
 
 # Add Starterkit executable
-if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-    add_executable(starterkit WIN32 src/main.c)
-else()
-    add_executable(starterkit src/main.c)
-endif()
+add_executable(starterkit src/main.c)
 
+# Link Sokol library
 target_link_libraries(starterkit sokol)
 
+# Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    target_link_options(starterkit PUBLIC --shell-file ../lib/sokol/shell.html)
+    target_link_options(starterkit PUBLIC --shell-file ../lib/shell.html)
     target_link_options(starterkit PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
 endif()
-if (MSVC)
-    target_compile_options(starterkit PUBLIC /W3)
-else()
-    target_compile_options(starterkit PUBLIC -Wall -Wextra -Wsign-compare)
-endif()
+
+target_compile_options(starterkit PUBLIC -Wall -Wextra -Wsign-compare)
 
 # Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(starterkit PRIVATE LINKER:-dead_strip)
+elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
+    target_link_options(starterkit PRIVATE -Wl,--gc-sections)
 endif()
