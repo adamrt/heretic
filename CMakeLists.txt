@@ -33,8 +33,13 @@ endif()
 # Add Starterkit executable
 add_executable(starterkit src/main.c)
 
-# Link Sokol library
-target_link_libraries(starterkit sokol)
+option(CGLM_SHARED "Shared build" OFF)
+option(CGLM_STATIC "Static build"  ON)
+option(CGLM_USE_C99 "" ON)
+add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
+
+# Link sokol and cglm library
+target_link_libraries(starterkit sokol cglm_headers)
 
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)

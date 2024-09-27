@@ -1,0 +1,6 @@
+[submodule "lib/cglm"]
+	path = lib/cglm
+	url = git@github.com:recp/cglm.git
+[submodule "lib/sokol"]
+	path = lib/sokol
+	url = git@github.com:floooh/sokol.git
