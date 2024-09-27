@@ -22,6 +22,7 @@ static struct {
 
 // forward declarations
 static void init(void);
+static void event(const sapp_event* e);
 static void frame(void);
 static void cleanup(void);
 
@@ -31,10 +32,11 @@ sapp_desc sokol_main(int argc, char* argv[])
     (void)argv;
     return (sapp_desc) {
         .init_cb = init,
+        .event_cb = event,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .width = 640,
-        .height = 480,
+        .width = 1280,
+        .height = 1024,
         .window_title = "Starterkit",
         .icon.sokol_default = true,
         .logger.func = slog_func,
@@ -128,6 +130,15 @@ static void init(void)
         .vertex_buffers[0] = vbuf,
         .index_buffer = ibuf
     };
+}
+
+static void event(const sapp_event* e)
+{
+    if (e->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (e->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_request_quit();
+        }
+    }
 }
 
 static void frame(void)
