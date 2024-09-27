@@ -11,19 +11,29 @@
 
 #include "cube.h"
 
+#define MAX_MODELS 10
+
+typedef struct {
+    vec3s translation;
+    vec3s rotation;
+    vec3s scale;
+
+    mat4s mvp;
+
+    sg_pipeline pip;
+    sg_bindings bind;
+} model;
+
 // application state
 static struct {
     struct {
-        sg_pipeline pip;
-        sg_bindings bind;
         sg_pass_action pass_action;
     } gfx;
 
     struct {
-        mat4s mvp;
-        float rx, ry;
-    } model;
-
+        model models[MAX_MODELS];
+        int num_models;
+    } scene;
 } state;
 
 // forward declarations
@@ -32,11 +42,12 @@ static void engine_event(const sapp_event* event);
 static void engine_update(void);
 static void engine_cleanup(void);
 
+static void state_init(void);
+static void state_update(void);
+
 static void gfx_init(void);
 static void gfx_frame_begin(void);
 static void gfx_frame_end(void);
-
-static void update(void);
 
 sapp_desc sokol_main(int argc, char* argv[])
 {
@@ -57,6 +68,7 @@ sapp_desc sokol_main(int argc, char* argv[])
 
 static void engine_init(void)
 {
+    state_init();
     gfx_init();
 }
 
@@ -71,15 +83,16 @@ static void engine_event(const sapp_event* event)
 
 static void engine_update(void)
 {
-    update();
-
-    vs_params_t vs_params;
-    vs_params.mvp = state.model.mvp;
+    state_update();
 
     gfx_frame_begin();
     {
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
-        sg_draw(0, 36, 1);
+        for (int i = 0; i < state.scene.num_models; i++) {
+            vs_params_t vs_params;
+            vs_params.mvp = state.scene.models[i].mvp;
+            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
+            sg_draw(0, 36, 1);
+        }
     }
     gfx_frame_end();
 }
@@ -89,27 +102,18 @@ static void engine_cleanup(void)
     sg_shutdown();
 }
 
-static void update(void)
+static void state_init(void)
 {
-    const float w = sapp_widthf();
-    const float h = sapp_heightf();
-    const float t = (float)sapp_frame_duration();
-    state.model.rx += 1.0f * t;
-    state.model.ry += 2.0f * t;
-    mat4s rxm = glms_rotate_make(state.model.rx, GLMS_XUP);
-    mat4s rym = glms_rotate_make(state.model.ry, GLMS_YUP);
+    float trans_x_base = -2.0f;
+    for (int i = 0; i < 3; i++) {
+        model* m = &state.scene.models[i];
+        float trans_x = trans_x_base + (2.0f * i);
+        m->translation = (vec3s) { { trans_x, 0.0f, 0.0f } };
+        m->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        m->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
 
-    mat4s proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
-
-    vec3s eye = { { 0.0f, 1.5f, 6.0f } };
-    vec3s center = { { 0.0f, 0.0f, 0.0f } };
-    vec3s up = { { 0.0f, 1.0f, 0.0f } };
-    mat4s view = glms_lookat(eye, center, up);
-
-    mat4s view_proj = glms_mat4_mul(proj, view);
-    mat4s model = glms_mat4_mul(rxm, rym);
-
-    state.model.mvp = glms_mat4_mul(view_proj, model);
+        state.scene.num_models++;
+    }
 }
 
 static void gfx_init(void)
@@ -121,35 +125,42 @@ static void gfx_init(void)
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(vertices),
-        .label = "cube-vertices" });
+        .label = "cube-vertices",
+    });
 
     sg_buffer ibuf = sg_make_buffer(&(sg_buffer_desc) {
         .type = SG_BUFFERTYPE_INDEXBUFFER,
         .data = SG_RANGE(indices),
-        .label = "cube-indices" });
-
-    state.gfx.pip = sg_make_pipeline(&(sg_pipeline_desc) {
-        .layout = {
-            .buffers[0].stride = 28,
-            .attrs = {
-                [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
-            },
-        },
-        .shader = sg_make_shader(cube_shader_desc(sg_query_backend())),
-        .index_type = SG_INDEXTYPE_UINT16,
-        .cull_mode = SG_CULLMODE_NONE,
-        .depth = {
-            .write_enabled = true,
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
-        },
-        .label = "cube-pipeline",
+        .label = "cube-indices",
     });
 
-    state.gfx.bind = (sg_bindings) {
-        .vertex_buffers[0] = vbuf,
-        .index_buffer = ibuf
-    };
+    sg_shader shd = sg_make_shader(cube_shader_desc(sg_query_backend()));
+
+    for (int i = 0; i < state.scene.num_models; i++) {
+        model* m = &state.scene.models[i];
+        m->pip = sg_make_pipeline(&(sg_pipeline_desc) {
+            .layout = {
+                .buffers[0].stride = 28,
+                .attrs = {
+                    [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
+                    [ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
+                },
+            },
+            .shader = shd,
+            .index_type = SG_INDEXTYPE_UINT16,
+            .cull_mode = SG_CULLMODE_NONE,
+            .depth = {
+                .write_enabled = true,
+                .compare = SG_COMPAREFUNC_LESS_EQUAL,
+            },
+            .label = "cube-pipeline",
+        });
+
+        m->bind = (sg_bindings) {
+            .vertex_buffers[0] = vbuf,
+            .index_buffer = ibuf
+        };
+    }
 }
 
 static void gfx_frame_begin(void)
@@ -164,12 +175,53 @@ static void gfx_frame_begin(void)
         .swapchain = sglue_swapchain(),
     });
 
-    sg_apply_pipeline(state.gfx.pip);
-    sg_apply_bindings(&state.gfx.bind);
+    for (int i = 0; i < state.scene.num_models; i++) {
+        model* m = &state.scene.models[i];
+        sg_apply_pipeline(m->pip);
+        sg_apply_bindings(&m->bind);
+    }
 }
 
 static void gfx_frame_end(void)
 {
     sg_end_pass();
     sg_commit();
+}
+
+static void state_update(void)
+{
+    const float w = sapp_widthf();
+    const float h = sapp_heightf();
+    const float t = (float)sapp_frame_duration();
+
+    mat4s proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
+
+    vec3s eye = { { 0.0f, 1.5f, 6.0f } };
+    vec3s center = { { 0.0f, 0.0f, 0.0f } };
+    vec3s up = { { 0.0f, 1.0f, 0.0f } };
+    mat4s view = glms_lookat(eye, center, up);
+
+    mat4s view_proj = glms_mat4_mul(proj, view);
+
+    for (int i = 0; i < state.scene.num_models; i++) {
+        model* m = &state.scene.models[i];
+
+        // update models
+        m->rotation.x += ((i + 1) * 1.0f) * t;
+        m->rotation.y += ((i + 1) * 2.0f) * t;
+
+        mat4s mvp = glms_mat4_identity();
+
+        mvp = glms_translate(mvp, m->translation);
+
+        mvp = glms_rotate_x(mvp, m->rotation.x);
+        mvp = glms_rotate_y(mvp, m->rotation.y);
+        mvp = glms_rotate_z(mvp, m->rotation.z);
+
+        mvp = glms_scale(mvp, m->scale);
+
+        mvp = glms_mat4_mul(view_proj, mvp);
+
+        m->mvp = mvp;
+    }
 }
