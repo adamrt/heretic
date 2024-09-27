@@ -34,6 +34,12 @@ static struct {
         model_t models[MAX_MODELS];
         int num_models;
     } scene;
+
+    struct {
+        vec3s eye;
+        vec3s center;
+        vec3s up;
+    } camera;
 } state;
 
 // forward declarations
@@ -48,6 +54,8 @@ static void state_update(void);
 static void gfx_init(void);
 static void gfx_frame_begin(void);
 static void gfx_frame_end(void);
+
+static mat4s model_world(const model_t* model);
 
 sapp_desc sokol_main(int argc, char* argv[])
 {
@@ -104,6 +112,10 @@ static void engine_cleanup(void)
 
 static void state_init(void)
 {
+    state.camera.eye = (vec3s) { { 0.0f, 1.5f, 6.0f } };
+    state.camera.center = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+    state.camera.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
+
     float trans_x_base = -2.0f;
     for (int i = 0; i < 3; i++) {
         model_t* model = &state.scene.models[i];
@@ -188,40 +200,34 @@ static void gfx_frame_end(void)
     sg_commit();
 }
 
-static mat4s model_transform(model_t* m, float delta)
-{
-    m->rotation.x += 1.0f * delta;
-    m->rotation.y += 2.0f * delta;
-
-    mat4s model = glms_mat4_identity();
-    model = glms_translate(model, m->translation);
-    model = glms_rotate_x(model, m->rotation.x);
-    model = glms_rotate_y(model, m->rotation.y);
-    model = glms_rotate_z(model, m->rotation.z);
-    model = glms_scale(model, m->scale);
-
-    return model;
-}
-
 static void state_update(void)
 {
     const float w = sapp_widthf();
     const float h = sapp_heightf();
     const float t = (float)sapp_frame_duration();
 
-    vec3s eye = { { 0.0f, 1.5f, 6.0f } };
-    vec3s center = { { 0.0f, 0.0f, 0.0f } };
-    vec3s up = { { 0.0f, 1.0f, 0.0f } };
-    mat4s view = glms_lookat(eye, center, up);
-
     mat4s proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
-
+    mat4s view = glms_lookat(state.camera.eye, state.camera.center, state.camera.up);
     mat4s view_proj = glms_mat4_mul(proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
-        mat4s transform = model_transform(model, t);
-        mat4s mvp = glms_mat4_mul(view_proj, transform);
+        model->rotation.x += 1.0f * t;
+        model->rotation.y += 2.0f * t;
+
+        mat4s world = model_world(model);
+        mat4s mvp = glms_mat4_mul(view_proj, world);
         model->mvp = mvp;
     }
+}
+
+static mat4s model_world(const model_t* model)
+{
+    mat4s world = glms_mat4_identity();
+    world = glms_translate(world, model->translation);
+    world = glms_rotate_x(world, model->rotation.x);
+    world = glms_rotate_y(world, model->rotation.y);
+    world = glms_rotate_z(world, model->rotation.z);
+    world = glms_scale(world, model->scale);
+    return world;
 }
