@@ -22,7 +22,7 @@ typedef struct {
 
     sg_pipeline pip;
     sg_bindings bind;
-} model;
+} model_t;
 
 // application state
 static struct {
@@ -31,7 +31,7 @@ static struct {
     } gfx;
 
     struct {
-        model models[MAX_MODELS];
+        model_t models[MAX_MODELS];
         int num_models;
     } scene;
 } state;
@@ -59,7 +59,7 @@ sapp_desc sokol_main(int argc, char* argv[])
         .frame_cb = engine_update,
         .cleanup_cb = engine_cleanup,
         .width = 1280,
-        .height = 1024,
+        .height = 960,
         .window_title = "Starterkit",
         .icon.sokol_default = true,
         .logger.func = slog_func,
@@ -106,7 +106,7 @@ static void state_init(void)
 {
     float trans_x_base = -2.0f;
     for (int i = 0; i < 3; i++) {
-        model* m = &state.scene.models[i];
+        model_t* m = &state.scene.models[i];
         float trans_x = trans_x_base + (2.0f * i);
         m->translation = (vec3s) { { trans_x, 0.0f, 0.0f } };
         m->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
@@ -137,7 +137,7 @@ static void gfx_init(void)
     sg_shader shd = sg_make_shader(cube_shader_desc(sg_query_backend()));
 
     for (int i = 0; i < state.scene.num_models; i++) {
-        model* m = &state.scene.models[i];
+        model_t* m = &state.scene.models[i];
         m->pip = sg_make_pipeline(&(sg_pipeline_desc) {
             .layout = {
                 .buffers[0].stride = 28,
@@ -176,7 +176,7 @@ static void gfx_frame_begin(void)
     });
 
     for (int i = 0; i < state.scene.num_models; i++) {
-        model* m = &state.scene.models[i];
+        model_t* m = &state.scene.models[i];
         sg_apply_pipeline(m->pip);
         sg_apply_bindings(&m->bind);
     }
@@ -204,23 +204,20 @@ static void state_update(void)
     mat4s view_proj = glms_mat4_mul(proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
-        model* m = &state.scene.models[i];
+        model_t* m = &state.scene.models[i];
 
         // update models
         m->rotation.x += ((i + 1) * 1.0f) * t;
         m->rotation.y += ((i + 1) * 2.0f) * t;
 
-        mat4s mvp = glms_mat4_identity();
+        mat4s model = glms_mat4_identity();
+        model = glms_translate(model, m->translation);
+        model = glms_rotate_x(model, m->rotation.x);
+        model = glms_rotate_y(model, m->rotation.y);
+        model = glms_rotate_z(model, m->rotation.z);
+        model = glms_scale(model, m->scale);
 
-        mvp = glms_translate(mvp, m->translation);
-
-        mvp = glms_rotate_x(mvp, m->rotation.x);
-        mvp = glms_rotate_y(mvp, m->rotation.y);
-        mvp = glms_rotate_z(mvp, m->rotation.z);
-
-        mvp = glms_scale(mvp, m->scale);
-
-        mvp = glms_mat4_mul(view_proj, mvp);
+        mat4s mvp = glms_mat4_mul(view_proj, model);
 
         m->mvp = mvp;
     }
