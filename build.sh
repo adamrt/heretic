@@ -5,12 +5,13 @@ set -eou pipefail
 OS=$(uname)
 
 # Validate parameters
-if [[ $# -ne 1 || ! "$1" =~ ^(native|wasm)$ ]]; then
-    echo "Usage: ./build.sh [native|wasm]"
+if [[ $# -lt 1 || ! "$1" =~ ^(native|wasm)$ ]]; then
+    echo "Usage: ./build.sh [native|wasm] [shader]"
     exit 1
 fi
 
 TARGET="$1"
+COMPILE_SHADER_ONLY=${2:-} # Optional second argument to compile only the shader
 
 # Determine the number of CPU cores based on the OS
 get_num_cores() {
@@ -23,23 +24,17 @@ get_num_cores() {
 
 get_num_cores
 
-# Function to download the sokol-shdc shader compiler
-download_shader_compiler() {
+# Function to download the sokol-shdc shader compiler if not present
+if [[ ! -f "sokol-shdc" ]]; then
+    echo "sokol-shdc not found. Downloading..."
     case "$OS" in
         Linux) OSPATH="linux" ;;
         Darwin) OSPATH="osx_arm64" ;;
-        *) echo "Unsupported OS: $OS" && return 1 ;;
+        *) echo "Unsupported OS: $OS" && exit 1 ;;
     esac
-
     wget -q https://github.com/floooh/sokol-tools-bin/raw/master/bin/${OSPATH}/sokol-shdc
     chmod +x sokol-shdc
     echo "sokol-shdc downloaded and made executable."
-}
-
-# Download shader compiler if not present
-if [[ ! -f "sokol-shdc" ]]; then
-    echo "sokol-shdc not found. Downloading..."
-    download_shader_compiler
 fi
 
 # Determine shader language based on target and OS
@@ -55,8 +50,15 @@ case "$TARGET" in
     *) echo "Invalid target: $TARGET" && exit 1 ;;
 esac
 
-# Compile the shader
+# Compile the shader (this happens always)
+echo "Compiling shader..."
 ./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l "$SHADER_LANG"
+
+# If the second argument is 'shader', skip the rest of the build
+if [[ "$COMPILE_SHADER_ONLY" == "shader" ]]; then
+    echo "Shader compilation complete. Skipping further build steps."
+    exit 0
+fi
 
 # Create and enter the build directory
 rm -rf build && mkdir -p build && cd build
