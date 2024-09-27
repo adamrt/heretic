@@ -2,7 +2,7 @@
 
 This starter kit is to get you up and running with a cross platform sokol application.
 
-It uses C, CMake, Sokol.
+It uses c99, sokol, glm.
 
 - `./build.sh native` for Mac (Metal), Linux (OpenGL) 
 - `./build.sh wasm` for the browser (WebGPU)

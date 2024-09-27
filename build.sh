@@ -13,6 +13,13 @@ fi
 TARGET="$1"
 COMPILE_SHADER_ONLY=${2:-} # Optional second argument to compile only the shader
 
+# Check if submodules are populated by looking for a key file in each submodule
+if [[ ! -f "lib/sokol/sokol_app.h" || ! -f "lib/cglm/cglm.h" ]]; then
+    echo "Submodules not initialized. Initializing and updating git submodules..."
+    git submodule init
+    git submodule update
+fi
+
 # Determine the number of CPU cores based on the OS
 get_num_cores() {
     case "$OS" in
