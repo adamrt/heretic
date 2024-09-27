@@ -106,11 +106,11 @@ static void state_init(void)
 {
     float trans_x_base = -2.0f;
     for (int i = 0; i < 3; i++) {
-        model_t* m = &state.scene.models[i];
+        model_t* model = &state.scene.models[i];
         float trans_x = trans_x_base + (2.0f * i);
-        m->translation = (vec3s) { { trans_x, 0.0f, 0.0f } };
-        m->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-        m->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
+        model->translation = (vec3s) { { trans_x, 0.0f, 0.0f } };
+        model->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        model->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
 
         state.scene.num_models++;
     }
@@ -137,8 +137,8 @@ static void gfx_init(void)
     sg_shader shd = sg_make_shader(cube_shader_desc(sg_query_backend()));
 
     for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* m = &state.scene.models[i];
-        m->pip = sg_make_pipeline(&(sg_pipeline_desc) {
+        model_t* model = &state.scene.models[i];
+        model->pip = sg_make_pipeline(&(sg_pipeline_desc) {
             .layout = {
                 .buffers[0].stride = 28,
                 .attrs = {
@@ -156,7 +156,7 @@ static void gfx_init(void)
             .label = "cube-pipeline",
         });
 
-        m->bind = (sg_bindings) {
+        model->bind = (sg_bindings) {
             .vertex_buffers[0] = vbuf,
             .index_buffer = ibuf
         };
@@ -176,9 +176,9 @@ static void gfx_frame_begin(void)
     });
 
     for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* m = &state.scene.models[i];
-        sg_apply_pipeline(m->pip);
-        sg_apply_bindings(&m->bind);
+        model_t* model = &state.scene.models[i];
+        sg_apply_pipeline(model->pip);
+        sg_apply_bindings(&model->bind);
     }
 }
 
@@ -188,37 +188,40 @@ static void gfx_frame_end(void)
     sg_commit();
 }
 
+static mat4s model_transform(model_t* m, float delta)
+{
+    m->rotation.x += 1.0f * delta;
+    m->rotation.y += 2.0f * delta;
+
+    mat4s model = glms_mat4_identity();
+    model = glms_translate(model, m->translation);
+    model = glms_rotate_x(model, m->rotation.x);
+    model = glms_rotate_y(model, m->rotation.y);
+    model = glms_rotate_z(model, m->rotation.z);
+    model = glms_scale(model, m->scale);
+
+    return model;
+}
+
 static void state_update(void)
 {
     const float w = sapp_widthf();
     const float h = sapp_heightf();
     const float t = (float)sapp_frame_duration();
 
-    mat4s proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
-
     vec3s eye = { { 0.0f, 1.5f, 6.0f } };
     vec3s center = { { 0.0f, 0.0f, 0.0f } };
     vec3s up = { { 0.0f, 1.0f, 0.0f } };
     mat4s view = glms_lookat(eye, center, up);
 
+    mat4s proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
+
     mat4s view_proj = glms_mat4_mul(proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* m = &state.scene.models[i];
-
-        // update models
-        m->rotation.x += ((i + 1) * 1.0f) * t;
-        m->rotation.y += ((i + 1) * 2.0f) * t;
-
-        mat4s model = glms_mat4_identity();
-        model = glms_translate(model, m->translation);
-        model = glms_rotate_x(model, m->rotation.x);
-        model = glms_rotate_y(model, m->rotation.y);
-        model = glms_rotate_z(model, m->rotation.z);
-        model = glms_scale(model, m->scale);
-
-        mat4s mvp = glms_mat4_mul(view_proj, model);
-
-        m->mvp = mvp;
+        model_t* model = &state.scene.models[i];
+        mat4s transform = model_transform(model, t);
+        mat4s mvp = glms_mat4_mul(view_proj, transform);
+        model->mvp = mvp;
     }
 }
