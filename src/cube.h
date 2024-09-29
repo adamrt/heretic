@@ -5,7 +5,7 @@
 
 /* cube vertex buffer */
 // clang-format off
-float vertices[] = {
+float cube_vertices[] = {
     -1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
      1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
      1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
@@ -36,11 +36,9 @@ float vertices[] = {
      1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
      1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0
 };
-// clang-format on
 
-/* create an index buffer for the cube */
-// clang-format off
-uint16_t indices[] = {
+// create an index buffer for the cube */
+uint16_t cube_indices[] = {
     0, 1, 2,  0, 2, 3,
     6, 5, 4,  7, 6, 4,
     8, 9, 10,  8, 10, 11,
@@ -48,6 +46,17 @@ uint16_t indices[] = {
     16, 17, 18,  16, 18, 19,
     22, 21, 20,  23, 22, 20
 };
-// clang-format on
+
+// Fullscreen quad vertices
+float quad_vertices[] = {
+    // positions  // texcoords
+    -1.0f, -1.0f, 0.0f, 1.0f, // bottom-left
+     1.0f, -1.0f, 1.0f, 1.0f, // bottom-right
+    -1.0f,  1.0f, 0.0f, 0.0f, // top-left
+     1.0f,  1.0f, 1.0f, 0.0f  // top-right
+};
+
+uint16_t quad_indices[] = { 0, 1, 2, 1, 3, 2 };
+// clang-format off
 
 #endif // CUBE_H_

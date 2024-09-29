@@ -11,7 +11,15 @@
 
 #include "cube.h"
 
-#define MAX_MODELS 10
+static const int GFX_RENDER_WIDTH = 256;
+static const int GFX_RENDER_HEIGHT = 240;
+static const int GFX_WINDOW_WIDTH = GFX_RENDER_WIDTH * 4;
+static const int GFX_WINDOW_HEIGHT = GFX_RENDER_HEIGHT * 4;
+static const int GFX_OFFSCREEN_SAMPLE_COUNT = 1;
+static const int GFX_DISPLAY_SAMPLE_COUNT = 4;
+static const sg_pixel_format GFX_OFFSCREEN_PIXEL_FORMAT = SG_PIXELFORMAT_RGBA8;
+
+static const int STATE_MAX_MODELS = 10;
 
 typedef struct {
     vec3s translation;
@@ -36,13 +44,20 @@ typedef struct {
 // application state
 static struct {
     struct {
-        sg_pass_action pass_action;
-        sg_pipeline pip;
-        sg_bindings bind;
+        struct {
+            sg_pass pass;
+            sg_pipeline pipeline;
+            sg_bindings bindings;
+        } offscreen;
+        struct {
+            sg_pass_action pass_action;
+            sg_pipeline pipeline;
+            sg_bindings bindings;
+        } display;
     } gfx;
 
     struct {
-        model_t models[MAX_MODELS];
+        model_t models[STATE_MAX_MODELS];
         int num_models;
     } scene;
 
@@ -62,8 +77,7 @@ static void state_init(void);
 static void state_update(void);
 
 static void gfx_init(void);
-static void gfx_frame_begin(void);
-static void gfx_frame_end(void);
+static void gfx_frame(void);
 
 static mat4s model_world(const model_t* model);
 
@@ -83,8 +97,9 @@ sapp_desc sokol_main(int argc, char* argv[])
         .event_cb = engine_event,
         .frame_cb = engine_update,
         .cleanup_cb = engine_cleanup,
-        .width = 1280,
-        .height = 960,
+        .width = GFX_WINDOW_WIDTH,
+        .height = GFX_WINDOW_HEIGHT,
+        .sample_count = GFX_DISPLAY_SAMPLE_COUNT,
         .window_title = "Starterkit",
         .icon.sokol_default = true,
         .logger.func = slog_func,
@@ -142,17 +157,7 @@ static void engine_update(void)
 {
     state_update();
     camera_update();
-
-    gfx_frame_begin();
-    {
-        for (int i = 0; i < state.scene.num_models; i++) {
-            vs_params_t vs_params;
-            vs_params.mvp = state.scene.models[i].mvp;
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
-            sg_draw(0, 36, 1);
-        }
-    }
-    gfx_frame_end();
+    gfx_frame();
 }
 
 static void engine_cleanup(void)
@@ -176,6 +181,9 @@ static void state_init(void)
     }
 }
 
+// There are two passes so we can render the offscreen image to a fullscreen
+// quad. The offscreen is rendered at the native PS1 FFT resolution and then
+// upscaled to the window size to keep the pixelated look.
 static void gfx_init(void)
 {
     sg_setup(&(sg_desc) {
@@ -183,71 +191,160 @@ static void gfx_init(void)
         .logger.func = slog_func,
     });
 
-    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(vertices),
-        .label = "cube-vertices",
+    //
+    // Offscreen initialization
+    //
+
+    sg_image color_img = sg_make_image(&(sg_image_desc) {
+        .render_target = true,
+        .width = GFX_RENDER_WIDTH,
+        .height = GFX_RENDER_HEIGHT,
+        .pixel_format = GFX_OFFSCREEN_PIXEL_FORMAT,
+        .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
+        .label = "color-image",
     });
 
-    sg_buffer ibuf = sg_make_buffer(&(sg_buffer_desc) {
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(indices),
-        .label = "cube-indices",
+    sg_image depth_img = sg_make_image(&(sg_image_desc) {
+        .render_target = true,
+        .width = GFX_RENDER_WIDTH,
+        .height = GFX_RENDER_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_DEPTH,
+        .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
+        .label = "depth-image",
     });
 
-    sg_shader shd = sg_make_shader(cube_shader_desc(sg_query_backend()));
-
-    state.gfx.pip = sg_make_pipeline(&(sg_pipeline_desc) {
-        .layout = {
-            .buffers[0].stride = 28,
-            .attrs = {
-                [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
-            },
-        },
-        .shader = shd,
-        .index_type = SG_INDEXTYPE_UINT16,
-        .cull_mode = SG_CULLMODE_NONE,
-        .depth = {
-            .write_enabled = true,
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
-        },
-        .label = "cube-pipeline",
-    });
-
-    state.gfx.bind = (sg_bindings) {
-        .vertex_buffers[0] = vbuf,
-        .index_buffer = ibuf
-    };
-}
-
-static void gfx_frame_begin(void)
-{
-    sg_begin_pass(&(sg_pass) {
+    state.gfx.offscreen.pass = (sg_pass) {
+        .attachments = sg_make_attachments(&(sg_attachments_desc) {
+            .colors[0].image = color_img,
+            .depth_stencil.image = depth_img,
+            .label = "offscreen-attachments",
+        }),
         .action = {
             .colors[0] = {
                 .load_action = SG_LOADACTION_CLEAR,
-                .clear_value = { 0.25f, 0.5f, 0.75f, 1.0f },
+                .clear_value = { 0.25f, 0.25f, 0.25f, 1.0f },
             },
         },
-        .swapchain = sglue_swapchain(),
+        .label = "offscreen-pass"
+    };
+
+    state.gfx.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+        .layout = {
+            .attrs = {
+                [ATTR_cube_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_cube_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
+            },
+        },
+        .shader = sg_make_shader(cube_shader_desc(sg_query_backend())),
+        .index_type = SG_INDEXTYPE_UINT16,
+        .cull_mode = SG_CULLMODE_BACK,
+        .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
+        .depth = {
+            .pixel_format = SG_PIXELFORMAT_DEPTH,
+            .compare = SG_COMPAREFUNC_LESS_EQUAL,
+            .write_enabled = true,
+        },
+        .colors[0].pixel_format = GFX_OFFSCREEN_PIXEL_FORMAT,
+        .label = "cube-pipeline",
     });
 
-    sg_apply_pipeline(state.gfx.pip);
-    sg_apply_bindings(&state.gfx.bind);
+    sg_buffer cube_vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(cube_vertices),
+        .label = "cube-vertices",
+    });
 
-    for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* model = &state.scene.models[i];
+    sg_buffer cube_ibuf = sg_make_buffer(&(sg_buffer_desc) {
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = SG_RANGE(cube_indices),
+        .label = "cube-indices",
+    });
 
-        vs_params_t vs_params = { .mvp = model->mvp };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
+    state.gfx.offscreen.bindings = (sg_bindings) {
+        .vertex_buffers[0] = cube_vbuf,
+        .index_buffer = cube_ibuf
+    };
 
-        sg_draw(0, 36, 1);
-    }
+    //
+    // Quad initialization
+    //
+
+    state.gfx.display.pass_action = (sg_pass_action) {
+        .colors[0] = {
+            .load_action = SG_LOADACTION_CLEAR,
+            .clear_value = { 0.25f, 0.45f, 0.65f, 1.0f } }
+    };
+
+    state.gfx.display.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+        .layout = {
+            .buffers[0].stride = 16, // 2 floats for position, 2 floats for texcoords
+            .attrs = {
+                [ATTR_quad_vs_position].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_quad_vs_texcoord0].format = SG_VERTEXFORMAT_FLOAT2,
+            },
+        },
+        .shader = sg_make_shader(quad_shader_desc(sg_query_backend())),
+        .index_type = SG_INDEXTYPE_UINT16,
+        .cull_mode = SG_CULLMODE_NONE,
+        .depth = {
+            .compare = SG_COMPAREFUNC_LESS_EQUAL,
+            .write_enabled = true,
+        },
+        .label = "quad-pipeline",
+    });
+
+    sg_buffer quad_vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(quad_vertices),
+        .label = "quad-vertices",
+    });
+
+    sg_buffer quad_ibuf = sg_make_buffer(&(sg_buffer_desc) {
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = SG_RANGE(quad_indices),
+        .label = "quad-indices",
+    });
+
+    sg_sampler smp = sg_make_sampler(&(sg_sampler_desc) {
+        .min_filter = SG_FILTER_NEAREST,
+        .mag_filter = SG_FILTER_NEAREST,
+        .wrap_u = SG_WRAP_REPEAT,
+        .wrap_v = SG_WRAP_REPEAT,
+    });
+
+    state.gfx.display.bindings = (sg_bindings) {
+        .vertex_buffers[0] = quad_vbuf,
+        .index_buffer = quad_ibuf,
+        .fs = {
+            .images[SLOT_tex] = color_img,
+            .samplers[SLOT_smp] = smp,
+        }
+    };
 }
 
-static void gfx_frame_end(void)
+static void gfx_frame(void)
 {
+    // Offscreen pass
+    sg_begin_pass(&state.gfx.offscreen.pass);
+    sg_apply_pipeline(state.gfx.offscreen.pipeline);
+    sg_apply_bindings(&state.gfx.offscreen.bindings);
+    for (int i = 0; i < state.scene.num_models; i++) {
+        model_t* model = &state.scene.models[i];
+        vs_params_t vs_params = { .mvp = model->mvp };
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
+        sg_draw(0, 36, 1);
+    }
     sg_end_pass();
+
+    // Quad pass
+    sg_begin_pass(&(sg_pass) {
+        .action = state.gfx.display.pass_action,
+        .swapchain = sglue_swapchain(),
+        .label = "swapchain-pass",
+    });
+    sg_apply_pipeline(state.gfx.display.pipeline);
+    sg_apply_bindings(&state.gfx.display.bindings);
+    sg_draw(0, 6, 1);
+    sg_end_pass();
+
     sg_commit();
 }
 
