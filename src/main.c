@@ -19,9 +19,6 @@ typedef struct {
     vec3s scale;
 
     mat4s mvp;
-
-    sg_pipeline pip;
-    sg_bindings bind;
 } model_t;
 
 typedef struct {
@@ -40,6 +37,8 @@ typedef struct {
 static struct {
     struct {
         sg_pass_action pass_action;
+        sg_pipeline pip;
+        sg_bindings bind;
     } gfx;
 
     struct {
@@ -197,31 +196,28 @@ static void gfx_init(void)
 
     sg_shader shd = sg_make_shader(cube_shader_desc(sg_query_backend()));
 
-    for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* model = &state.scene.models[i];
-        model->pip = sg_make_pipeline(&(sg_pipeline_desc) {
-            .layout = {
-                .buffers[0].stride = 28,
-                .attrs = {
-                    [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
-                    [ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
-                },
+    state.gfx.pip = sg_make_pipeline(&(sg_pipeline_desc) {
+        .layout = {
+            .buffers[0].stride = 28,
+            .attrs = {
+                [ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
             },
-            .shader = shd,
-            .index_type = SG_INDEXTYPE_UINT16,
-            .cull_mode = SG_CULLMODE_NONE,
-            .depth = {
-                .write_enabled = true,
-                .compare = SG_COMPAREFUNC_LESS_EQUAL,
-            },
-            .label = "cube-pipeline",
-        });
+        },
+        .shader = shd,
+        .index_type = SG_INDEXTYPE_UINT16,
+        .cull_mode = SG_CULLMODE_NONE,
+        .depth = {
+            .write_enabled = true,
+            .compare = SG_COMPAREFUNC_LESS_EQUAL,
+        },
+        .label = "cube-pipeline",
+    });
 
-        model->bind = (sg_bindings) {
-            .vertex_buffers[0] = vbuf,
-            .index_buffer = ibuf
-        };
-    }
+    state.gfx.bind = (sg_bindings) {
+        .vertex_buffers[0] = vbuf,
+        .index_buffer = ibuf
+    };
 }
 
 static void gfx_frame_begin(void)
@@ -236,10 +232,16 @@ static void gfx_frame_begin(void)
         .swapchain = sglue_swapchain(),
     });
 
+    sg_apply_pipeline(state.gfx.pip);
+    sg_apply_bindings(&state.gfx.bind);
+
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
-        sg_apply_pipeline(model->pip);
-        sg_apply_bindings(&model->bind);
+
+        vs_params_t vs_params = { .mvp = model->mvp };
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
+
+        sg_draw(0, 36, 1);
     }
 }
 
