@@ -83,13 +83,10 @@ static void gfx_offscreen_init(void);
 static void gfx_display_init(void);
 static void gfx_frame(void);
 
-static mat4s model_world(const model_t* model);
-
 static void camera_init(vec3s center, float distance, float azimuth, float elevation);
 static void camera_update(void);
 static void camera_rotate(float delta_azimuth, float delta_elevation);
 static void camera_zoom(float delta);
-static void camera_pan(float delta_x, float delta_y);
 
 sapp_desc sokol_main(int argc, char* argv[])
 {
@@ -142,8 +139,6 @@ static void engine_event(const sapp_event* event)
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (state.mouse_left) {
             camera_rotate(event->mouse_dx * 0.01f, event->mouse_dy * 0.01f);
-        } else if (state.mouse_right) {
-            camera_pan(event->mouse_dx * 0.01f, event->mouse_dy * 0.01f);
         }
         break;
 
@@ -197,14 +192,17 @@ static void state_init(void)
 // state_update updates the application state each frame.
 static void state_update(void)
 {
-    const float t = (float)sapp_frame_duration();
-
     mat4s view = glms_lookat(state.camera.eye, state.camera.center, state.camera.up);
     mat4s view_proj = glms_mat4_mul(state.camera.proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
-        mat4s world = model_world(model);
+        mat4s world = glms_mat4_identity();
+        world = glms_translate(world, model->translation);
+        world = glms_rotate_x(world, model->rotation.x);
+        world = glms_rotate_y(world, model->rotation.y);
+        world = glms_rotate_z(world, model->rotation.z);
+        world = glms_scale(world, model->scale);
         mat4s mvp = glms_mat4_mul(view_proj, world);
         model->mvp = mvp;
     }
@@ -380,18 +378,6 @@ static void gfx_frame(void)
     sg_commit();
 }
 
-// model_world returns the world/transform matrix for a model.
-static mat4s model_world(const model_t* model)
-{
-    mat4s world = glms_mat4_identity();
-    world = glms_translate(world, model->translation);
-    world = glms_rotate_x(world, model->rotation.x);
-    world = glms_rotate_y(world, model->rotation.y);
-    world = glms_rotate_z(world, model->rotation.z);
-    world = glms_scale(world, model->scale);
-    return world;
-}
-
 static void camera_init(vec3s center, float distance, float azimuth, float elevation)
 {
     const float w = sapp_widthf();
@@ -433,18 +419,4 @@ static void camera_zoom(float delta)
     if (state.camera.distance < 0.1f) {
         state.camera.distance = 0.1f;
     }
-}
-
-static void camera_pan(float delta_x, float delta_y)
-{
-    // Scale panning by distance to make it feel consistent
-    float pan_speed = state.camera.distance * 0.1f;
-
-    vec3s right = glms_cross(glms_vec3_sub(state.camera.eye, state.camera.center), state.camera.up);
-    right = glms_normalize(right);
-
-    vec3s up = glms_normalize(state.camera.up);
-
-    state.camera.center = glms_vec3_add(state.camera.center, glms_vec3_scale(right, delta_x * pan_speed));
-    state.camera.center = glms_vec3_add(state.camera.center, glms_vec3_scale(up, delta_y * pan_speed));
 }
