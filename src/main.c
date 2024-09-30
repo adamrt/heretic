@@ -42,7 +42,7 @@ typedef struct {
     float distance;
 } camera_t;
 
-// application state
+// Application state
 static struct {
     struct {
         struct {
@@ -68,7 +68,7 @@ static struct {
     bool mouse_right;
 } state;
 
-// forward declarations
+// Forward declarations
 static void engine_init(void);
 static void engine_event(const sapp_event* event);
 static void engine_update(void);
@@ -248,7 +248,7 @@ static void gfx_init(void)
         .action = {
             .colors[0] = {
                 .load_action = SG_LOADACTION_CLEAR,
-                .clear_value = { 0.25f, 0.25f, 0.25f, 1.0f },
+                .clear_value = { 0.25f, 0.45f, 0.65f, 1.0f },
             },
         },
         .label = "offscreen-pass"
@@ -291,18 +291,18 @@ static void gfx_init(void)
     };
 
     //
-    // Quad initialization
+    // Fullscreen quad initialization
     //
 
     state.gfx.display.pass_action = (sg_pass_action) {
         .colors[0] = {
             .load_action = SG_LOADACTION_CLEAR,
-            .clear_value = { 0.25f, 0.45f, 0.65f, 1.0f } }
+            .clear_value = { 0.25f, 0.45f, 0.65f, 1.0f },
+        }
     };
 
     state.gfx.display.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
-            .buffers[0].stride = 16, // 2 floats for position, 2 floats for texcoords
             .attrs = {
                 [ATTR_quad_vs_position].format = SG_VERTEXFORMAT_FLOAT2,
                 [ATTR_quad_vs_texcoord0].format = SG_VERTEXFORMAT_FLOAT2,
@@ -407,7 +407,6 @@ static void camera_update()
     float y = state.camera.distance * sinf(state.camera.elevation);
     float z = state.camera.distance * cosf(state.camera.elevation) * cosf(state.camera.azimuth);
 
-    // Update the eye (camera position)
     state.camera.eye = (vec3s) { { x, y, z } };
 }
 
