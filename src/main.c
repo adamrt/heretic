@@ -19,7 +19,7 @@ static const int GFX_OFFSCREEN_SAMPLE_COUNT = 1;
 static const int GFX_DISPLAY_SAMPLE_COUNT = 4;
 static const sg_pixel_format GFX_OFFSCREEN_PIXEL_FORMAT = SG_PIXELFORMAT_RGBA8;
 
-static const int STATE_MAX_MODELS = 10;
+static const int STATE_MAX_MODELS = 125;
 
 typedef struct {
     vec3s translation;
@@ -169,15 +169,28 @@ static void state_init(void)
 {
     camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 5.0f, 0.0f, 0.0f);
 
-    float trans_x_base = -2.0f;
-    for (int i = 0; i < 3; i++) {
-        model_t* model = &state.scene.models[i];
-        float trans_x = trans_x_base + (2.0f * i);
-        model->translation = (vec3s) { { trans_x, 0.0f, 0.0f } };
-        model->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-        model->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
+    float trans_x_base = -4.0f;
+    float trans_y_base = -4.0f;
+    float trans_z_base = -4.0f;
+    int index = 0;
 
-        state.scene.num_models++;
+    for (int i = 0; i < 5; i++) {
+        float trans_x = trans_x_base + (2.0f * i);
+        for (int j = 0; j < 5; j++) {
+            float trans_y = trans_y_base + (2.0f * j);
+            for (int k = 0; k < 5; k++) {
+                float trans_z = trans_z_base + (2.0f * k);
+
+                // Calculate the index for the 1D array
+                index = i * (5 * 5) + j * 5 + k;
+
+                model_t* model = &state.scene.models[index];
+                model->translation = (vec3s) { { trans_x, trans_y, trans_z } };
+                model->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+                model->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
+                state.scene.num_models++;
+            }
+        }
     }
 }
 
