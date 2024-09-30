@@ -11,7 +11,7 @@
 
 #include "cube.h"
 
-static const int GFX_RENDER_WIDTH = 256;
+static const int GFX_RENDER_WIDTH = 320;
 static const int GFX_RENDER_HEIGHT = 240;
 static const int GFX_WINDOW_WIDTH = GFX_RENDER_WIDTH * 4;
 static const int GFX_WINDOW_HEIGHT = GFX_RENDER_HEIGHT * 4;
