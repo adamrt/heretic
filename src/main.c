@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "cglm/struct.h"
+#include "cglm/util.h"
 
 #include "sokol_app.h"
 #include "sokol_gfx.h"
@@ -422,15 +423,9 @@ static void camera_rotate(float delta_azimuth, float delta_elevation)
     state.camera.azimuth -= delta_azimuth;
     state.camera.elevation += delta_elevation;
 
-    // Clamp elevation to avoid flipping at the poles (optional)
     float max_elevation = M_PI_2 - 0.01f; // Near 90 degrees
     float min_elevation = -max_elevation;
-    if (state.camera.elevation > max_elevation)
-        state.camera.elevation = max_elevation;
-    if (state.camera.elevation < min_elevation)
-        state.camera.elevation = min_elevation;
-
-    camera_update();
+    state.camera.elevation = glm_clamp(state.camera.elevation, min_elevation, max_elevation);
 }
 
 static void camera_zoom(float delta)
@@ -440,8 +435,6 @@ static void camera_zoom(float delta)
     if (state.camera.distance < 0.1f) {
         state.camera.distance = 0.1f;
     }
-
-    camera_update();
 }
 
 static void camera_pan(float delta_x, float delta_y)
@@ -456,8 +449,6 @@ static void camera_pan(float delta_x, float delta_y)
 
     state.camera.center = glms_vec3_add(state.camera.center, glms_vec3_scale(right, delta_x * pan_speed));
     state.camera.center = glms_vec3_add(state.camera.center, glms_vec3_scale(up, delta_y * pan_speed));
-
-    camera_update();
 }
 
 static mat4s camera_view_matrix(void)
