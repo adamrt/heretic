@@ -194,6 +194,25 @@ static void state_init(void)
     }
 }
 
+// state_update updates the application state each frame.
+static void state_update(void)
+{
+    // const float t = (float)sapp_frame_duration();
+
+    mat4s view = camera_view_matrix();
+    mat4s view_proj = glms_mat4_mul(state.camera.proj, view);
+
+    for (int i = 0; i < state.scene.num_models; i++) {
+        model_t* model = &state.scene.models[i];
+        // model->rotation.x += 1.0f * t;
+        // model->rotation.y += 2.0f * t;
+
+        mat4s world = model_world(model);
+        mat4s mvp = glms_mat4_mul(view_proj, world);
+        model->mvp = mvp;
+    }
+}
+
 // There are two passes so we can render the offscreen image to a fullscreen
 // quad. The offscreen is rendered at the native PS1 FFT resolution and then
 // upscaled to the window size to keep the pixelated look.
@@ -359,25 +378,6 @@ static void gfx_frame(void)
     sg_end_pass();
 
     sg_commit();
-}
-
-// state_update updates the application state each frame.
-static void state_update(void)
-{
-    // const float t = (float)sapp_frame_duration();
-
-    mat4s view = camera_view_matrix();
-    mat4s view_proj = glms_mat4_mul(state.camera.proj, view);
-
-    for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* model = &state.scene.models[i];
-        // model->rotation.x += 1.0f * t;
-        // model->rotation.y += 2.0f * t;
-
-        mat4s world = model_world(model);
-        mat4s mvp = glms_mat4_mul(view_proj, world);
-        model->mvp = mvp;
-    }
 }
 
 // model_world returns the world/transform matrix for a model.
