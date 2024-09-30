@@ -167,24 +167,21 @@ static void engine_cleanup(void)
 
 static void state_init(void)
 {
-    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 5.0f, 0.0f, 0.0f);
+    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 15.0f, 0.0f, 0.0f);
 
-    float trans_x_base = -4.0f;
-    float trans_y_base = -4.0f;
-    float trans_z_base = -4.0f;
+    vec3s trans_base = (vec3s) { { -4.0f, -4.0f, -4.0f } };
     int index = 0;
 
     for (int i = 0; i < 5; i++) {
-        float trans_x = trans_x_base + (2.0f * i);
+        float trans_x = trans_base.x + (2.0f * i);
         for (int j = 0; j < 5; j++) {
-            float trans_y = trans_y_base + (2.0f * j);
+            float trans_y = trans_base.y + (2.0f * j);
             for (int k = 0; k < 5; k++) {
-                float trans_z = trans_z_base + (2.0f * k);
+                float trans_z = trans_base.z + (2.0f * k);
 
-                // Calculate the index for the 1D array
                 index = i * (5 * 5) + j * 5 + k;
-
                 model_t* model = &state.scene.models[index];
+
                 model->translation = (vec3s) { { trans_x, trans_y, trans_z } };
                 model->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
                 model->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
@@ -197,16 +194,13 @@ static void state_init(void)
 // state_update updates the application state each frame.
 static void state_update(void)
 {
-    // const float t = (float)sapp_frame_duration();
+    const float t = (float)sapp_frame_duration();
 
     mat4s view = glms_lookat(state.camera.eye, state.camera.center, state.camera.up);
     mat4s view_proj = glms_mat4_mul(state.camera.proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
-        // model->rotation.x += 1.0f * t;
-        // model->rotation.y += 2.0f * t;
-
         mat4s world = model_world(model);
         mat4s mvp = glms_mat4_mul(view_proj, world);
         model->mvp = mvp;
