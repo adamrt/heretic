@@ -18,7 +18,7 @@ static const int GFX_WINDOW_WIDTH = GFX_RENDER_WIDTH * 4;
 static const int GFX_WINDOW_HEIGHT = GFX_RENDER_HEIGHT * 4;
 static const int GFX_OFFSCREEN_SAMPLE_COUNT = 1;
 static const int GFX_DISPLAY_SAMPLE_COUNT = 4;
-static const sg_pixel_format GFX_OFFSCREEN_PIXEL_FORMAT = SG_PIXELFORMAT_RGBA8;
+static const sg_pixel_format GFX_OFFSCREEN_PIXELFORMAT = SG_PIXELFORMAT_RGBA8;
 
 static const int STATE_MAX_MODELS = 125;
 
@@ -87,7 +87,6 @@ static void camera_update(void);
 static void camera_rotate(float delta_azimuth, float delta_elevation);
 static void camera_zoom(float delta);
 static void camera_pan(float delta_x, float delta_y);
-static mat4s camera_view_matrix(void);
 
 sapp_desc sokol_main(int argc, char* argv[])
 {
@@ -200,7 +199,7 @@ static void state_update(void)
 {
     // const float t = (float)sapp_frame_duration();
 
-    mat4s view = camera_view_matrix();
+    mat4s view = glms_lookat(state.camera.eye, state.camera.center, state.camera.up);
     mat4s view_proj = glms_mat4_mul(state.camera.proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
@@ -232,7 +231,7 @@ static void gfx_init(void)
         .render_target = true,
         .width = GFX_RENDER_WIDTH,
         .height = GFX_RENDER_HEIGHT,
-        .pixel_format = GFX_OFFSCREEN_PIXEL_FORMAT,
+        .pixel_format = GFX_OFFSCREEN_PIXELFORMAT,
         .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
         .label = "color-image",
     });
@@ -277,7 +276,7 @@ static void gfx_init(void)
             .compare = SG_COMPAREFUNC_LESS_EQUAL,
             .write_enabled = true,
         },
-        .colors[0].pixel_format = GFX_OFFSCREEN_PIXEL_FORMAT,
+        .colors[0].pixel_format = GFX_OFFSCREEN_PIXELFORMAT,
         .label = "cube-pipeline",
     });
 
@@ -449,9 +448,4 @@ static void camera_pan(float delta_x, float delta_y)
 
     state.camera.center = glms_vec3_add(state.camera.center, glms_vec3_scale(right, delta_x * pan_speed));
     state.camera.center = glms_vec3_add(state.camera.center, glms_vec3_scale(up, delta_y * pan_speed));
-}
-
-static mat4s camera_view_matrix(void)
-{
-    return glms_lookat(state.camera.eye, state.camera.center, state.camera.up);
 }
