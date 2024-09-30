@@ -12,13 +12,10 @@
 
 #include "cube.h"
 
-static const int GFX_RENDER_WIDTH = 320;
-static const int GFX_RENDER_HEIGHT = 240;
-static const int GFX_WINDOW_WIDTH = GFX_RENDER_WIDTH * 4;
-static const int GFX_WINDOW_HEIGHT = GFX_RENDER_HEIGHT * 4;
-static const int GFX_OFFSCREEN_SAMPLE_COUNT = 1;
-static const int GFX_DISPLAY_SAMPLE_COUNT = 4;
-static const sg_pixel_format GFX_OFFSCREEN_PIXELFORMAT = SG_PIXELFORMAT_RGBA8;
+static const int GFX_OFFSCREEN_WIDTH = 320;
+static const int GFX_OFFSCREEN_HEIGHT = 240;
+static const int GFX_DISPLAY_WIDTH = GFX_OFFSCREEN_WIDTH * 4;
+static const int GFX_DISPLAY_HEIGHT = GFX_OFFSCREEN_HEIGHT * 4;
 
 static const int STATE_MAX_MODELS = 125;
 
@@ -97,9 +94,8 @@ sapp_desc sokol_main(int argc, char* argv[])
         .event_cb = engine_event,
         .frame_cb = engine_update,
         .cleanup_cb = engine_cleanup,
-        .width = GFX_WINDOW_WIDTH,
-        .height = GFX_WINDOW_HEIGHT,
-        .sample_count = GFX_DISPLAY_SAMPLE_COUNT,
+        .width = GFX_DISPLAY_WIDTH,
+        .height = GFX_DISPLAY_HEIGHT,
         .window_title = "Starterkit",
         .icon.sokol_default = true,
         .logger.func = slog_func,
@@ -227,19 +223,17 @@ static void gfx_offscreen_init(void)
     // This is shared with gfx.display so its kept in state.
     state.gfx.offscreen.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
-        .width = GFX_RENDER_WIDTH,
-        .height = GFX_RENDER_HEIGHT,
-        .pixel_format = GFX_OFFSCREEN_PIXELFORMAT,
-        .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
+        .width = GFX_OFFSCREEN_WIDTH,
+        .height = GFX_OFFSCREEN_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "color-image",
     });
 
     sg_image depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
-        .width = GFX_RENDER_WIDTH,
-        .height = GFX_RENDER_HEIGHT,
+        .width = GFX_OFFSCREEN_WIDTH,
+        .height = GFX_OFFSCREEN_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_DEPTH,
-        .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
         .label = "depth-image",
     });
 
@@ -268,13 +262,12 @@ static void gfx_offscreen_init(void)
         .shader = sg_make_shader(cube_shader_desc(sg_query_backend())),
         .index_type = SG_INDEXTYPE_UINT16,
         .cull_mode = SG_CULLMODE_BACK,
-        .sample_count = GFX_OFFSCREEN_SAMPLE_COUNT,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
             .compare = SG_COMPAREFUNC_LESS_EQUAL,
             .write_enabled = true,
         },
-        .colors[0].pixel_format = GFX_OFFSCREEN_PIXELFORMAT,
+        .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "cube-pipeline",
     });
 
