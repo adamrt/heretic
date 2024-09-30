@@ -49,6 +49,7 @@ static struct {
             sg_pass pass;
             sg_pipeline pipeline;
             sg_bindings bindings;
+            sg_image color_image;
         } offscreen;
         struct {
             sg_pass_action pass_action;
@@ -78,6 +79,8 @@ static void state_init(void);
 static void state_update(void);
 
 static void gfx_init(void);
+static void gfx_offscreen_init(void);
+static void gfx_display_init(void);
 static void gfx_frame(void);
 
 static mat4s model_world(const model_t* model);
@@ -217,11 +220,14 @@ static void gfx_init(void)
         .logger.func = slog_func,
     });
 
-    //
-    // Offscreen initialization
-    //
+    gfx_offscreen_init();
+    gfx_display_init();
+}
 
-    sg_image color_img = sg_make_image(&(sg_image_desc) {
+static void gfx_offscreen_init(void)
+{
+    // This is shared with gfx.display so its kept in state.
+    state.gfx.offscreen.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = GFX_RENDER_WIDTH,
         .height = GFX_RENDER_HEIGHT,
@@ -230,7 +236,7 @@ static void gfx_init(void)
         .label = "color-image",
     });
 
-    sg_image depth_img = sg_make_image(&(sg_image_desc) {
+    sg_image depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = GFX_RENDER_WIDTH,
         .height = GFX_RENDER_HEIGHT,
@@ -241,8 +247,8 @@ static void gfx_init(void)
 
     state.gfx.offscreen.pass = (sg_pass) {
         .attachments = sg_make_attachments(&(sg_attachments_desc) {
-            .colors[0].image = color_img,
-            .depth_stencil.image = depth_img,
+            .colors[0].image = state.gfx.offscreen.color_image,
+            .depth_stencil.image = depth_image,
             .label = "offscreen-attachments",
         }),
         .action = {
@@ -289,11 +295,10 @@ static void gfx_init(void)
         .vertex_buffers[0] = cube_vbuf,
         .index_buffer = cube_ibuf
     };
+}
 
-    //
-    // Fullscreen quad initialization
-    //
-
+static void gfx_display_init(void)
+{
     state.gfx.display.pass_action = (sg_pass_action) {
         .colors[0] = {
             .load_action = SG_LOADACTION_CLEAR,
@@ -340,7 +345,7 @@ static void gfx_init(void)
         .vertex_buffers[0] = quad_vbuf,
         .index_buffer = quad_ibuf,
         .fs = {
-            .images[SLOT_tex] = color_img,
+            .images[SLOT_tex] = state.gfx.offscreen.color_image,
             .samplers[SLOT_smp] = smp,
         }
     };
@@ -360,7 +365,7 @@ static void gfx_frame(void)
     }
     sg_end_pass();
 
-    // Quad pass
+    // Display pass
     sg_begin_pass(&(sg_pass) {
         .action = state.gfx.display.pass_action,
         .swapchain = sglue_swapchain(),
@@ -371,6 +376,7 @@ static void gfx_frame(void)
     sg_draw(0, 6, 1);
     sg_end_pass();
 
+    // Commit passes
     sg_commit();
 }
 
