@@ -17,7 +17,7 @@ static const int GFX_OFFSCREEN_HEIGHT = 240;
 static const int GFX_DISPLAY_WIDTH = GFX_OFFSCREEN_WIDTH * 4;
 static const int GFX_DISPLAY_HEIGHT = GFX_OFFSCREEN_HEIGHT * 4;
 
-static const int STATE_MAX_MODELS = 125;
+#define STATE_MAX_MODELS 125
 
 typedef struct {
     vec3s translation;
@@ -385,7 +385,7 @@ static void camera_init(vec3s center, float distance, float azimuth, float eleva
     camera_update();
 }
 
-static void camera_update()
+static void camera_update(void)
 {
     // Convert azimuth and elevation (in radians) to spherical coordinates
     float x = state.camera.distance * cosf(state.camera.elevation) * sinf(state.camera.azimuth);

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(starterkit)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 
 # Linux -pthread shenanigans
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -48,7 +48,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(starterkit PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
 endif()
 
-target_compile_options(starterkit PUBLIC -Wall -Wextra -Wsign-compare)
+target_compile_options(starterkit PUBLIC -Wall -Wextra -Wpedantic -Werror)
 
 # Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
