@@ -62,8 +62,10 @@ static struct {
 
     camera_t camera;
 
-    bool mouse_left;
-    bool mouse_right;
+    struct {
+        bool mouse_left;
+        bool mouse_right;
+    } input;
 } state;
 
 // Forward declarations
@@ -123,17 +125,17 @@ static void engine_event(const sapp_event* event)
         bool is_down = (event->type == SAPP_EVENTTYPE_MOUSE_DOWN);
         if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(is_down);
-            state.mouse_left = is_down;
+            state.input.mouse_left = is_down;
         }
         if (event->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
             sapp_lock_mouse(is_down);
-            state.mouse_right = is_down;
+            state.input.mouse_right = is_down;
         }
         break;
     }
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
-        if (state.mouse_left) {
+        if (state.input.mouse_left) {
             camera_rotate(event->mouse_dx * 0.01f, event->mouse_dy * 0.01f);
         }
         break;
