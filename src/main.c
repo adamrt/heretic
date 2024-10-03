@@ -56,11 +56,10 @@ static struct {
     } gfx;
 
     struct {
+        camera_t camera;
         model_t models[STATE_MAX_MODELS];
         int num_models;
     } scene;
-
-    camera_t camera;
 
     struct {
         bool mouse_left;
@@ -190,8 +189,8 @@ static void state_init(void)
 // state_update updates the application state each frame.
 static void state_update(void)
 {
-    mat4s view = glms_lookat(state.camera.eye, state.camera.center, state.camera.up);
-    mat4s view_proj = glms_mat4_mul(state.camera.proj, view);
+    mat4s view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
+    mat4s view_proj = glms_mat4_mul(state.scene.camera.proj, view);
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
@@ -377,12 +376,12 @@ static void camera_init(vec3s center, float distance, float azimuth, float eleva
 {
     const float w = sapp_widthf();
     const float h = sapp_heightf();
-    state.camera.proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
-    state.camera.center = center;
-    state.camera.distance = distance;
-    state.camera.azimuth = azimuth;
-    state.camera.elevation = elevation;
-    state.camera.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
+    state.scene.camera.proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
+    state.scene.camera.center = center;
+    state.scene.camera.distance = distance;
+    state.scene.camera.azimuth = azimuth;
+    state.scene.camera.elevation = elevation;
+    state.scene.camera.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
 
     camera_update();
 }
@@ -390,28 +389,28 @@ static void camera_init(vec3s center, float distance, float azimuth, float eleva
 static void camera_update(void)
 {
     // Convert azimuth and elevation (in radians) to spherical coordinates
-    float x = state.camera.distance * cosf(state.camera.elevation) * sinf(state.camera.azimuth);
-    float y = state.camera.distance * sinf(state.camera.elevation);
-    float z = state.camera.distance * cosf(state.camera.elevation) * cosf(state.camera.azimuth);
+    float x = state.scene.camera.distance * cosf(state.scene.camera.elevation) * sinf(state.scene.camera.azimuth);
+    float y = state.scene.camera.distance * sinf(state.scene.camera.elevation);
+    float z = state.scene.camera.distance * cosf(state.scene.camera.elevation) * cosf(state.scene.camera.azimuth);
 
-    state.camera.eye = (vec3s) { { x, y, z } };
+    state.scene.camera.eye = (vec3s) { { x, y, z } };
 }
 
 static void camera_rotate(float delta_azimuth, float delta_elevation)
 {
-    state.camera.azimuth -= delta_azimuth;
-    state.camera.elevation += delta_elevation;
+    state.scene.camera.azimuth -= delta_azimuth;
+    state.scene.camera.elevation += delta_elevation;
 
     float max_elevation = M_PI_2 - 0.01f; // Near 90 degrees
     float min_elevation = -max_elevation;
-    state.camera.elevation = glm_clamp(state.camera.elevation, min_elevation, max_elevation);
+    state.scene.camera.elevation = glm_clamp(state.scene.camera.elevation, min_elevation, max_elevation);
 }
 
 static void camera_zoom(float delta)
 {
-    state.camera.distance -= delta;
+    state.scene.camera.distance -= delta;
 
-    if (state.camera.distance < 0.1f) {
-        state.camera.distance = 0.1f;
+    if (state.scene.camera.distance < 0.1f) {
+        state.scene.camera.distance = 0.1f;
     }
 }
