@@ -100,6 +100,8 @@ typedef struct {
     vec3s center;
     vec3s up;
 
+    mat4s view_proj;
+
     float azimuth;
     float elevation;
     float distance;
@@ -217,7 +219,6 @@ static void engine_event(const sapp_event* event)
 static void engine_update(void)
 {
     state_update();
-    camera_update();
     gfx_frame();
 }
 
@@ -255,8 +256,7 @@ static void state_init(void)
 // state_update updates the application state each frame.
 static void state_update(void)
 {
-    mat4s view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
-    mat4s view_proj = glms_mat4_mul(state.scene.camera.proj, view);
+    camera_update();
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
@@ -266,7 +266,7 @@ static void state_update(void)
         world = glms_rotate_y(world, model->rotation.y);
         world = glms_rotate_z(world, model->rotation.z);
         world = glms_scale(world, model->scale);
-        mat4s mvp = glms_mat4_mul(view_proj, world);
+        mat4s mvp = glms_mat4_mul(state.scene.camera.view_proj, world);
         model->mvp = mvp;
     }
 }
@@ -466,6 +466,9 @@ static void camera_update(void)
     float z = state.scene.camera.distance * cosf(state.scene.camera.elevation) * cosf(state.scene.camera.azimuth);
 
     state.scene.camera.eye = (vec3s) { { x, y, z } };
+
+    mat4s view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
+    state.scene.camera.view_proj = glms_mat4_mul(state.scene.camera.proj, view);
 }
 
 static void camera_rotate(float delta_azimuth, float delta_elevation)
