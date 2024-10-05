@@ -90,18 +90,18 @@ typedef struct {
     vec3s rotation;
     vec3s scale;
 
+    mat4s model_matrix;
+
     sg_bindings bindings;
-    mat4s mvp;
 } model_t;
 
 typedef struct {
     mat4s proj;
+    mat4s view;
 
     vec3s eye;
     vec3s center;
     vec3s up;
-
-    mat4s view_proj;
 
     float azimuth;
     float elevation;
@@ -127,6 +127,13 @@ static struct {
         camera_t camera;
         model_t models[STATE_MAX_MODELS];
         int num_models;
+
+        struct {
+            vec3s light_position;
+            vec4s light_color;
+            vec4s ambient_color;
+            float ambient_strength;
+        } lighting;
     } scene;
 
     struct {
@@ -268,6 +275,10 @@ static void state_init(void)
             }
         }
     }
+    state.scene.lighting.light_position = (vec3s) { { 0.0f, 0.0f, 10.0f } };
+    state.scene.lighting.light_color = (vec4s) { { 1.0f, 1.0f, 1.0f, 1.0f } };
+    state.scene.lighting.ambient_color = (vec4s) { { 1.0f, 1.0f, 1.0f, 1.0f } };
+    state.scene.lighting.ambient_strength = 0.4f;
 }
 
 // state_update updates the application state each frame.
@@ -277,14 +288,15 @@ static void state_update(void)
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
-        mat4s world = glms_mat4_identity();
-        world = glms_translate(world, model->translation);
-        world = glms_rotate_x(world, model->rotation.x);
-        world = glms_rotate_y(world, model->rotation.y);
-        world = glms_rotate_z(world, model->rotation.z);
-        world = glms_scale(world, model->scale);
-        mat4s mvp = glms_mat4_mul(state.scene.camera.view_proj, world);
-        model->mvp = mvp;
+
+        mat4s model_matrix = glms_mat4_identity();
+        model_matrix = glms_translate(model_matrix, model->translation);
+        model_matrix = glms_rotate_x(model_matrix, model->rotation.x);
+        model_matrix = glms_rotate_y(model_matrix, model->rotation.y);
+        model_matrix = glms_rotate_z(model_matrix, model->rotation.z);
+        model_matrix = glms_scale(model_matrix, model->scale);
+
+        model->model_matrix = model_matrix;
     }
 }
 
@@ -342,6 +354,8 @@ static void gfx_offscreen_init(void)
             .attrs = {
                 [ATTR_cube_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
                 [ATTR_cube_vs_a_position].offset = offsetof(vertex_t, position),
+                [ATTR_cube_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_cube_vs_a_normal].offset = offsetof(vertex_t, normal),
                 [ATTR_cube_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4,
                 [ATTR_cube_vs_a_color].offset = offsetof(vertex_t, color),
             },
@@ -424,9 +438,23 @@ static void gfx_frame(void)
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
+
+        vs_cube_params_t vs_params = {
+            .u_proj = state.scene.camera.proj,
+            .u_view = state.scene.camera.view,
+            .u_model = model->model_matrix,
+        };
+
+        fs_cube_params_t fs_params = {
+            .u_light_position = state.scene.lighting.light_position,
+            .u_light_color = state.scene.lighting.light_color,
+            .u_ambient_color = state.scene.lighting.ambient_color,
+            .u_ambient_strength = state.scene.lighting.ambient_strength,
+        };
+
         sg_apply_bindings(&model->bindings);
-        vs_params_t vs_params = { .u_mvp = model->mvp };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_cube_params, &SG_RANGE(vs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_cube_params, &SG_RANGE(fs_params));
         sg_draw(0, 36, 1);
     }
     sg_end_pass();
@@ -469,8 +497,7 @@ static void camera_update(void)
 
     state.scene.camera.eye = (vec3s) { { x, y, z } };
 
-    mat4s view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
-    state.scene.camera.view_proj = glms_mat4_mul(state.scene.camera.proj, view);
+    state.scene.camera.view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
 }
 
 static void camera_rotate(float delta_azimuth, float delta_elevation)
