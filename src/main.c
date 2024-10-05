@@ -1,4 +1,7 @@
+#include <limits.h>
 #include <math.h>
+#include <string.h>
+#include <time.h>
 
 #include "cglm/struct.h"
 #include "cglm/util.h"
@@ -7,6 +10,16 @@
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
 #include "sokol_log.h"
+
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_INCLUDE_STANDARD_VARARGS
+#include "nuklear.h"
+#include "util/sokol_nuklear.h"
 
 #include "shader.glsl.h"
 
@@ -156,6 +169,10 @@ static void gfx_offscreen_init(void);
 static void gfx_display_init(void);
 static void gfx_frame(void);
 
+static void ui_init(void);
+static void ui_frame(void);
+static void ui_draw(struct nk_context* ctx);
+
 static void camera_init(vec3s center, float distance, float azimuth, float elevation);
 static void camera_update(void);
 static void camera_rotate(float delta_azimuth, float delta_elevation);
@@ -182,10 +199,16 @@ static void engine_init(void)
 {
     gfx_init();
     state_init();
+    ui_init();
 }
 
 static void engine_event(const sapp_event* event)
 {
+    bool handled = snk_handle_event(event);
+    if (handled) {
+        return;
+    }
+
     switch (event->type) {
 
     case SAPP_EVENTTYPE_KEY_DOWN:
@@ -433,47 +456,60 @@ static void gfx_display_init(void)
 static void gfx_frame(void)
 {
     // Offscreen pass
-    sg_begin_pass(&state.gfx.offscreen.pass);
-    sg_apply_pipeline(state.gfx.offscreen.pipeline);
+    {
+        sg_begin_pass(&state.gfx.offscreen.pass);
+        sg_apply_pipeline(state.gfx.offscreen.pipeline);
 
-    for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* model = &state.scene.models[i];
+        for (int i = 0; i < state.scene.num_models; i++) {
+            model_t* model = &state.scene.models[i];
 
-        vs_cube_params_t vs_params = {
-            .u_proj = state.scene.camera.proj,
-            .u_view = state.scene.camera.view,
-            .u_model = model->model_matrix,
-        };
+            vs_cube_params_t vs_params = {
+                .u_proj = state.scene.camera.proj,
+                .u_view = state.scene.camera.view,
+                .u_model = model->model_matrix,
+            };
 
-        fs_cube_params_t fs_params = {
-            .u_light_position = state.scene.lighting.light_position,
-            .u_light_color = state.scene.lighting.light_color,
-            .u_ambient_color = state.scene.lighting.ambient_color,
-            .u_ambient_strength = state.scene.lighting.ambient_strength,
-        };
+            fs_cube_params_t fs_params = {
+                .u_light_position = state.scene.lighting.light_position,
+                .u_light_color = state.scene.lighting.light_color,
+                .u_ambient_color = state.scene.lighting.ambient_color,
+                .u_ambient_strength = state.scene.lighting.ambient_strength,
+            };
 
-        sg_apply_bindings(&model->bindings);
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_cube_params, &SG_RANGE(vs_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_cube_params, &SG_RANGE(fs_params));
-        sg_draw(0, 36, 1);
+            sg_apply_bindings(&model->bindings);
+            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_cube_params, &SG_RANGE(vs_params));
+            sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_cube_params, &SG_RANGE(fs_params));
+            sg_draw(0, 36, 1);
+        }
+        sg_end_pass();
     }
-    sg_end_pass();
 
     // Display pass
-    sg_begin_pass(&(sg_pass) {
-        .action = state.gfx.display.pass_action,
-        .swapchain = sglue_swapchain(),
-        .label = "swapchain-pass",
-    });
-    sg_apply_pipeline(state.gfx.display.pipeline);
-    sg_apply_bindings(&state.gfx.display.bindings);
-    sg_draw(0, 6, 1);
-    sg_end_pass();
+    {
+        sg_begin_pass(&(sg_pass) {
+            .action = state.gfx.display.pass_action,
+            .swapchain = sglue_swapchain(),
+            .label = "swapchain-pass",
+        });
 
-    // Commit passes
+        sg_apply_pipeline(state.gfx.display.pipeline);
+        sg_apply_bindings(&state.gfx.display.bindings);
+
+        sg_draw(0, 6, 1);
+        ui_frame();
+        sg_end_pass();
+    }
+
     sg_commit();
 }
 
+static void ui_init(void)
+{
+    snk_setup(&(snk_desc_t) {
+        .dpi_scale = sapp_dpi_scale(),
+        .logger.func = slog_func,
+    });
+}
 static void camera_init(vec3s center, float distance, float azimuth, float elevation)
 {
     const float w = sapp_widthf();
@@ -517,4 +553,86 @@ static void camera_zoom(float delta)
     if (state.scene.camera.distance < 0.1f) {
         state.scene.camera.distance = 0.1f;
     }
+}
+
+static void ui_frame(void)
+{
+
+    struct nk_context* ctx = snk_new_frame();
+
+    ui_draw(ctx);
+
+    snk_render(sapp_width(), sapp_height());
+}
+
+static void ui_draw(struct nk_context* ctx)
+{
+    if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 400), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
+        nk_layout_row_dynamic(ctx, 30, 1);
+
+        nk_label(ctx, "Light Color", NK_TEXT_LEFT);
+        vec4s* light_color = &state.scene.lighting.light_color;
+        struct nk_colorf light_color_nk = { light_color->r, light_color->g, light_color->b, light_color->a };
+        if (nk_combo_begin_color(ctx, nk_rgba_f(light_color->r, light_color->g, light_color->b, light_color->a), nk_vec2(200, 400))) {
+            nk_layout_row_dynamic(ctx, 120, 1);
+
+            light_color_nk = nk_color_picker(ctx, light_color_nk, NK_RGBA);
+
+            nk_layout_row_dynamic(ctx, 25, 2);
+            nk_layout_row_dynamic(ctx, 25, 2);
+            nk_option_label(ctx, "RGBA", true);
+            nk_layout_row_dynamic(ctx, 25, 1);
+
+            light_color_nk.r = nk_propertyf(ctx, "#R:", 0, light_color_nk.r, 1.0f, 0.01f, 0.005f);
+            light_color_nk.g = nk_propertyf(ctx, "#G:", 0, light_color_nk.g, 1.0f, 0.01f, 0.005f);
+            light_color_nk.b = nk_propertyf(ctx, "#B:", 0, light_color_nk.b, 1.0f, 0.01f, 0.005f);
+            light_color_nk.a = nk_propertyf(ctx, "#A:", 0, light_color_nk.a, 1.0f, 0.01f, 0.005f);
+
+            *light_color = (vec4s) { { light_color_nk.r, light_color_nk.g, light_color_nk.b, light_color_nk.a } };
+            nk_combo_end(ctx);
+        }
+
+        // Light position
+        nk_label(ctx, "Light Position", NK_TEXT_LEFT);
+        vec3s* position = &state.scene.lighting.light_position;
+        char buffer[64];
+        sprintf(buffer, "%.2f, %.2f, %.2f", position->x, position->y, position->z);
+        if (nk_combo_begin_label(ctx, buffer, nk_vec2(200, 200))) {
+            nk_layout_row_dynamic(ctx, 25, 1);
+            nk_property_float(ctx, "#X:", -15.0f, &position->x, 15.0f, 1, 0.5f);
+            nk_property_float(ctx, "#Y:", -15.0f, &position->y, 15.0f, 1, 0.5f);
+            nk_property_float(ctx, "#Z:", -15.0f, &position->z, 15.0f, 1, 0.5f);
+            nk_combo_end(ctx);
+        }
+
+        nk_label(ctx, "Ambient Color", NK_TEXT_LEFT);
+        vec4s* ambient_color = &state.scene.lighting.ambient_color;
+        struct nk_colorf ambient_color_nk = { ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a };
+        if (nk_combo_begin_color(ctx, nk_rgba_f(ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a), nk_vec2(200, 400))) {
+            nk_layout_row_dynamic(ctx, 120, 1);
+
+            ambient_color_nk = nk_color_picker(ctx, ambient_color_nk, NK_RGBA);
+
+            nk_layout_row_dynamic(ctx, 25, 2);
+            nk_option_label(ctx, "RGBA", true);
+            nk_layout_row_dynamic(ctx, 25, 1);
+
+            ambient_color_nk.r = nk_propertyf(ctx, "#R:", 0, ambient_color_nk.r, 1.0f, 0.01f, 0.005f);
+            ambient_color_nk.g = nk_propertyf(ctx, "#G:", 0, ambient_color_nk.g, 1.0f, 0.01f, 0.005f);
+            ambient_color_nk.b = nk_propertyf(ctx, "#B:", 0, ambient_color_nk.b, 1.0f, 0.01f, 0.005f);
+            ambient_color_nk.a = nk_propertyf(ctx, "#A:", 0, ambient_color_nk.a, 1.0f, 0.01f, 0.005f);
+
+            *ambient_color = (vec4s) { { ambient_color_nk.r, ambient_color_nk.g, ambient_color_nk.b, ambient_color_nk.a } };
+            nk_combo_end(ctx);
+        }
+
+        nk_label(ctx, "Ambient Strength", NK_TEXT_LEFT);
+        size_t prog_value = (size_t)(state.scene.lighting.ambient_strength * 100.0f);
+        nk_progress(ctx, &prog_value, 100, NK_MODIFIABLE);
+        state.scene.lighting.ambient_strength = (float)prog_value / 100.0f;
+    }
+
+    nk_end(ctx);
+
+    return;
 }

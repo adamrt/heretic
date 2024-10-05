@@ -13,7 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add Sokol library
 add_library(sokol STATIC lib/sokol.c)
-target_include_directories(sokol PUBLIC lib/sokol)
+target_include_directories(sokol PUBLIC lib/sokol lib/sokol/util)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     # Compile sokol.c as Objective-C
@@ -37,6 +37,7 @@ option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)
 option(CGLM_USE_C99 "" ON)
 add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
+target_include_directories(starterkit PUBLIC lib/nuklear)
 
 # Link sokol and cglm library
 target_link_libraries(starterkit sokol cglm_headers)
