@@ -90,6 +90,7 @@ typedef struct {
     vec3s rotation;
     vec3s scale;
 
+    sg_bindings bindings;
     mat4s mvp;
 } model_t;
 
@@ -113,7 +114,6 @@ static struct {
         struct {
             sg_pass pass;
             sg_pipeline pipeline;
-            sg_bindings bindings;
             sg_image color_image;
         } offscreen;
         struct {
@@ -173,8 +173,8 @@ sapp_desc sokol_main(int argc, char* argv[])
 
 static void engine_init(void)
 {
-    state_init();
     gfx_init();
+    state_init();
 }
 
 static void engine_event(const sapp_event* event)
@@ -231,6 +231,22 @@ static void state_init(void)
 {
     camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 15.0f, 0.0f, 0.0f);
 
+    sg_buffer cube_vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(cube_vertices),
+        .label = "cube-vertices",
+    });
+
+    sg_buffer cube_ibuf = sg_make_buffer(&(sg_buffer_desc) {
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = SG_RANGE(cube_indices),
+        .label = "cube-indices",
+    });
+
+    sg_bindings cube_bindings = (sg_bindings) {
+        .vertex_buffers[0] = cube_vbuf,
+        .index_buffer = cube_ibuf
+    };
+
     vec3s trans_base = (vec3s) { { -4.0f, -4.0f, -4.0f } };
     int index = 0;
 
@@ -247,6 +263,7 @@ static void state_init(void)
                 model->translation = (vec3s) { { trans_x, trans_y, trans_z } };
                 model->rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
                 model->scale = (vec3s) { { 0.5f, 0.5f, 0.5f } };
+                model->bindings = cube_bindings;
                 state.scene.num_models++;
             }
         }
@@ -340,22 +357,6 @@ static void gfx_offscreen_init(void)
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "cube-pipeline",
     });
-
-    sg_buffer cube_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(cube_vertices),
-        .label = "cube-vertices",
-    });
-
-    sg_buffer cube_ibuf = sg_make_buffer(&(sg_buffer_desc) {
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(cube_indices),
-        .label = "cube-indices",
-    });
-
-    state.gfx.offscreen.bindings = (sg_bindings) {
-        .vertex_buffers[0] = cube_vbuf,
-        .index_buffer = cube_ibuf
-    };
 }
 
 static void gfx_display_init(void)
@@ -420,9 +421,10 @@ static void gfx_frame(void)
     // Offscreen pass
     sg_begin_pass(&state.gfx.offscreen.pass);
     sg_apply_pipeline(state.gfx.offscreen.pipeline);
-    sg_apply_bindings(&state.gfx.offscreen.bindings);
+
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
+        sg_apply_bindings(&model->bindings);
         vs_params_t vs_params = { .u_mvp = model->mvp };
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
         sg_draw(0, 36, 1);
