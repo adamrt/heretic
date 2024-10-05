@@ -10,14 +10,80 @@
 
 #include "shader.glsl.h"
 
-#include "cube.h"
-
 static const int GFX_OFFSCREEN_WIDTH = 320;
 static const int GFX_OFFSCREEN_HEIGHT = 240;
 static const int GFX_DISPLAY_WIDTH = GFX_OFFSCREEN_WIDTH * 4;
 static const int GFX_DISPLAY_HEIGHT = GFX_OFFSCREEN_HEIGHT * 4;
 
 #define STATE_MAX_MODELS 125
+
+typedef struct {
+    vec3s position;
+    vec3s normal;
+    vec4s color;
+    vec2s uv;
+} vertex_t;
+
+// clang-format off
+
+// Cube vertices
+ vertex_t cube_vertices[] = {
+    // Front face (red)
+    { .position = {{ -1.0f, -1.0f, -1.0f }}, .normal = {{ 0.0f, 0.0f, -1.0f }}, .color = {{ 1.0f, 0.0f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f, -1.0f, -1.0f }}, .normal = {{ 0.0f, 0.0f, -1.0f }}, .color = {{ 1.0f, 0.0f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f,  1.0f, -1.0f }}, .normal = {{ 0.0f, 0.0f, -1.0f }}, .color = {{ 1.0f, 0.0f, 0.0f, 1.0f }} },
+    { .position = {{ -1.0f,  1.0f, -1.0f }}, .normal = {{ 0.0f, 0.0f, -1.0f }}, .color = {{ 1.0f, 0.0f, 0.0f, 1.0f }} },
+
+    // Back face (green)
+    { .position = {{ -1.0f, -1.0f,  1.0f }}, .normal = {{ 0.0f, 0.0f, 1.0f }}, .color = {{ 0.0f, 1.0f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f, -1.0f,  1.0f }}, .normal = {{ 0.0f, 0.0f, 1.0f }}, .color = {{ 0.0f, 1.0f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f,  1.0f,  1.0f }}, .normal = {{ 0.0f, 0.0f, 1.0f }}, .color = {{ 0.0f, 1.0f, 0.0f, 1.0f }} },
+    { .position = {{ -1.0f,  1.0f,  1.0f }}, .normal = {{ 0.0f, 0.0f, 1.0f }}, .color = {{ 0.0f, 1.0f, 0.0f, 1.0f }} },
+
+    // Left face (blue)
+    { .position = {{ -1.0f, -1.0f, -1.0f }}, .normal = {{ -1.0f, 0.0f, 0.0f }}, .color = {{ 0.0f, 0.0f, 1.0f, 1.0f }} },
+    { .position = {{ -1.0f,  1.0f, -1.0f }}, .normal = {{ -1.0f, 0.0f, 0.0f }}, .color = {{ 0.0f, 0.0f, 1.0f, 1.0f }} },
+    { .position = {{ -1.0f,  1.0f,  1.0f }}, .normal = {{ -1.0f, 0.0f, 0.0f }}, .color = {{ 0.0f, 0.0f, 1.0f, 1.0f }} },
+    { .position = {{ -1.0f, -1.0f,  1.0f }}, .normal = {{ -1.0f, 0.0f, 0.0f }}, .color = {{ 0.0f, 0.0f, 1.0f, 1.0f }} },
+
+    // Right face (orange)
+    { .position = {{  1.0f, -1.0f, -1.0f }}, .normal = {{ 1.0f, 0.0f, 0.0f }}, .color = {{ 1.0f, 0.5f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f,  1.0f, -1.0f }}, .normal = {{ 1.0f, 0.0f, 0.0f }}, .color = {{ 1.0f, 0.5f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f,  1.0f,  1.0f }}, .normal = {{ 1.0f, 0.0f, 0.0f }}, .color = {{ 1.0f, 0.5f, 0.0f, 1.0f }} },
+    { .position = {{  1.0f, -1.0f,  1.0f }}, .normal = {{ 1.0f, 0.0f, 0.0f }}, .color = {{ 1.0f, 0.5f, 0.0f, 1.0f }} },
+
+    // Bottom face (cyan)
+    { .position = {{ -1.0f, -1.0f, -1.0f }}, .normal = {{ 0.0f, -1.0f, 0.0f }}, .color = {{ 0.0f, 0.5f, 1.0f, 1.0f }} },
+    { .position = {{ -1.0f, -1.0f,  1.0f }}, .normal = {{ 0.0f, -1.0f, 0.0f }}, .color = {{ 0.0f, 0.5f, 1.0f, 1.0f }} },
+    { .position = {{  1.0f, -1.0f,  1.0f }}, .normal = {{ 0.0f, -1.0f, 0.0f }}, .color = {{ 0.0f, 0.5f, 1.0f, 1.0f }} },
+    { .position = {{  1.0f, -1.0f, -1.0f }}, .normal = {{ 0.0f, -1.0f, 0.0f }}, .color = {{ 0.0f, 0.5f, 1.0f, 1.0f }} },
+
+    // Top face (purple)
+    { .position = {{ -1.0f,  1.0f, -1.0f }}, .normal = {{ 0.0f, 1.0f, 0.0f }}, .color = {{ 1.0f, 0.0f, 0.5f, 1.0f }} },
+    { .position = {{ -1.0f,  1.0f,  1.0f }}, .normal = {{ 0.0f, 1.0f, 0.0f }}, .color = {{ 1.0f, 0.0f, 0.5f, 1.0f }} },
+    { .position = {{  1.0f,  1.0f,  1.0f }}, .normal = {{ 0.0f, 1.0f, 0.0f }}, .color = {{ 1.0f, 0.0f, 0.5f, 1.0f }} },
+    { .position = {{  1.0f,  1.0f, -1.0f }}, .normal = {{ 0.0f, 1.0f, 0.0f }}, .color = {{ 1.0f, 0.0f, 0.5f, 1.0f }} }
+};
+
+uint16_t cube_indices[] = {
+    0, 1, 2,  0, 2, 3,
+    6, 5, 4,  7, 6, 4,
+    8, 9, 10,  8, 10, 11,
+    14, 13, 12,  15, 14, 12,
+    16, 17, 18,  16, 18, 19,
+    22, 21, 20,  23, 22, 20
+};
+
+// Fullscreen quad vertices
+vertex_t quad_vertices[] = {
+    { .position = {{ -1.0f, -1.0f, 0.0f }}, .uv = {{ 0.0f, 1.0f }} }, // bottom-left
+    { .position = {{  1.0f, -1.0f, 0.0f }}, .uv = {{ 1.0f, 1.0f }} }, // bottom-right
+    { .position = {{ -1.0f,  1.0f, 0.0f }}, .uv = {{ 0.0f, 0.0f }} }, // top-left
+    { .position = {{  1.0f,  1.0f, 0.0f }}, .uv = {{ 1.0f, 0.0f }} }  // top-right
+};
+
+uint16_t quad_indices[] = { 0, 1, 2, 1, 3, 2 };
+// clang-format on
 
 typedef struct {
     vec3s translation;
@@ -255,9 +321,12 @@ static void gfx_offscreen_init(void)
 
     state.gfx.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
+            .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
                 [ATTR_cube_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_cube_vs_position].offset = offsetof(vertex_t, position),
                 [ATTR_cube_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
+                [ATTR_cube_vs_color0].offset = offsetof(vertex_t, color),
             },
         },
         .shader = sg_make_shader(cube_shader_desc(sg_query_backend())),
@@ -300,9 +369,12 @@ static void gfx_display_init(void)
 
     state.gfx.display.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
+            .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
-                [ATTR_quad_vs_position].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_quad_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_quad_vs_position].offset = offsetof(vertex_t, position),
                 [ATTR_quad_vs_texcoord0].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_quad_vs_texcoord0].offset = offsetof(vertex_t, uv),
             },
         },
         .shader = sg_make_shader(quad_shader_desc(sg_query_backend())),

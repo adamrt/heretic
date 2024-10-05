@@ -5,13 +5,13 @@ uniform vs_params {
     mat4 mvp;
 };
 
-in vec4 position;
+in vec3 position;
 in vec4 color0;
 
 out vec4 color;
 
 void main() {
-    gl_Position = mvp * position;
+    gl_Position = mvp * vec4(position, 1.0);
     color = color0;
 }
 @end
@@ -27,13 +27,13 @@ void main() {
 @end
 
 @vs quad_vs
-in vec2 position;
+in vec3 position;
 in vec2 texcoord0;
 
 out vec2 fs_texcoord;
 
 void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
+    gl_Position = vec4(position.xy, 0.0, 1.0);
     fs_texcoord = texcoord0;
 }
 @end
