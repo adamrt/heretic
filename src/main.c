@@ -323,10 +323,10 @@ static void gfx_offscreen_init(void)
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
-                [ATTR_cube_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_cube_vs_position].offset = offsetof(vertex_t, position),
-                [ATTR_cube_vs_color0].format = SG_VERTEXFORMAT_FLOAT4,
-                [ATTR_cube_vs_color0].offset = offsetof(vertex_t, color),
+                [ATTR_cube_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_cube_vs_a_position].offset = offsetof(vertex_t, position),
+                [ATTR_cube_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4,
+                [ATTR_cube_vs_a_color].offset = offsetof(vertex_t, color),
             },
         },
         .shader = sg_make_shader(cube_shader_desc(sg_query_backend())),
@@ -371,10 +371,10 @@ static void gfx_display_init(void)
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
-                [ATTR_quad_vs_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_quad_vs_position].offset = offsetof(vertex_t, position),
-                [ATTR_quad_vs_texcoord0].format = SG_VERTEXFORMAT_FLOAT2,
-                [ATTR_quad_vs_texcoord0].offset = offsetof(vertex_t, uv),
+                [ATTR_quad_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_quad_vs_a_position].offset = offsetof(vertex_t, position),
+                [ATTR_quad_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_quad_vs_a_uv].offset = offsetof(vertex_t, uv),
             },
         },
         .shader = sg_make_shader(quad_shader_desc(sg_query_backend())),
@@ -423,7 +423,7 @@ static void gfx_frame(void)
     sg_apply_bindings(&state.gfx.offscreen.bindings);
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
-        vs_params_t vs_params = { .mvp = model->mvp };
+        vs_params_t vs_params = { .u_mvp = model->mvp };
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
         sg_draw(0, 36, 1);
     }
