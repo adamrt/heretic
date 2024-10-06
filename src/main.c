@@ -344,19 +344,19 @@ static void gfx_init(void)
             .layout = {
                 .buffers[0].stride = sizeof(vertex_t),
                 .attrs = {
-                    [ATTR_cube_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-                    [ATTR_cube_vs_a_position].offset = offsetof(vertex_t, position),
-                    [ATTR_cube_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
-                    [ATTR_cube_vs_a_normal].offset = offsetof(vertex_t, normal),
-                    [ATTR_cube_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4,
-                    [ATTR_cube_vs_a_color].offset = offsetof(vertex_t, color),
-                    [ATTR_cube_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
-                    [ATTR_cube_vs_a_uv].offset = offsetof(vertex_t, uv),
-                    [ATTR_cube_vs_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,
-                    [ATTR_cube_vs_a_palette_index].offset = offsetof(vertex_t, palette_index),
+                    [ATTR_standard_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                    [ATTR_standard_vs_a_position].offset = offsetof(vertex_t, position),
+                    [ATTR_standard_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
+                    [ATTR_standard_vs_a_normal].offset = offsetof(vertex_t, normal),
+                    [ATTR_standard_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4,
+                    [ATTR_standard_vs_a_color].offset = offsetof(vertex_t, color),
+                    [ATTR_standard_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+                    [ATTR_standard_vs_a_uv].offset = offsetof(vertex_t, uv),
+                    [ATTR_standard_vs_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,
+                    [ATTR_standard_vs_a_palette_index].offset = offsetof(vertex_t, palette_index),
                 },
             },
-            .shader = sg_make_shader(cube_shader_desc(sg_query_backend())),
+            .shader = sg_make_shader(standard_shader_desc(sg_query_backend())),
             .face_winding = SG_FACEWINDING_CW,
             .cull_mode = SG_CULLMODE_BACK,
             .depth = {
@@ -365,7 +365,7 @@ static void gfx_init(void)
                 .write_enabled = true,
             },
             .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
-            .label = "cube-pipeline",
+            .label = "standard-pipeline",
         });
     }
 
@@ -423,13 +423,13 @@ static void gfx_frame(void)
         for (int i = 0; i < state.scene.num_models; i++) {
             model_t* model = &state.scene.models[i];
 
-            vs_cube_params_t vs_params = {
+            vs_standard_params_t vs_params = {
                 .u_proj = state.scene.camera.proj,
                 .u_view = state.scene.camera.view,
                 .u_model = model->model_matrix,
             };
 
-            fs_cube_params_t fs_params = {
+            fs_standard_params_t fs_params = {
                 .u_light_position = state.scene.lighting.light_position,
                 .u_light_color = state.scene.lighting.light_color,
                 .u_ambient_color = state.scene.lighting.ambient_color,
@@ -437,8 +437,8 @@ static void gfx_frame(void)
             };
 
             sg_apply_bindings(&model->bindings);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_cube_params, &SG_RANGE(vs_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_cube_params, &SG_RANGE(fs_params));
+            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
+            sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
             sg_draw(0, model->geometry.count, 1);
         }
         sg_end_pass();

@@ -3,8 +3,8 @@
 @ctype vec4 vec4s
 @ctype vec3 vec3s
 
-@vs cube_vs
-uniform vs_cube_params {
+@vs standard_vs
+uniform vs_standard_params {
     mat4 u_proj;
     mat4 u_view;
     mat4 u_model;
@@ -37,8 +37,8 @@ void main() {
 }
 @end
 
-@fs cube_fs
-uniform fs_cube_params {
+@fs standard_fs
+uniform fs_standard_params {
     vec3 u_light_position;
     vec4 u_light_color;
     vec4 u_ambient_color;
@@ -114,5 +114,5 @@ void main() {
 }
 @end
 
-@program cube cube_vs cube_fs
+@program standard standard_vs standard_fs
 @program quad quad_vs quad_fs
