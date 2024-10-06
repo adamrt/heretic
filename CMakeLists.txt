@@ -31,7 +31,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 # Add Starterkit executable
-add_executable(starterkit src/main.c src/bin.c)
+add_executable(starterkit src/main.c src/bin.c src/model.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)
@@ -49,7 +49,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(starterkit PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
 endif()
 
-target_compile_options(starterkit PUBLIC -Wall -Wextra -Wpedantic -Werror)
+target_compile_options(starterkit PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unused-function)
 
 # Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)

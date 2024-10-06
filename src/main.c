@@ -29,13 +29,13 @@
 #include "bin.h"
 #include "model.h"
 
-#define GFX_SCALE (4)
+#define GFX_SCALE (2)
 
-#define GFX_OFFSCREEN_HEIGHT (240)
-#define GFX_OFFSCREEN_WIDTH (320)
+#define GFX_OFFSCREEN_WIDTH (640)
+#define GFX_OFFSCREEN_HEIGHT (480)
 
-#define GFX_DISPLAY_HEIGHT (GFX_OFFSCREEN_HEIGHT * GFX_SCALE)
 #define GFX_DISPLAY_WIDTH (GFX_OFFSCREEN_WIDTH * GFX_SCALE)
+#define GFX_DISPLAY_HEIGHT (GFX_OFFSCREEN_HEIGHT * GFX_SCALE)
 
 #define STATE_MAX_MODELS (125)
 
@@ -87,8 +87,10 @@ static struct {
 
     struct {
         camera_t camera;
+
         model_t models[STATE_MAX_MODELS];
         int num_models;
+        bool center_model;
 
         struct {
             vec3s light_position;
@@ -211,8 +213,9 @@ static void engine_cleanup(void)
 
 static void state_init(void)
 {
-    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 15.0f, 0.0f, 0.0f);
+    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 1.0f, 0.0f, 0.0f);
 
+    state.scene.center_model = true;
     state.scene.lighting.light_position = (vec3s) { { 0.0f, 0.0f, 10.0f } };
     state.scene.lighting.light_color = (vec4s) { { 1.0f, 1.0f, 1.0f, 1.0f } };
     state.scene.lighting.ambient_color = (vec4s) { { 1.0f, 1.0f, 1.0f, 1.0f } };
@@ -268,6 +271,11 @@ static void state_update(void)
 
     for (int i = 0; i < state.scene.num_models; i++) {
         model_t* model = &state.scene.models[i];
+        if (state.scene.center_model) {
+            model->transform.translation = model->centered_translation;
+        } else {
+            model->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        }
 
         mat4s model_matrix = glms_mat4_identity();
         model_matrix = glms_translate(model_matrix, model->transform.translation);
@@ -521,6 +529,10 @@ static void ui_draw(struct nk_context* ctx)
 {
     if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 400), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
+
+        nk_bool centered = state.scene.center_model;
+        nk_checkbox_label(ctx, "Centered", &centered);
+        state.scene.center_model = centered;
 
         nk_label(ctx, "Light Color", NK_TEXT_LEFT);
         vec4s* light_color = &state.scene.lighting.light_color;

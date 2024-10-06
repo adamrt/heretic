@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "bin.h"
+#include "model.h"
 
 static uint8_t bin_u8(file_t* f)
 {
@@ -401,7 +402,7 @@ model_t bin_map(FILE* bin, int num)
         .transform = {
             .translation = (vec3s) { { 0.0f, 0.0f, 0.0f } },
             .rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } },
-            .scale = (vec3s) { { 0.1f, 0.1f, 0.1f } },
+            .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } },
         },
     };
 
@@ -418,6 +419,8 @@ model_t bin_map(FILE* bin, int num)
             model.geometry = bin_geometry(&file);
             model.texture = bin_texture(&file);
             model.palette = bin_palette(&file);
+            model.centered_translation = geometry_centered_translation(&model.geometry);
+            model.normalized_scale = geometry_normalized_scale(&model.geometry);
             break;
         case FILE_TYPE_TEXTURE:
             model.texture = bin_texture(&file);

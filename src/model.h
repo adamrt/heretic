@@ -49,9 +49,14 @@ typedef struct {
     palette_t palette;
 
     transform_t transform;
-    mat4s model_matrix; // computed from transform
+    mat4s model_matrix;         // computed from transform
+    vec3s centered_translation; // computed from geometry
+    vec3s normalized_scale;     // computed from geometry
 
     sg_bindings bindings;
 } model_t;
+
+vec3s geometry_centered_translation(geometry_t* geometry);
+vec3s geometry_normalized_scale(geometry_t* geometry);
 
 #endif // MODEL_H_
