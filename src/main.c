@@ -192,7 +192,7 @@ static void engine_event(const sapp_event* event)
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        camera_zoom(event->scroll_y * 0.1f);
+        camera_zoom(event->scroll_y * 0.01f);
         break;
 
     default:
@@ -226,7 +226,7 @@ static void state_init(void)
         assert(false);
     }
 
-    state_load_map(12);
+    state_load_map(49);
 }
 
 static void state_load_map(int num)

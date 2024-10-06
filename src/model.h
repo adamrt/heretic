@@ -4,6 +4,15 @@
 #include "cglm/struct.h"
 #include "sokol_gfx.h"
 
+// GLOBAL_SCALE is used to scale the vertex data. This might be used later to
+// scale camera movement and other positional related instruction data.
+//
+// We could use the original i16 data and pass those to OpenGL and let it
+// normalize, but OpenGL will do it based on the full range of i16, not the max
+// value of our vertex data. So we just pic a number here that is reasonable and
+// use it everywhere.
+#define GLOBAL_SCALE (256.0f)
+
 #define GEOMETRY_MAX_VERTICES (5120)
 
 #define TEXTURE_WIDTH (256)
@@ -51,7 +60,6 @@ typedef struct {
     transform_t transform;
     mat4s model_matrix;         // computed from transform
     vec3s centered_translation; // computed from geometry
-    vec3s normalized_scale;     // computed from geometry
 
     sg_bindings bindings;
 } model_t;

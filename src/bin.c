@@ -105,9 +105,9 @@ static float bin_f1x3x12(file_t* f)
 
 static vec3s bin_position(file_t* f)
 {
-    int16_t x = bin_i16(f);
-    int16_t y = bin_i16(f);
-    int16_t z = bin_i16(f);
+    float x = bin_i16(f) / GLOBAL_SCALE;
+    float y = bin_i16(f) / GLOBAL_SCALE;
+    float z = bin_i16(f) / GLOBAL_SCALE;
 
     y = -y;
     z = -z;
@@ -420,7 +420,6 @@ model_t bin_map(FILE* bin, int num)
             model.texture = bin_texture(&file);
             model.palette = bin_palette(&file);
             model.centered_translation = geometry_centered_translation(&model.geometry);
-            model.normalized_scale = geometry_normalized_scale(&model.geometry);
             break;
         case FILE_TYPE_TEXTURE:
             model.texture = bin_texture(&file);
