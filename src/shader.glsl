@@ -13,10 +13,14 @@ uniform vs_cube_params {
 in vec3 a_position;
 in vec3 a_normal;
 in vec4 a_color;
+in vec2 a_uv;
+in float a_palette_index;
 
 out vec4 v_position;
 out vec3 v_normal;
 out vec4 v_color;
+out vec2 v_uv;
+out float v_palette_index;
 
 void main() {
     v_position = u_model * vec4(a_position, 1.0);
@@ -25,6 +29,8 @@ void main() {
     v_normal = normalize(normal_matrix * a_normal);
 
     v_color = a_color;
+    v_uv = a_uv;
+    v_palette_index = a_palette_index;
 
     mat4 view_proj = u_proj * u_view;
     gl_Position = view_proj * v_position;
@@ -39,9 +45,15 @@ uniform fs_cube_params {
     float u_ambient_strength;
 };
 
+uniform texture2D u_texture;
+uniform texture2D u_palette;
+uniform sampler u_sampler;
+
 in vec4 v_position;
 in vec3 v_normal;
 in vec4 v_color;
+in vec2 v_uv;
+in float v_palette_index;
 
 out vec4 frag_color;
 
@@ -54,7 +66,21 @@ void main() {
     vec4 diffuse = u_light_color * intensity;
     vec4 light = ambient + diffuse;
 
-    frag_color = v_color * light;
+    // Draw black for triangles without normals (untextured triangles)
+    if (v_uv.x + v_uv.y == 0.0) {
+        // Draw black for things without normals and uv coords.
+        // The uv coords and normal could actually be 0 so we check them both.
+        frag_color = light * vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    vec4 tex_color = texture(sampler2D(u_texture, u_sampler), v_uv) * 255.0;
+    uint palette_pos = uint(v_palette_index * 16 + tex_color.r);
+    vec4 color = texture(sampler2D(u_palette, u_sampler), vec2(float(palette_pos) / 255.0, 0.0));
+    if (color.a < 0.5)
+        discard;
+
+    frag_color = color * light;
 }
 @end
 
