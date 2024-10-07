@@ -131,6 +131,7 @@ static void ui_draw(struct nk_context* ctx);
 
 static void camera_init(vec3s center, float distance, float azimuth, float elevation);
 static void camera_update(void);
+static void camera_update_proj(void);
 static void camera_rotate(float delta_azimuth, float delta_elevation);
 static void camera_zoom(float delta);
 
@@ -166,6 +167,9 @@ static void engine_event(const sapp_event* event)
     }
 
     switch (event->type) {
+    case SAPP_EVENTTYPE_RESIZED:
+        camera_update_proj();
+        break;
 
     case SAPP_EVENTTYPE_KEY_DOWN:
         if (event->key_code == SAPP_KEYCODE_ESCAPE) {
@@ -474,15 +478,13 @@ static void ui_init(void)
 }
 static void camera_init(vec3s center, float distance, float azimuth, float elevation)
 {
-    const float w = sapp_widthf();
-    const float h = sapp_heightf();
-    state.scene.camera.proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
     state.scene.camera.center = center;
     state.scene.camera.distance = distance;
     state.scene.camera.azimuth = azimuth;
     state.scene.camera.elevation = elevation;
     state.scene.camera.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
 
+    camera_update_proj();
     camera_update();
 }
 
@@ -496,6 +498,13 @@ static void camera_update(void)
     state.scene.camera.eye = (vec3s) { { x, y, z } };
 
     state.scene.camera.view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
+}
+
+static void camera_update_proj(void)
+{
+    const float w = sapp_widthf();
+    const float h = sapp_heightf();
+    state.scene.camera.proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
 }
 
 static void camera_rotate(float delta_azimuth, float delta_elevation)
