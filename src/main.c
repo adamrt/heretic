@@ -495,7 +495,13 @@ static void camera_update(void)
     float y = state.scene.camera.distance * sinf(state.scene.camera.elevation);
     float z = state.scene.camera.distance * cosf(state.scene.camera.elevation) * cosf(state.scene.camera.azimuth);
 
-    state.scene.camera.eye = (vec3s) { { x, y, z } };
+    // center is typically (0, 0, 0), so the addition doesn't matter, but as we
+    // add transitions it could become important.
+    state.scene.camera.eye = (vec3s) { {
+        state.scene.camera.center.x + x,
+        state.scene.camera.center.y + y,
+        state.scene.camera.center.z + z,
+    } };
 
     state.scene.camera.view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
 }
