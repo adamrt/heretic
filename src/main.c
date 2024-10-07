@@ -27,6 +27,7 @@
 #include "shader.glsl.h"
 
 #include "bin.h"
+#include "camera.h"
 #include "model.h"
 
 #define GFX_SCALE (2)
@@ -38,8 +39,6 @@
 #define GFX_DISPLAY_HEIGHT (GFX_OFFSCREEN_HEIGHT * GFX_SCALE)
 
 #define STATE_MAX_MODELS (125)
-#define STATE_CAM_MIN_DIST (0.5f)
-#define STATE_CAM_MAX_DIST (5.0f)
 
 // Fullscreen quad vertices
 // clang-format off
@@ -52,19 +51,6 @@ vertex_t quad_vertices[] = {
 
 uint16_t quad_indices[] = { 0, 1, 2, 1, 3, 2 };
 // clang-format on
-
-typedef struct {
-    mat4s proj;
-    mat4s view;
-
-    vec3s eye;
-    vec3s center;
-    vec3s up;
-
-    float azimuth;
-    float elevation;
-    float distance;
-} camera_t;
 
 // Application state
 static struct {
@@ -88,8 +74,6 @@ static struct {
     } gfx;
 
     struct {
-        camera_t camera;
-
         model_t models[STATE_MAX_MODELS];
         int num_models;
         bool center_model;
@@ -129,12 +113,6 @@ static void ui_init(void);
 static void ui_frame(void);
 static void ui_draw(struct nk_context* ctx);
 
-static void camera_init(vec3s center, float distance, float azimuth, float elevation);
-static void camera_update(void);
-static void camera_update_proj(void);
-static void camera_rotate(float delta_azimuth, float delta_elevation);
-static void camera_zoom(float delta);
-
 sapp_desc sokol_main(int argc, char* argv[])
 {
     (void)argc;
@@ -167,10 +145,6 @@ static void engine_event(const sapp_event* event)
     }
 
     switch (event->type) {
-    case SAPP_EVENTTYPE_RESIZED:
-        camera_update_proj();
-        break;
-
     case SAPP_EVENTTYPE_KEY_DOWN:
         if (event->key_code == SAPP_KEYCODE_ESCAPE) {
             sapp_request_quit();
@@ -219,7 +193,8 @@ static void engine_cleanup(void)
 
 static void state_init(void)
 {
-    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 1.5f, 0.6f, 0.4f);
+
+    camera_init();
 
     state.scene.center_model = true;
     state.scene.lighting.light_position = (vec3s) { { 0.0f, 0.0f, 10.0f } };
@@ -429,9 +404,12 @@ static void gfx_frame(void)
         for (int i = 0; i < state.scene.num_models; i++) {
             model_t* model = &state.scene.models[i];
 
+            mat4s proj = camera_proj();
+            mat4s view = camera_view();
+
             vs_standard_params_t vs_params = {
-                .u_proj = state.scene.camera.proj,
-                .u_view = state.scene.camera.view,
+                .u_proj = proj,
+                .u_view = view,
                 .u_model = model->model_matrix,
             };
 
@@ -476,62 +454,8 @@ static void ui_init(void)
         .logger.func = slog_func,
     });
 }
-static void camera_init(vec3s center, float distance, float azimuth, float elevation)
-{
-    state.scene.camera.center = center;
-    state.scene.camera.distance = distance;
-    state.scene.camera.azimuth = azimuth;
-    state.scene.camera.elevation = elevation;
-    state.scene.camera.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
-
-    camera_update_proj();
-    camera_update();
-}
-
-static void camera_update(void)
-{
-    // Convert azimuth and elevation (in radians) to spherical coordinates
-    float x = state.scene.camera.distance * cosf(state.scene.camera.elevation) * sinf(state.scene.camera.azimuth);
-    float y = state.scene.camera.distance * sinf(state.scene.camera.elevation);
-    float z = state.scene.camera.distance * cosf(state.scene.camera.elevation) * cosf(state.scene.camera.azimuth);
-
-    // center is typically (0, 0, 0), so the addition doesn't matter, but as we
-    // add transitions it could become important.
-    state.scene.camera.eye = (vec3s) { {
-        state.scene.camera.center.x + x,
-        state.scene.camera.center.y + y,
-        state.scene.camera.center.z + z,
-    } };
-
-    state.scene.camera.view = glms_lookat(state.scene.camera.eye, state.scene.camera.center, state.scene.camera.up);
-}
-
-static void camera_update_proj(void)
-{
-    const float w = sapp_widthf();
-    const float h = sapp_heightf();
-    state.scene.camera.proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
-}
-
-static void camera_rotate(float delta_azimuth, float delta_elevation)
-{
-    state.scene.camera.azimuth -= delta_azimuth;
-    state.scene.camera.elevation += delta_elevation;
-
-    float max_elevation = M_PI_2 - 0.01f; // Near 90 degrees
-    float min_elevation = -max_elevation;
-    state.scene.camera.elevation = glm_clamp(state.scene.camera.elevation, min_elevation, max_elevation);
-}
-
-static void camera_zoom(float delta)
-{
-    state.scene.camera.distance -= delta;
-    state.scene.camera.distance = glm_clamp(state.scene.camera.distance, STATE_CAM_MIN_DIST, STATE_CAM_MAX_DIST);
-}
-
 static void ui_frame(void)
 {
-
     struct nk_context* ctx = snk_new_frame();
 
     ui_draw(ctx);
