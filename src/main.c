@@ -104,6 +104,7 @@ static void engine_cleanup(void);
 
 static void state_init(void);
 static void state_update(void);
+static void state_add_model(model_t model);
 static void state_load_map(int num);
 
 static void gfx_init(void);
@@ -207,7 +208,7 @@ static void state_init(void)
         assert(false);
     }
 
-    state_load_map(49);
+    state_load_map(12);
 }
 
 static void state_load_map(int num)
@@ -242,8 +243,13 @@ static void state_load_map(int num)
         },
     };
 
-    state.scene.models[0] = model;
-    state.scene.num_models = 1;
+    state_add_model(model);
+}
+
+static void state_add_model(model_t model)
+{
+    state.scene.models[state.scene.num_models] = model;
+    state.scene.num_models++;
 }
 
 static void state_update(void)
@@ -454,6 +460,7 @@ static void ui_init(void)
         .logger.func = slog_func,
     });
 }
+
 static void ui_frame(void)
 {
     struct nk_context* ctx = snk_new_frame();
@@ -465,7 +472,7 @@ static void ui_frame(void)
 
 static void ui_draw(struct nk_context* ctx)
 {
-    if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 400), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
+    if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 400), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
 
         nk_bool centered = state.scene.center_model;
