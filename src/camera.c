@@ -12,7 +12,7 @@ typedef struct {
 
     float azimuth;
     float elevation;
-    float distance;
+    float zoom_factor;
 } camera_t;
 
 static camera_t cam;
@@ -20,9 +20,9 @@ static camera_t cam;
 void camera_init(void)
 {
     cam.center = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-    cam.distance = 1.5f;
     cam.azimuth = 0.6f;
     cam.elevation = 0.4f;
+    cam.zoom_factor = 1.0f;
     cam.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
 
     camera_update();
@@ -30,17 +30,22 @@ void camera_init(void)
 
 static void camera_update_proj(void)
 {
-    const float w = sapp_widthf();
-    const float h = sapp_heightf();
-    cam.proj = glms_perspective(glm_rad(60.0f), w / h, 0.01f, 100.0f);
+    float near_plane = -10.0f;
+    float far_plane = 10.0f;
+    float aspect = sapp_widthf() / sapp_heightf();
+
+    float ortho_width = cam.zoom_factor;
+    float ortho_height = ortho_width / aspect;
+
+    cam.proj = glms_ortho(-ortho_width, ortho_width, -ortho_height, ortho_height, near_plane, far_plane);
 }
 
 void camera_update(void)
 {
     // Convert azimuth and elevation (in radians) to spherical coordinates
-    float x = cam.distance * cosf(cam.elevation) * sinf(cam.azimuth);
-    float y = cam.distance * sinf(cam.elevation);
-    float z = cam.distance * cosf(cam.elevation) * cosf(cam.azimuth);
+    float x = cosf(cam.elevation) * sinf(cam.azimuth);
+    float y = sinf(cam.elevation);
+    float z = cosf(cam.elevation) * cosf(cam.azimuth);
 
     // center is typically (0, 0, 0), so the addition doesn't matter, but as we
     // add transitions it could become important.
@@ -56,14 +61,14 @@ void camera_rotate(float delta_azimuth, float delta_elevation)
     cam.elevation += delta_elevation;
 
     float max_elevation = M_PI_2 - 0.01f; // Near 90 degrees
-    float min_elevation = -max_elevation;
+    float min_elevation = -0.15f;
     cam.elevation = glm_clamp(cam.elevation, min_elevation, max_elevation);
 }
 
 void camera_zoom(float delta)
 {
-    cam.distance -= delta;
-    cam.distance = glm_clamp(cam.distance, CAMERA_MIN_DIST, CAMERA_MAX_DIST);
+    cam.zoom_factor -= delta;
+    cam.zoom_factor = glm_clamp(cam.zoom_factor, 0.1f, 5.0f);
 }
 
 mat4s camera_proj(void) { return cam.proj; }
