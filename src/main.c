@@ -38,6 +38,8 @@
 #define GFX_DISPLAY_HEIGHT (GFX_OFFSCREEN_HEIGHT * GFX_SCALE)
 
 #define STATE_MAX_MODELS (125)
+#define STATE_CAM_MIN_DIST (0.5f)
+#define STATE_CAM_MAX_DIST (5.0f)
 
 // Fullscreen quad vertices
 // clang-format off
@@ -509,10 +511,7 @@ static void camera_rotate(float delta_azimuth, float delta_elevation)
 static void camera_zoom(float delta)
 {
     state.scene.camera.distance -= delta;
-
-    if (state.scene.camera.distance < 0.1f) {
-        state.scene.camera.distance = 0.1f;
-    }
+    state.scene.camera.distance = glm_clamp(state.scene.camera.distance, STATE_CAM_MIN_DIST, STATE_CAM_MAX_DIST);
 }
 
 static void ui_frame(void)
