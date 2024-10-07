@@ -213,7 +213,7 @@ static void engine_cleanup(void)
 
 static void state_init(void)
 {
-    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 1.0f, 0.0f, 0.0f);
+    camera_init((vec3s) { { 0.0f, 0.0f, 0.0f } }, 1.5f, 0.6f, 0.4f);
 
     state.scene.center_model = true;
     state.scene.lighting.light_position = (vec3s) { { 0.0f, 0.0f, 10.0f } };
