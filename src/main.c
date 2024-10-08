@@ -335,8 +335,6 @@ static void gfx_init(void)
                     [ATTR_standard_vs_a_position].offset = offsetof(vertex_t, position),
                     [ATTR_standard_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
                     [ATTR_standard_vs_a_normal].offset = offsetof(vertex_t, normal),
-                    [ATTR_standard_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4,
-                    [ATTR_standard_vs_a_color].offset = offsetof(vertex_t, color),
                     [ATTR_standard_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
                     [ATTR_standard_vs_a_uv].offset = offsetof(vertex_t, uv),
                     [ATTR_standard_vs_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,

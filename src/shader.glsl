@@ -12,23 +12,20 @@ uniform vs_standard_params {
 
 in vec3 a_position;
 in vec3 a_normal;
-in vec4 a_color;
 in vec2 a_uv;
 in float a_palette_index;
 
 out vec4 v_position;
 out vec3 v_normal;
-out vec4 v_color;
 out vec2 v_uv;
 out float v_palette_index;
 
 void main() {
-    v_position = u_model * vec4(a_position, 1.0);
 
     mat3 normal_matrix = transpose(inverse(mat3(u_model)));
-    v_normal = normalize(normal_matrix * a_normal);
 
-    v_color = a_color;
+    v_position = u_model * vec4(a_position, 1.0);
+    v_normal = normalize(normal_matrix * a_normal);
     v_uv = a_uv;
     v_palette_index = a_palette_index;
 
@@ -51,7 +48,6 @@ uniform sampler u_sampler;
 
 in vec4 v_position;
 in vec3 v_normal;
-in vec4 v_color;
 in vec2 v_uv;
 in float v_palette_index;
 

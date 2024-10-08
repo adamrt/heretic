@@ -26,17 +26,8 @@
 #define PALETTE_BYTE_SIZE (PALETTE_SIZE * 4)
 
 typedef struct {
-    uint8_t data[TEXTURE_BYTE_SIZE];
-} texture_t;
-
-typedef struct {
-    uint8_t data[PALETTE_BYTE_SIZE];
-} palette_t;
-
-typedef struct {
     vec3s position;
     vec3s normal;
-    vec4s color;
     vec2s uv;
     float palette_index;
 } vertex_t;
@@ -45,6 +36,14 @@ typedef struct {
     vertex_t vertices[GEOMETRY_MAX_VERTICES];
     int count;
 } geometry_t;
+
+typedef struct {
+    uint8_t data[TEXTURE_BYTE_SIZE];
+} texture_t;
+
+typedef struct {
+    uint8_t data[PALETTE_BYTE_SIZE];
+} palette_t;
 
 typedef struct {
     vec3s translation;
