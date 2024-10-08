@@ -329,16 +329,11 @@ static void gfx_init(void)
 
         state.gfx.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
             .layout = {
-                .buffers[0].stride = sizeof(vertex_t),
                 .attrs = {
                     [ATTR_standard_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-                    [ATTR_standard_vs_a_position].offset = offsetof(vertex_t, position),
                     [ATTR_standard_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
-                    [ATTR_standard_vs_a_normal].offset = offsetof(vertex_t, normal),
                     [ATTR_standard_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
-                    [ATTR_standard_vs_a_uv].offset = offsetof(vertex_t, uv),
                     [ATTR_standard_vs_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,
-                    [ATTR_standard_vs_a_palette_index].offset = offsetof(vertex_t, palette_index),
                 },
             },
             .shader = sg_make_shader(standard_shader_desc(sg_query_backend())),
