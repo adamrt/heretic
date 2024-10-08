@@ -205,6 +205,7 @@ static geometry_t bin_geometry(file_t* f)
     // 0xC4 is always the primary mesh pointer.
     f->offset = 0x40;
     f->offset = bin_u32(f);
+    assert(f->offset == 0xC4);
 
     // The number of each type of polygon.
     int N = bin_u16(f); // Textured triangles
