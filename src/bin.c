@@ -396,6 +396,14 @@ static palette_t bin_palette(file_t* f)
     return palette;
 }
 
+mesh_t bin_mesh(file_t* f)
+{
+    mesh_t mesh = { 0 };
+    mesh.geometry = bin_geometry(f);
+    mesh.palette = bin_palette(f);
+    return mesh;
+}
+
 model_t bin_map(FILE* bin, int num)
 {
     model_t model = {
@@ -416,10 +424,8 @@ model_t bin_map(FILE* bin, int num)
 
         switch (record.type) {
         case FILE_TYPE_MESH_PRIMARY:
-            model.geometry = bin_geometry(&file);
-            model.texture = bin_texture(&file);
-            model.palette = bin_palette(&file);
-            model.centered_translation = geometry_centered_translation(&model.geometry);
+            model.mesh = bin_mesh(&file);
+            model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
             break;
         case FILE_TYPE_TEXTURE:
             model.texture = bin_texture(&file);

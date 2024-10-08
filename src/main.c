@@ -216,7 +216,7 @@ static void state_load_map(int num)
     model_t model = bin_map(state.fft.bin, num);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(model.geometry.vertices),
+        .data = SG_RANGE(model.mesh.geometry.vertices),
         .label = "mesh-vertices",
     });
 
@@ -231,7 +231,7 @@ static void state_load_map(int num)
         .width = PALETTE_WIDTH,
         .height = PALETTE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(model.palette.data),
+        .data.subimage[0][0] = SG_RANGE(model.mesh.palette.data),
     });
 
     model.bindings = (sg_bindings) {
@@ -422,7 +422,7 @@ static void gfx_frame(void)
             sg_apply_bindings(&model->bindings);
             sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
             sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
-            sg_draw(0, model->geometry.count, 1);
+            sg_draw(0, model->mesh.geometry.count, 1);
         }
         sg_end_pass();
     }

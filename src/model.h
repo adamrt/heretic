@@ -53,8 +53,12 @@ typedef struct {
 
 typedef struct {
     geometry_t geometry;
-    texture_t texture;
     palette_t palette;
+} mesh_t;
+
+typedef struct {
+    mesh_t mesh;
+    texture_t texture;
 
     transform_t transform;
     mat4s model_matrix;         // computed from transform
