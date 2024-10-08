@@ -57,7 +57,7 @@ typedef struct {
 
     time_e time;
     weather_e weather;
-    int arrangement;
+    int layout;
 
     uint8_t data[BIN_GNS_RECORD_SIZE];
 } record_t;

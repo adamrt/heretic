@@ -153,7 +153,7 @@ static record_t bin_record(file_t* f)
     file_type_e type = (bytes.data[4] | (bytes.data[5] << 8));
     time_e time = (bytes.data[3] >> 7) & 0x1;
     weather_e weather = (bytes.data[3] >> 4) & 0x7;
-    int arrangement = bytes.data[2];
+    int layout = bytes.data[2];
 
     record_t record = {
         .sector = sector,
@@ -161,7 +161,7 @@ static record_t bin_record(file_t* f)
         .type = type,
         .time = time,
         .weather = weather,
-        .arrangement = arrangement,
+        .layout = layout,
     };
     memcpy(record.data, bytes.data, BIN_GNS_RECORD_SIZE);
     return record;
