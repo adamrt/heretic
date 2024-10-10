@@ -6,27 +6,27 @@
 #include "bin.h"
 #include "model.h"
 
-#define BIN_SECTOR_HEADER_SIZE (24)
-#define BIN_SECTOR_SIZE (2048)
-#define BIN_SECTOR_SIZE_RAW (2352)
+#define SECTOR_HEADER_SIZE (24)
+#define SECTOR_SIZE (2048)
+#define SECTOR_SIZE_RAW (2352)
 
-#define BIN_FILE_MAX_SIZE (131072)
+#define FILE_MAX_SIZE (131072)
 
-#define BIN_GNS_FILE_MAX_SIZE (2388)
-#define BIN_GNS_RECORD_MAX_NUM (100)
-#define BIN_GNS_RECORD_SIZE (20)
+#define GNS_FILE_MAX_SIZE (2388)
+#define GNS_RECORD_MAX_NUM (100)
+#define GNS_RECORD_SIZE (20)
 
 typedef struct {
-    uint8_t data[BIN_FILE_MAX_SIZE];
+    uint8_t data[FILE_MAX_SIZE];
     size_t size;
 } bytes_t;
 
 typedef struct {
-    uint8_t data[BIN_SECTOR_SIZE];
+    uint8_t data[SECTOR_SIZE];
 } sector_t;
 
 typedef struct {
-    uint8_t data[BIN_FILE_MAX_SIZE];
+    uint8_t data[FILE_MAX_SIZE];
     size_t offset;
     size_t size;
 } file_t;
@@ -62,11 +62,11 @@ typedef struct {
     weather_e weather;
     int layout;
 
-    uint8_t data[BIN_GNS_RECORD_SIZE];
+    uint8_t data[GNS_RECORD_SIZE];
 } record_t;
 
 typedef struct {
-    record_t records[BIN_GNS_RECORD_MAX_NUM];
+    record_t records[GNS_RECORD_MAX_NUM];
     int count;
 } records_t;
 
@@ -92,198 +92,134 @@ static resource_key_t fallback_key = (resource_key_t) {
 };
 
 // Forward declarations
-void add_resource(resource_t* resources, int count, file_type_e type, resource_key_t key, void* resource);
-void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key);
+static void add_resource(resource_t*, int, file_type_e, resource_key_t, void*);
+static void* find_resource(resource_t*, int, file_type_e, resource_key_t);
 
-static uint8_t bin_u8(file_t* f)
+static uint8_t bin_u8(file_t*);
+static uint16_t bin_u16(file_t*);
+static uint32_t bin_u32(file_t*);
+static int8_t bin_i8(file_t*);
+static int16_t bin_i16(file_t*);
+static int32_t bin_i32(file_t*);
+
+static bytes_t bin_bytes(file_t*, int);
+static sector_t bin_sector(FILE*, int32_t);
+static file_t bin_file(FILE*, int, int);
+
+static float bin_f1x3x12(file_t*);
+static vec3s bin_position(file_t*);
+static vec3s bin_normal(file_t*);
+static vec4s bin_rgb8(file_t*);
+static vec4s bin_rgb15(file_t*);
+static float bin_light_color(file_t*);
+
+static record_t bin_record(file_t*);
+static records_t bin_records(file_t*);
+
+static geometry_t bin_geometry(file_t*);
+static texture_t bin_texture(file_t*);
+static palette_t bin_palette(file_t*);
+static lighting_t bin_lighting(file_t*);
+
+static mesh_t bin_mesh(file_t*);
+
+// Utility functions
+static void merge_meshes(mesh_t*, mesh_t*);
+static vec2s process_tex_coords(float u, float v, uint8_t page);
+
+model_t bin_map(FILE* bin, int num)
 {
-    uint8_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint8_t));
-    f->offset += sizeof(uint8_t);
-    return value;
-}
+    resource_t resources[GNS_RECORD_MAX_NUM];
+    int resource_count = 0;
 
-static uint16_t bin_u16(file_t* f)
-{
-    uint16_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint16_t));
-    f->offset += sizeof(uint16_t);
-    return value;
-}
+    file_t gns_file = bin_file(bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
+    records_t records = bin_records(&gns_file);
+    resource_key_t requested_key = { .time = TIME_DAY, .weather = WEATHER_NONE, .layout = 0 };
 
-static uint32_t bin_u32(file_t* f)
-{
-    uint32_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint32_t));
-    f->offset += sizeof(uint32_t);
-    return value;
-}
+    model_t model = { 0 };
 
-static int8_t bin_i8(file_t* f)
-{
-    int8_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int8_t));
-    f->offset += sizeof(int8_t);
-    return value;
-}
+    for (int i = 0; i < records.count; i++) {
+        record_t record = records.records[i];
+        resource_key_t record_key = { record.time, record.weather, record.layout };
 
-static int16_t bin_i16(file_t* f)
-{
-    int16_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int16_t));
-    f->offset += sizeof(int16_t);
-    return value;
-}
+        file_t file = bin_file(bin, record.sector, record.length);
 
-static int32_t bin_i32(file_t* f)
-{
-    int32_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int32_t));
-    f->offset += sizeof(int32_t);
-    return value;
-}
+        switch (record.type) {
+        case FILE_TYPE_MESH_PRIMARY:
+            model.mesh = bin_mesh(&file);
+            if (!model.mesh.valid) {
+                assert(false);
+            }
+            break;
 
-bytes_t bin_bytes(file_t* f, int size)
-{
-    bytes_t bytes = { .size = size };
-    for (int i = 0; i < size; i++) {
-        bytes.data[i] = bin_u8(f);
-    }
-    return bytes;
-}
-
-// bin_read_sector reads a sector to `out_bytes`.
-static sector_t bin_sector(FILE* file, int32_t sector_num)
-{
-    int32_t seek_to = (sector_num * BIN_SECTOR_SIZE_RAW) + BIN_SECTOR_HEADER_SIZE;
-    if (fseek(file, seek_to, SEEK_SET) != 0) {
-        assert(false);
-    }
-
-    sector_t sector;
-    size_t n = fread(sector.data, sizeof(uint8_t), BIN_SECTOR_SIZE, file);
-    assert(n == BIN_SECTOR_SIZE);
-    return sector;
-}
-
-static file_t bin_file(FILE* bin, int sector_num, int size)
-{
-    file_t file = { .size = size };
-
-    int offset = 0;
-    uint32_t occupied_sectors = ceil((float)size / (float)BIN_SECTOR_SIZE);
-
-    for (uint32_t i = 0; i < occupied_sectors; i++) {
-        sector_t sector_data = bin_sector(bin, sector_num + i);
-
-        int remaining_size = size - offset;
-        int bytes_to_copy = (remaining_size < BIN_SECTOR_SIZE) ? remaining_size : BIN_SECTOR_SIZE;
-
-        memcpy(file.data + offset, sector_data.data, bytes_to_copy);
-        offset += bytes_to_copy;
-    }
-
-    return file;
-}
-
-static float bin_f1x3x12(file_t* f)
-{
-    float value = bin_i16(f);
-    return value / 4096.0f;
-}
-
-static vec3s bin_position(file_t* f)
-{
-    float x = bin_i16(f) / GLOBAL_SCALE;
-    float y = bin_i16(f) / GLOBAL_SCALE;
-    float z = bin_i16(f) / GLOBAL_SCALE;
-
-    y = -y;
-    z = -z;
-
-    return (vec3s) { { x, y, z } };
-}
-
-static vec3s bin_normal(file_t* f)
-{
-    float x = bin_f1x3x12(f);
-    float y = bin_f1x3x12(f);
-    float z = bin_f1x3x12(f);
-
-    y = -y;
-    z = -z;
-
-    return (vec3s) { { x, y, z } };
-}
-
-static vec4s bin_rgb8(file_t* f)
-{
-    float r = bin_u8(f) / 255.0f;
-    float g = bin_u8(f) / 255.0f;
-    float b = bin_u8(f) / 255.0f;
-    return (vec4s) { { r, g, b, 1.0f } };
-}
-
-static vec4s bin_rgb15(file_t* f)
-{
-    uint16_t val = bin_u16(f);
-    uint8_t a = val == 0 ? 0x00 : 0xFF;
-    uint8_t b = (val & 0x7C00) >> 7; // 0b0111110000000000
-    uint8_t g = (val & 0x03E0) >> 2; // 0b0000001111100000
-    uint8_t r = (val & 0x001F) << 3; // 0b0000000000011111
-    return (vec4s) { { r, g, b, a } };
-}
-
-static record_t bin_record(file_t* f)
-{
-    bytes_t bytes = bin_bytes(f, BIN_GNS_RECORD_SIZE);
-    int sector = bytes.data[8] | bytes.data[9] << 8;
-    uint64_t length = (uint32_t)(bytes.data[12]) | ((uint32_t)(bytes.data[13]) << 8) | ((uint32_t)(bytes.data[14]) << 16) | ((uint32_t)(bytes.data[15]) << 24);
-    file_type_e type = (bytes.data[4] | (bytes.data[5] << 8));
-    time_e time = (bytes.data[3] >> 7) & 0x1;
-    weather_e weather = (bytes.data[3] >> 4) & 0x7;
-    int layout = bytes.data[2];
-
-    record_t record = {
-        .sector = sector,
-        .length = length,
-        .type = type,
-        .time = time,
-        .weather = weather,
-        .layout = layout,
-    };
-    memcpy(record.data, bytes.data, BIN_GNS_RECORD_SIZE);
-    return record;
-}
-
-static records_t bin_records(file_t* f)
-{
-    records_t records = { .count = 0 };
-    while (true) {
-        record_t record = bin_record(f);
-        if (record.type == FILE_TYPE_END) {
+        case FILE_TYPE_TEXTURE: {
+            // There can be duplicate textures for the same time/weather. Use the first one.
+            void* found = find_resource(resources, resource_count, record.type, record_key);
+            if (found == NULL) {
+                texture_t texture = bin_texture(&file);
+                add_resource(resources, resource_count, record.type, record_key, &texture);
+                resource_count++;
+            }
             break;
         }
-        records.records[records.count] = record;
-        records.count++;
-    }
-    return records;
-}
 
-// 16 palettes of 16 colors of 4 bytes
-// process_tex_coords has two functions:
-//
-// 1. Update the v coordinate to the specific page of the texture. FFT
-//    Textures have 4 pages (256x1024) and the original V specifies
-//    the pixel on one of the 4 pages. Multiply the page by the height
-//    of a single page (256).
-// 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
-//    divide them by their max to get a 0.0-1.0 value.
-static vec2s process_tex_coords(float u, float v, uint8_t page)
-{
-    u = u / 255.0f;
-    v = (v + (page * 256)) / 1023.0f;
-    return (vec2s) { { u, v } };
+        case FILE_TYPE_MESH_ALT: {
+            mesh_t mesh = bin_mesh(&file);
+            if (!mesh.geometry.valid) {
+                break;
+            }
+            add_resource(resources, resource_count, record.type, record_key, &mesh);
+            resource_count++;
+            break;
+        }
+
+        case FILE_TYPE_MESH_OVERRIDE: {
+            mesh_t mesh = bin_mesh(&file);
+            if (!mesh.geometry.valid) {
+                break;
+            }
+
+            add_resource(resources, resource_count, record.type, record_key, &mesh);
+            resource_count++;
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    // FIXME: We might not want to use fallback. Maybe use fallback only if there is no primary mesh.
+
+    mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, requested_key);
+    if (!model.mesh.valid) {
+        if (override_mesh == NULL) {
+            override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, fallback_key);
+            assert(override_mesh != NULL);
+        }
+    }
+
+    if (override_mesh != NULL) {
+        merge_meshes(&model.mesh, override_mesh);
+    }
+
+    mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, requested_key);
+    if (alt_mesh != NULL) {
+        merge_meshes(&model.mesh, alt_mesh);
+    }
+
+    // Select texture
+    texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, requested_key);
+    if (texture == NULL) {
+        texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, fallback_key);
+    }
+    assert(texture != NULL);
+
+    model.mesh.texture = *texture;
+    model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
+    model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
+
+    return model;
 }
 
 static geometry_t bin_geometry(file_t* f)
@@ -493,12 +429,6 @@ static palette_t bin_palette(file_t* f)
 // read_light_color clamps the value between 0.0 and 1.0. These unclamped values
 // are used to affect the lighting model but it isn't understood yet.
 // https://ffhacktics.com/wiki/Maps/Mesh#Light_colors_and_positions.2C_background_gradient_colors
-static float bin_light_color(file_t* f)
-{
-    float val = bin_f1x3x12(f);
-    return MIN(MAX(0.0f, val), 1.0f);
-}
-
 static lighting_t bin_lighting(file_t* f)
 {
     lighting_t lighting = { 0 };
@@ -561,6 +491,207 @@ mesh_t bin_mesh(file_t* f)
     return mesh;
 }
 
+void add_resource(resource_t* resources, int count, file_type_e type, resource_key_t key, void* resource)
+{
+    assert(count < GNS_RECORD_MAX_NUM);
+    resources[count].key = key;
+    resources[count].valid = true;
+    resources[count].resource_data = resource;
+    resources[count].type = type;
+}
+
+void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key)
+{
+    for (int i = 0; i < count; i++) {
+        resource_key_t mk = resources[i].key;
+        if (resources[i].valid && resources[i].type == type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
+            return resources[i].resource_data;
+        }
+    }
+    return NULL;
+}
+
+static uint8_t bin_u8(file_t* f)
+{
+    uint8_t value;
+    memcpy(&value, &f->data[f->offset], sizeof(uint8_t));
+    f->offset += sizeof(uint8_t);
+    return value;
+}
+
+static uint16_t bin_u16(file_t* f)
+{
+    uint16_t value;
+    memcpy(&value, &f->data[f->offset], sizeof(uint16_t));
+    f->offset += sizeof(uint16_t);
+    return value;
+}
+
+static uint32_t bin_u32(file_t* f)
+{
+    uint32_t value;
+    memcpy(&value, &f->data[f->offset], sizeof(uint32_t));
+    f->offset += sizeof(uint32_t);
+    return value;
+}
+
+static int8_t bin_i8(file_t* f)
+{
+    int8_t value;
+    memcpy(&value, &f->data[f->offset], sizeof(int8_t));
+    f->offset += sizeof(int8_t);
+    return value;
+}
+
+static int16_t bin_i16(file_t* f)
+{
+    int16_t value;
+    memcpy(&value, &f->data[f->offset], sizeof(int16_t));
+    f->offset += sizeof(int16_t);
+    return value;
+}
+
+static int32_t bin_i32(file_t* f)
+{
+    int32_t value;
+    memcpy(&value, &f->data[f->offset], sizeof(int32_t));
+    f->offset += sizeof(int32_t);
+    return value;
+}
+
+static bytes_t bin_bytes(file_t* f, int size)
+{
+    bytes_t bytes = { .size = size };
+    for (int i = 0; i < size; i++) {
+        bytes.data[i] = bin_u8(f);
+    }
+    return bytes;
+}
+
+// bin_read_sector reads a sector to `out_bytes`.
+static sector_t bin_sector(FILE* file, int32_t sector_num)
+{
+    int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
+    if (fseek(file, seek_to, SEEK_SET) != 0) {
+        assert(false);
+    }
+
+    sector_t sector;
+    size_t n = fread(sector.data, sizeof(uint8_t), SECTOR_SIZE, file);
+    assert(n == SECTOR_SIZE);
+    return sector;
+}
+
+static file_t bin_file(FILE* bin, int sector_num, int size)
+{
+    file_t file = { .size = size };
+
+    int offset = 0;
+    uint32_t occupied_sectors = ceil((float)size / (float)SECTOR_SIZE);
+
+    for (uint32_t i = 0; i < occupied_sectors; i++) {
+        sector_t sector_data = bin_sector(bin, sector_num + i);
+
+        int remaining_size = size - offset;
+        int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
+
+        memcpy(file.data + offset, sector_data.data, bytes_to_copy);
+        offset += bytes_to_copy;
+    }
+
+    return file;
+}
+
+static float bin_f1x3x12(file_t* f)
+{
+    float value = bin_i16(f);
+    return value / 4096.0f;
+}
+
+static vec3s bin_position(file_t* f)
+{
+    float x = bin_i16(f) / GLOBAL_SCALE;
+    float y = bin_i16(f) / GLOBAL_SCALE;
+    float z = bin_i16(f) / GLOBAL_SCALE;
+
+    y = -y;
+    z = -z;
+
+    return (vec3s) { { x, y, z } };
+}
+
+static vec3s bin_normal(file_t* f)
+{
+    float x = bin_f1x3x12(f);
+    float y = bin_f1x3x12(f);
+    float z = bin_f1x3x12(f);
+
+    y = -y;
+    z = -z;
+
+    return (vec3s) { { x, y, z } };
+}
+
+static vec4s bin_rgb8(file_t* f)
+{
+    float r = bin_u8(f) / 255.0f;
+    float g = bin_u8(f) / 255.0f;
+    float b = bin_u8(f) / 255.0f;
+    return (vec4s) { { r, g, b, 1.0f } };
+}
+
+static vec4s bin_rgb15(file_t* f)
+{
+    uint16_t val = bin_u16(f);
+    uint8_t a = val == 0 ? 0x00 : 0xFF;
+    uint8_t b = (val & 0x7C00) >> 7; // 0b0111110000000000
+    uint8_t g = (val & 0x03E0) >> 2; // 0b0000001111100000
+    uint8_t r = (val & 0x001F) << 3; // 0b0000000000011111
+    return (vec4s) { { r, g, b, a } };
+}
+
+static float bin_light_color(file_t* f)
+{
+    float val = bin_f1x3x12(f);
+    return MIN(MAX(0.0f, val), 1.0f);
+}
+
+static record_t bin_record(file_t* f)
+{
+    bytes_t bytes = bin_bytes(f, GNS_RECORD_SIZE);
+    int sector = bytes.data[8] | bytes.data[9] << 8;
+    uint64_t length = (uint32_t)(bytes.data[12]) | ((uint32_t)(bytes.data[13]) << 8) | ((uint32_t)(bytes.data[14]) << 16) | ((uint32_t)(bytes.data[15]) << 24);
+    file_type_e type = (bytes.data[4] | (bytes.data[5] << 8));
+    time_e time = (bytes.data[3] >> 7) & 0x1;
+    weather_e weather = (bytes.data[3] >> 4) & 0x7;
+    int layout = bytes.data[2];
+
+    record_t record = {
+        .sector = sector,
+        .length = length,
+        .type = type,
+        .time = time,
+        .weather = weather,
+        .layout = layout,
+    };
+    memcpy(record.data, bytes.data, GNS_RECORD_SIZE);
+    return record;
+}
+
+static records_t bin_records(file_t* f)
+{
+    records_t records = { .count = 0 };
+    while (true) {
+        record_t record = bin_record(f);
+        if (record.type == FILE_TYPE_END) {
+            break;
+        }
+        records.records[records.count] = record;
+        records.count++;
+    }
+    return records;
+}
+
 void merge_meshes(mesh_t* dst, mesh_t* src)
 {
     assert(dst != NULL);
@@ -592,119 +723,20 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
     }
 }
 
-model_t bin_map(FILE* bin, int num)
+// 16 palettes of 16 colors of 4 bytes
+// process_tex_coords has two functions:
+//
+// 1. Update the v coordinate to the specific page of the texture. FFT
+//    Textures have 4 pages (256x1024) and the original V specifies
+//    the pixel on one of the 4 pages. Multiply the page by the height
+//    of a single page (256).
+// 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
+//    divide them by their max to get a 0.0-1.0 value.
+static vec2s process_tex_coords(float u, float v, uint8_t page)
 {
-    resource_t resources[BIN_GNS_RECORD_MAX_NUM];
-    int resource_count = 0;
-
-    file_t gns_file = bin_file(bin, map_list[num].sector, BIN_GNS_FILE_MAX_SIZE);
-    records_t records = bin_records(&gns_file);
-    resource_key_t requested_key = { .time = TIME_DAY, .weather = WEATHER_NONE, .layout = 0 };
-
-    model_t model = { 0 };
-
-    for (int i = 0; i < records.count; i++) {
-        record_t record = records.records[i];
-        resource_key_t record_key = { record.time, record.weather, record.layout };
-
-        file_t file = bin_file(bin, record.sector, record.length);
-
-        switch (record.type) {
-        case FILE_TYPE_MESH_PRIMARY:
-            model.mesh = bin_mesh(&file);
-            if (!model.mesh.valid) {
-                assert(false);
-            }
-            break;
-
-        case FILE_TYPE_TEXTURE: {
-            // There can be duplicate textures for the same time/weather. Use the first one.
-            void* found = find_resource(resources, resource_count, record.type, record_key);
-            if (found == NULL) {
-                texture_t texture = bin_texture(&file);
-                add_resource(resources, resource_count, record.type, record_key, &texture);
-                resource_count++;
-            }
-            break;
-        }
-
-        case FILE_TYPE_MESH_ALT: {
-            mesh_t mesh = bin_mesh(&file);
-            if (!mesh.geometry.valid) {
-                break;
-            }
-            add_resource(resources, resource_count, record.type, record_key, &mesh);
-            resource_count++;
-            break;
-        }
-
-        case FILE_TYPE_MESH_OVERRIDE: {
-            mesh_t mesh = bin_mesh(&file);
-            if (!mesh.geometry.valid) {
-                break;
-            }
-
-            add_resource(resources, resource_count, record.type, record_key, &mesh);
-            resource_count++;
-            break;
-        }
-
-        default:
-            break;
-        }
-    }
-
-    // FIXME: We might not want to use fallback. Maybe use fallback only if there is no primary mesh.
-
-    mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, requested_key);
-    if (!model.mesh.valid) {
-        if (override_mesh == NULL) {
-            override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, fallback_key);
-            assert(override_mesh != NULL);
-        }
-    }
-
-    if (override_mesh != NULL) {
-        merge_meshes(&model.mesh, override_mesh);
-    }
-
-    mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, requested_key);
-    if (alt_mesh != NULL) {
-        merge_meshes(&model.mesh, alt_mesh);
-    }
-
-    // Select texture
-    texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, requested_key);
-    if (texture == NULL) {
-        texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, fallback_key);
-    }
-    assert(texture != NULL);
-
-    model.mesh.texture = *texture;
-    model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
-    model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
-
-    return model;
-}
-
-void add_resource(resource_t* resources, int count, file_type_e type, resource_key_t key, void* resource)
-{
-    assert(count < BIN_GNS_RECORD_MAX_NUM);
-    resources[count].key = key;
-    resources[count].valid = true;
-    resources[count].resource_data = resource;
-    resources[count].type = type;
-}
-
-void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key)
-{
-    for (int i = 0; i < count; i++) {
-        resource_key_t mk = resources[i].key;
-        if (resources[i].valid && resources[i].type == type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
-            return resources[i].resource_data;
-        }
-    }
-    return NULL;
+    u = u / 255.0f;
+    v = (v + (page * 256)) / 1023.0f;
+    return (vec2s) { { u, v } };
 }
 
 map_t map_list[128] = {
