@@ -6,7 +6,69 @@
 #include "bin.h"
 #include "model.h"
 
-#define BIN_MAX_RESOURCES 25
+#define BIN_SECTOR_HEADER_SIZE (24)
+#define BIN_SECTOR_SIZE (2048)
+#define BIN_SECTOR_SIZE_RAW (2352)
+
+#define BIN_FILE_MAX_SIZE (131072)
+
+#define BIN_GNS_FILE_MAX_SIZE (2388)
+#define BIN_GNS_RECORD_MAX_NUM (25)
+#define BIN_GNS_RECORD_SIZE (20)
+
+typedef struct {
+    uint8_t data[BIN_FILE_MAX_SIZE];
+    size_t size;
+} bytes_t;
+
+typedef struct {
+    uint8_t data[BIN_SECTOR_SIZE];
+} sector_t;
+
+typedef struct {
+    uint8_t data[BIN_FILE_MAX_SIZE];
+    size_t offset;
+    size_t size;
+} file_t;
+
+typedef enum {
+    FILE_TYPE_NONE = 0x0000,
+    FILE_TYPE_TEXTURE = 0x1701,
+    FILE_TYPE_MESH_PRIMARY = 0x2E01,
+    FILE_TYPE_MESH_OVERRIDE = 0x2F01,
+    FILE_TYPE_MESH_ALT = 0x3001,
+    FILE_TYPE_END = 0x3101,
+} file_type_e;
+
+typedef enum {
+    TIME_DAY = 0x0,
+    TIME_NIGHT = 0x1,
+} time_e;
+
+typedef enum {
+    WEATHER_NONE = 0x0,
+    WEATHER_NONE_ALT = 0x1,
+    WEATHER_NORMAL = 0x2,
+    WEATHER_STRONG = 0x3,
+    WEATHER_VERY_STRONG = 0x4,
+} weather_e;
+
+typedef struct {
+    file_type_e type;
+    size_t sector;
+    size_t length;
+
+    time_e time;
+    weather_e weather;
+    int layout;
+
+    uint8_t data[BIN_GNS_RECORD_SIZE];
+} record_t;
+
+typedef struct {
+    record_t records[BIN_GNS_RECORD_MAX_NUM];
+    int count;
+} records_t;
 
 // Each resource is a file that contains a single type of data (mesh, texture,
 // etc). Each resource is related to a specific time, weather, and layout.
@@ -14,25 +76,24 @@ typedef struct {
     time_e time;
     weather_e weather;
     int layout;
-    file_type_e type;
 } resource_key_t;
 
 typedef struct {
     resource_key_t key;
+    file_type_e type;
     void* resource_data;
     bool valid;
 } resource_t;
 
-static resource_key_t fallback_key_base = (resource_key_t) {
+static resource_key_t fallback_key = (resource_key_t) {
     .time = TIME_DAY,
     .weather = WEATHER_NONE,
     .layout = 0,
 };
 
 // Forward declarations
-void add_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key, void* resource);
-void* find_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key);
-void* find_resource_or_fallback(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key);
+void add_resource(resource_t* resources, int count, file_type_e type, resource_key_t key, void* resource);
+void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key);
 
 static uint8_t bin_u8(file_t* f)
 {
@@ -541,7 +602,7 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
 
 model_t bin_map(FILE* bin, int num)
 {
-    resource_t resources[BIN_MAX_RESOURCES];
+    resource_t resources[BIN_GNS_RECORD_MAX_NUM];
     int resource_count = 0;
 
     file_t gns_file = bin_file(bin, map_list[num].sector, BIN_GNS_FILE_MAX_SIZE);
@@ -552,7 +613,7 @@ model_t bin_map(FILE* bin, int num)
 
     for (int i = 0; i < records.count; i++) {
         record_t record = records.records[i];
-        resource_key_t record_key = { record.time, record.weather, record.layout, record.type };
+        resource_key_t record_key = { record.time, record.weather, record.layout };
 
         file_t file = bin_file(bin, record.sector, record.length);
 
@@ -566,10 +627,10 @@ model_t bin_map(FILE* bin, int num)
 
         case FILE_TYPE_TEXTURE: {
             // There can be duplicate textures for the same time/weather. Use the first one.
-            void* found = find_resource(resources, resource_count, record_key);
+            void* found = find_resource(resources, resource_count, record.type, record_key);
             if (found == NULL) {
                 texture_t texture = bin_texture(&file);
-                add_resource(resources, resource_count, record_key, &texture);
+                add_resource(resources, resource_count, record.type, record_key, &texture);
                 resource_count++;
             }
             break;
@@ -580,7 +641,7 @@ model_t bin_map(FILE* bin, int num)
             if (!mesh.geometry.valid) {
                 break;
             }
-            add_resource(resources, resource_count, record_key, &mesh);
+            add_resource(resources, resource_count, record.type, record_key, &mesh);
             resource_count++;
             break;
         }
@@ -591,7 +652,7 @@ model_t bin_map(FILE* bin, int num)
                 break;
             }
 
-            add_resource(resources, resource_count, record_key, &mesh);
+            add_resource(resources, resource_count, record.type, record_key, &mesh);
             resource_count++;
             break;
         }
@@ -603,21 +664,28 @@ model_t bin_map(FILE* bin, int num)
 
     // FIXME: We might not want to use fallback. Maybe use fallback only if there is no primary mesh.
 
-    requested_key.type = FILE_TYPE_MESH_OVERRIDE;
-    mesh_t* override_mesh = find_resource_or_fallback(resources, resource_count, requested_key);
+    mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, requested_key);
+    if (!model.mesh.valid) {
+        if (override_mesh == NULL) {
+            override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, fallback_key);
+            assert(override_mesh != NULL);
+        }
+    }
+
     if (override_mesh != NULL) {
         merge_meshes(&model.mesh, override_mesh);
     }
 
-    requested_key.type = FILE_TYPE_MESH_ALT;
-    mesh_t* alt_mesh = find_resource_or_fallback(resources, resource_count, requested_key);
+    mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, requested_key);
     if (alt_mesh != NULL) {
         merge_meshes(&model.mesh, alt_mesh);
     }
 
     // Select texture
-    requested_key.type = FILE_TYPE_TEXTURE;
-    texture_t* texture = find_resource_or_fallback(resources, resource_count, requested_key);
+    texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, requested_key);
+    if (texture == NULL) {
+        texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, fallback_key);
+    }
     assert(texture != NULL);
 
     model.mesh.texture = *texture;
@@ -627,37 +695,24 @@ model_t bin_map(FILE* bin, int num)
     return model;
 }
 
-void add_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key, void* resource)
+void add_resource(resource_t* resources, int count, file_type_e type, resource_key_t key, void* resource)
 {
-    assert(count < BIN_MAX_RESOURCES);
+    assert(count < BIN_GNS_RECORD_MAX_NUM);
     resources[count].key = key;
     resources[count].valid = true;
     resources[count].resource_data = resource;
+    resources[count].type = type;
 }
 
-void* find_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key)
+void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key)
 {
     for (int i = 0; i < count; i++) {
         resource_key_t mk = resources[i].key;
-        if (resources[i].valid && mk.type == key.type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
+        if (resources[i].valid && resources[i].type == type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
             return resources[i].resource_data;
         }
     }
     return NULL;
-}
-
-void* find_resource_or_fallback(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key)
-{
-    void* resource_data = find_resource(resources, count, key);
-    if (resource_data != NULL) {
-        return resource_data;
-    }
-
-    resource_key_t fb = fallback_key_base;
-    fb.type = key.type;
-
-    void* fallback_data = find_resource(resources, count, fb);
-    return fallback_data;
 }
 
 map_t map_list[128] = {
