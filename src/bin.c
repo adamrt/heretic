@@ -576,25 +576,17 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
         dst->palette = src->palette;
     }
 
-    bool override_has_lights = false;
-    for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
-        if (src->lighting.lights[i].valid) {
-            override_has_lights = true;
-            break;
-        }
-    }
-    if (override_has_lights) {
+    if (src->lighting.valid) {
         for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
-            dst->lighting.lights[i] = src->lighting.lights[i];
+            if (src->lighting.lights[i].valid) {
+                for (int j = 0; j < MESH_MAX_LIGHTS; j++) {
+                    dst->lighting.lights[j] = src->lighting.lights[j];
+                }
+                break;
+            }
         }
-    }
 
-    // Defaults w (alpha) is 0.0f, so 1.0f means we read the ambient color and background.
-    if (src->lighting.ambient_color.w == 1.0f) {
         dst->lighting.ambient_color = src->lighting.ambient_color;
-    }
-
-    if (src->lighting.bg_top.w == 1.0f) {
         dst->lighting.bg_top = src->lighting.bg_top;
         dst->lighting.bg_bottom = src->lighting.bg_bottom;
     }
