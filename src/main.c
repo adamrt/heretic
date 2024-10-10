@@ -165,8 +165,13 @@ static void prev_map(void)
 
 static void engine_event(const sapp_event* event)
 {
-    bool handled = snk_handle_event(event);
-    if (handled) {
+    bool handled_by_ui = snk_handle_event(event);
+    bool is_mouse_event = event->type == SAPP_EVENTTYPE_MOUSE_MOVE
+        || event->type == SAPP_EVENTTYPE_MOUSE_SCROLL
+        || event->type == SAPP_EVENTTYPE_MOUSE_DOWN
+        || event->type == SAPP_EVENTTYPE_MOUSE_UP;
+
+    if (handled_by_ui && is_mouse_event) {
         return;
     }
 
