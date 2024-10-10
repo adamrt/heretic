@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(starterkit)
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_BUILD_TYPE Debug)
 
 # Linux -pthread shenanigans
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
