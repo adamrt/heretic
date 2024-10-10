@@ -2,9 +2,6 @@
 
 #include "model.h"
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
 vec3s geometry_centered_translation(geometry_t* geometry)
 {
     float min_x = FLT_MAX;

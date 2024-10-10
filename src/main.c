@@ -38,8 +38,6 @@
 #define GFX_DISPLAY_WIDTH (GFX_OFFSCREEN_WIDTH * GFX_SCALE)
 #define GFX_DISPLAY_HEIGHT (GFX_OFFSCREEN_HEIGHT * GFX_SCALE)
 
-#define STATE_MAX_MODELS (125)
-
 // Fullscreen quad vertices
 // clang-format off
 vertex_t quad_vertices[] = {
@@ -73,18 +71,7 @@ static struct {
 
     } gfx;
 
-    struct {
-        model_t models[STATE_MAX_MODELS];
-        int num_models;
-        bool center_model;
-
-        struct {
-            vec3s light_position;
-            vec4s light_color;
-            vec4s ambient_color;
-            float ambient_strength;
-        } lighting;
-    } scene;
+    scene_t scene;
 
     struct {
         bool mouse_left;
@@ -93,6 +80,7 @@ static struct {
 
     struct {
         FILE* bin;
+        int current_map;
     } fft;
 } state;
 
@@ -104,8 +92,8 @@ static void engine_cleanup(void);
 
 static void state_init(void);
 static void state_update(void);
-static void state_add_model(model_t model);
 static void state_load_map(int num);
+static void state_unload_map(void);
 
 static void gfx_init(void);
 static void gfx_frame(void);
@@ -137,6 +125,43 @@ static void engine_init(void)
     state_init();
     ui_init();
 }
+static void next_map(void)
+{
+    state.fft.current_map++;
+
+    while (true) {
+        map_t desc = map_list[state.fft.current_map];
+        if (!desc.valid) {
+            state.fft.current_map++;
+            if (state.fft.current_map >= 128) {
+                state.fft.current_map = 0;
+            }
+            continue;
+        }
+        break;
+    }
+
+    state_load_map(state.fft.current_map);
+}
+
+static void prev_map(void)
+{
+    state.fft.current_map--;
+
+    while (true) {
+        map_t desc = map_list[state.fft.current_map];
+        if (!desc.valid) {
+            state.fft.current_map--;
+            if (state.fft.current_map < 0) {
+                state.fft.current_map = 127;
+            }
+            continue;
+        }
+        break;
+    }
+
+    state_load_map(state.fft.current_map);
+}
 
 static void engine_event(const sapp_event* event)
 {
@@ -147,10 +172,18 @@ static void engine_event(const sapp_event* event)
 
     switch (event->type) {
     case SAPP_EVENTTYPE_KEY_DOWN:
-        if (event->key_code == SAPP_KEYCODE_ESCAPE) {
+        switch (event->key_code) {
+        case SAPP_KEYCODE_ESCAPE:
             sapp_request_quit();
+        case SAPP_KEYCODE_K:
+            next_map();
+            break;
+        case SAPP_KEYCODE_J:
+            prev_map();
+            break;
+        default:
+            break;
         }
-        break;
 
     case SAPP_EVENTTYPE_MOUSE_DOWN:
     case SAPP_EVENTTYPE_MOUSE_UP: {
@@ -189,6 +222,8 @@ static void engine_update(void)
 
 static void engine_cleanup(void)
 {
+    state_unload_map();
+    snk_shutdown();
     sg_shutdown();
 }
 
@@ -198,21 +233,21 @@ static void state_init(void)
     camera_init();
 
     state.scene.center_model = true;
-    state.scene.lighting.light_position = (vec3s) { { 0.0f, 0.0f, 10.0f } };
-    state.scene.lighting.light_color = (vec4s) { { 1.0f, 1.0f, 1.0f, 1.0f } };
-    state.scene.lighting.ambient_color = (vec4s) { { 1.0f, 1.0f, 1.0f, 1.0f } };
-    state.scene.lighting.ambient_strength = 0.4f;
 
     state.fft.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
     if (state.fft.bin == NULL) {
         assert(false);
     }
 
-    state_load_map(12);
+    state.fft.current_map = 49;
+
+    state_load_map(state.fft.current_map);
 }
 
 static void state_load_map(int num)
 {
+    state_unload_map();
+
     model_t model = bin_map(state.fft.bin, num);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
@@ -224,7 +259,7 @@ static void state_load_map(int num)
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(model.texture.data),
+        .data.subimage[0][0] = SG_RANGE(model.mesh.texture.data),
     });
 
     sg_image palette = sg_make_image(&(sg_image_desc) {
@@ -233,6 +268,10 @@ static void state_load_map(int num)
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .data.subimage[0][0] = SG_RANGE(model.mesh.palette.data),
     });
+
+    model.texture = texture;
+    model.palette = palette;
+    model.vbuffer = vbuf;
 
     model.bindings = (sg_bindings) {
         .vertex_buffers[0] = vbuf,
@@ -243,36 +282,36 @@ static void state_load_map(int num)
         },
     };
 
-    state_add_model(model);
+    state.scene.model = model;
 }
 
-static void state_add_model(model_t model)
+static void state_unload_map(void)
 {
-    state.scene.models[state.scene.num_models] = model;
-    state.scene.num_models++;
+    model_t model = state.scene.model;
+    sg_destroy_image(model.texture);
+    sg_destroy_image(model.palette);
+    sg_destroy_buffer(model.vbuffer);
 }
 
 static void state_update(void)
 {
     camera_update();
 
-    for (int i = 0; i < state.scene.num_models; i++) {
-        model_t* model = &state.scene.models[i];
-        if (state.scene.center_model) {
-            model->transform.translation = model->centered_translation;
-        } else {
-            model->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-        }
-
-        mat4s model_matrix = glms_mat4_identity();
-        model_matrix = glms_translate(model_matrix, model->transform.translation);
-        model_matrix = glms_rotate_x(model_matrix, model->transform.rotation.x);
-        model_matrix = glms_rotate_y(model_matrix, model->transform.rotation.y);
-        model_matrix = glms_rotate_z(model_matrix, model->transform.rotation.z);
-        model_matrix = glms_scale(model_matrix, model->transform.scale);
-
-        model->model_matrix = model_matrix;
+    model_t* model = &state.scene.model;
+    if (state.scene.center_model) {
+        model->transform.translation = model->centered_translation;
+    } else {
+        model->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
+
+    mat4s model_matrix = glms_mat4_identity();
+    model_matrix = glms_translate(model_matrix, model->transform.translation);
+    model_matrix = glms_rotate_x(model_matrix, model->transform.rotation.x);
+    model_matrix = glms_rotate_y(model_matrix, model->transform.rotation.y);
+    model_matrix = glms_rotate_z(model_matrix, model->transform.rotation.z);
+    model_matrix = glms_scale(model_matrix, model->transform.scale);
+
+    model->model_matrix = model_matrix;
 }
 
 // There are two passes so we can render the offscreen image to a fullscreen
@@ -400,30 +439,40 @@ static void gfx_frame(void)
         sg_begin_pass(&state.gfx.offscreen.pass);
         sg_apply_pipeline(state.gfx.offscreen.pipeline);
 
-        for (int i = 0; i < state.scene.num_models; i++) {
-            model_t* model = &state.scene.models[i];
+        model_t* model = &state.scene.model;
 
-            mat4s proj = camera_proj();
-            mat4s view = camera_view();
+        mat4s proj = camera_proj();
+        mat4s view = camera_view();
 
-            vs_standard_params_t vs_params = {
-                .u_proj = proj,
-                .u_view = view,
-                .u_model = model->model_matrix,
-            };
+        vs_standard_params_t vs_params = {
+            .u_proj = proj,
+            .u_view = view,
+            .u_model = model->model_matrix,
+        };
 
-            fs_standard_params_t fs_params = {
-                .u_light_position = state.scene.lighting.light_position,
-                .u_light_color = state.scene.lighting.light_color,
-                .u_ambient_color = state.scene.lighting.ambient_color,
-                .u_ambient_strength = state.scene.lighting.ambient_strength,
-            };
+        fs_standard_params_t fs_params;
+        fs_params.u_ambient_color = model->mesh.lighting.ambient_color;
+        fs_params.u_ambient_strength = model->mesh.lighting.ambient_strength;
 
-            sg_apply_bindings(&model->bindings);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
-            sg_draw(0, model->mesh.geometry.count, 1);
+        int light_count = 0;
+        for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
+
+            light_t light = model->mesh.lighting.lights[i];
+            if (!light.valid) {
+                continue;
+            }
+
+            fs_params.u_light_colors[light_count] = light.color;
+            fs_params.u_light_positions[light_count] = glms_vec4(light.position, 1.0f);
+            light_count++;
         }
+        fs_params.u_light_count = light_count;
+
+        sg_apply_bindings(&model->bindings);
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
+        sg_draw(0, model->mesh.geometry.count, 1);
+
         sg_end_pass();
     }
 
@@ -465,50 +514,62 @@ static void ui_frame(void)
 
 static void ui_draw(struct nk_context* ctx)
 {
-    if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 400), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+    if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
+
+        map_t desc = map_list[state.fft.current_map];
+        char buffer[64];
+        sprintf(buffer, "Map %d: %s", state.fft.current_map, desc.name);
+        nk_label(ctx, buffer, NK_TEXT_LEFT);
+        nk_spacer(ctx);
 
         nk_bool centered = state.scene.center_model;
         nk_checkbox_label(ctx, "Centered", &centered);
         state.scene.center_model = centered;
 
-        nk_label(ctx, "Light Color", NK_TEXT_LEFT);
-        vec4s* light_color = &state.scene.lighting.light_color;
-        struct nk_colorf light_color_nk = { light_color->r, light_color->g, light_color->b, light_color->a };
-        if (nk_combo_begin_color(ctx, nk_rgba_f(light_color->r, light_color->g, light_color->b, light_color->a), nk_vec2(200, 400))) {
-            nk_layout_row_dynamic(ctx, 120, 1);
+        for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
+            light_t* light = &state.scene.model.mesh.lighting.lights[i];
+            if (!light->valid) {
+                continue;
+            }
 
-            light_color_nk = nk_color_picker(ctx, light_color_nk, NK_RGBA);
+            char buffer[64];
+            sprintf(buffer, "Light %d", i);
+            nk_label(ctx, buffer, NK_TEXT_LEFT);
 
-            nk_layout_row_dynamic(ctx, 25, 2);
-            nk_layout_row_dynamic(ctx, 25, 2);
-            nk_option_label(ctx, "RGBA", true);
-            nk_layout_row_dynamic(ctx, 25, 1);
+            struct nk_colorf light_color_nk = { light->color.r, light->color.g, light->color.b, light->color.a };
+            if (nk_combo_begin_color(ctx, nk_rgba_f(light->color.r, light->color.g, light->color.b, light->color.a), nk_vec2(200, 400))) {
+                nk_layout_row_dynamic(ctx, 120, 1);
 
-            light_color_nk.r = nk_propertyf(ctx, "#R:", 0, light_color_nk.r, 1.0f, 0.01f, 0.005f);
-            light_color_nk.g = nk_propertyf(ctx, "#G:", 0, light_color_nk.g, 1.0f, 0.01f, 0.005f);
-            light_color_nk.b = nk_propertyf(ctx, "#B:", 0, light_color_nk.b, 1.0f, 0.01f, 0.005f);
-            light_color_nk.a = nk_propertyf(ctx, "#A:", 0, light_color_nk.a, 1.0f, 0.01f, 0.005f);
+                light_color_nk = nk_color_picker(ctx, light_color_nk, NK_RGBA);
 
-            *light_color = (vec4s) { { light_color_nk.r, light_color_nk.g, light_color_nk.b, light_color_nk.a } };
-            nk_combo_end(ctx);
-        }
+                nk_layout_row_dynamic(ctx, 25, 2);
+                nk_layout_row_dynamic(ctx, 25, 2);
+                nk_option_label(ctx, "RGBA", true);
+                nk_layout_row_dynamic(ctx, 25, 1);
 
-        // Light position
-        nk_label(ctx, "Light Position", NK_TEXT_LEFT);
-        vec3s* position = &state.scene.lighting.light_position;
-        char buffer[64];
-        sprintf(buffer, "%.2f, %.2f, %.2f", position->x, position->y, position->z);
-        if (nk_combo_begin_label(ctx, buffer, nk_vec2(200, 200))) {
-            nk_layout_row_dynamic(ctx, 25, 1);
-            nk_property_float(ctx, "#X:", -30.0f, &position->x, 30.0f, 1, 0.5f);
-            nk_property_float(ctx, "#Y:", -30.0f, &position->y, 30.0f, 1, 0.5f);
-            nk_property_float(ctx, "#Z:", -30.0f, &position->z, 30.0f, 1, 0.5f);
-            nk_combo_end(ctx);
+                light_color_nk.r = nk_propertyf(ctx, "#R:", 0, light_color_nk.r, 1.0f, 0.01f, 0.005f);
+                light_color_nk.g = nk_propertyf(ctx, "#G:", 0, light_color_nk.g, 1.0f, 0.01f, 0.005f);
+                light_color_nk.b = nk_propertyf(ctx, "#B:", 0, light_color_nk.b, 1.0f, 0.01f, 0.005f);
+                light_color_nk.a = nk_propertyf(ctx, "#A:", 0, light_color_nk.a, 1.0f, 0.01f, 0.005f);
+
+                light->color = (vec4s) { { light_color_nk.r, light_color_nk.g, light_color_nk.b, light_color_nk.a } };
+                nk_combo_end(ctx);
+            }
+
+            char posbuffer[64];
+            sprintf(posbuffer, "%.2f, %.2f, %.2f", light->position.x, light->position.y, light->position.z);
+            if (nk_combo_begin_label(ctx, posbuffer, nk_vec2(200, 200))) {
+                nk_layout_row_dynamic(ctx, 25, 1);
+                nk_property_float(ctx, "#X:", -30.0f, &light->position.x, 30.0f, 1, 0.5f);
+                nk_property_float(ctx, "#Y:", -30.0f, &light->position.y, 30.0f, 1, 0.5f);
+                nk_property_float(ctx, "#Z:", -30.0f, &light->position.z, 30.0f, 1, 0.5f);
+                nk_combo_end(ctx);
+            }
         }
 
         nk_label(ctx, "Ambient Color", NK_TEXT_LEFT);
-        vec4s* ambient_color = &state.scene.lighting.ambient_color;
+        vec4s* ambient_color = &state.scene.model.mesh.lighting.ambient_color;
         struct nk_colorf ambient_color_nk = { ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a };
         if (nk_combo_begin_color(ctx, nk_rgba_f(ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a), nk_vec2(200, 400))) {
             nk_layout_row_dynamic(ctx, 120, 1);
@@ -529,9 +590,7 @@ static void ui_draw(struct nk_context* ctx)
         }
 
         nk_label(ctx, "Ambient Strength", NK_TEXT_LEFT);
-        size_t prog_value = (size_t)(state.scene.lighting.ambient_strength * 100.0f);
-        nk_progress(ctx, &prog_value, 100, NK_MODIFIABLE);
-        state.scene.lighting.ambient_strength = (float)prog_value / 100.0f;
+        nk_slider_float(ctx, 0, &state.scene.model.mesh.lighting.ambient_strength, 3.0f, 0.1f);
     }
 
     nk_end(ctx);

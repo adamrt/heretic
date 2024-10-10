@@ -13,7 +13,10 @@
 // use it everywhere.
 #define GLOBAL_SCALE (256.0f)
 
-#define GEOMETRY_MAX_VERTICES (5120)
+#define MESH_MAX_VERTICES (5420)
+#define MESH_MAX_LIGHTS (3)
+
+#define SCENE_MAX_MODELS (125)
 
 #define TEXTURE_WIDTH (256)
 #define TEXTURE_HEIGHT (1024)
@@ -25,6 +28,9 @@
 #define PALETTE_SIZE (PALETTE_WIDTH * PALETTE_HEIGHT)
 #define PALETTE_BYTE_SIZE (PALETTE_SIZE * 4)
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
 typedef struct {
     vec3s position;
     vec3s normal;
@@ -33,8 +39,9 @@ typedef struct {
 } vertex_t;
 
 typedef struct {
-    vertex_t vertices[GEOMETRY_MAX_VERTICES];
+    vertex_t vertices[MESH_MAX_VERTICES];
     int count;
+    bool valid;
 } geometry_t;
 
 typedef struct {
@@ -43,7 +50,33 @@ typedef struct {
 
 typedef struct {
     uint8_t data[PALETTE_BYTE_SIZE];
+    bool valid;
 } palette_t;
+
+typedef struct {
+    vec3s position;
+    vec4s color;
+    bool valid;
+} light_t;
+
+typedef struct {
+    light_t lights[MESH_MAX_LIGHTS];
+    vec4s ambient_color;
+    float ambient_strength;
+    vec4s bg_top;
+    vec4s bg_bottom;
+
+    bool valid;
+} lighting_t;
+
+typedef struct {
+    geometry_t geometry;
+    texture_t texture;
+    palette_t palette;
+    lighting_t lighting;
+
+    bool valid;
+} mesh_t;
 
 typedef struct {
     vec3s translation;
@@ -52,20 +85,22 @@ typedef struct {
 } transform_t;
 
 typedef struct {
-    geometry_t geometry;
-    palette_t palette;
-} mesh_t;
-
-typedef struct {
     mesh_t mesh;
-    texture_t texture;
 
     transform_t transform;
     mat4s model_matrix;         // computed from transform
     vec3s centered_translation; // computed from geometry
 
+    sg_image texture;
+    sg_image palette;
+    sg_buffer vbuffer;
     sg_bindings bindings;
 } model_t;
+
+typedef struct {
+    model_t model;
+    bool center_model;
+} scene_t;
 
 vec3s geometry_centered_translation(geometry_t* geometry);
 vec3s geometry_normalized_scale(geometry_t* geometry);

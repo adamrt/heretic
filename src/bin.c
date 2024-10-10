@@ -6,6 +6,34 @@
 #include "bin.h"
 #include "model.h"
 
+#define BIN_MAX_RESOURCES 25
+
+// Each resource is a file that contains a single type of data (mesh, texture,
+// etc). Each resource is related to a specific time, weather, and layout.
+typedef struct {
+    time_e time;
+    weather_e weather;
+    int layout;
+    file_type_e type;
+} resource_key_t;
+
+typedef struct {
+    resource_key_t key;
+    void* resource_data;
+    bool valid;
+} resource_t;
+
+static resource_key_t fallback_key_base = (resource_key_t) {
+    .time = TIME_DAY,
+    .weather = WEATHER_NONE,
+    .layout = 0,
+};
+
+// Forward declarations
+void add_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key, void* resource);
+void* find_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key);
+void* find_resource_or_fallback(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key);
+
 static uint8_t bin_u8(file_t* f)
 {
     uint8_t value;
@@ -127,12 +155,12 @@ static vec3s bin_normal(file_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s bin_rgb8(file_t* f)
+static vec4s bin_rgb8(file_t* f)
 {
-    uint8_t r = bin_u8(f);
-    uint8_t g = bin_u8(f);
-    uint8_t b = bin_u8(f);
-    return (vec3s) { { r, g, b } };
+    float r = bin_u8(f) / 255.0f;
+    float g = bin_u8(f) / 255.0f;
+    float b = bin_u8(f) / 255.0f;
+    return (vec4s) { { r, g, b, 1.0f } };
 }
 
 static vec4s bin_rgb15(file_t* f)
@@ -205,7 +233,9 @@ static geometry_t bin_geometry(file_t* f)
     // 0xC4 is always the primary mesh pointer.
     f->offset = 0x40;
     f->offset = bin_u32(f);
-    assert(f->offset == 0xC4);
+    if (f->offset == 0) {
+        return geometry;
+    }
 
     // The number of each type of polygon.
     int N = bin_u16(f); // Textured triangles
@@ -353,6 +383,7 @@ static geometry_t bin_geometry(file_t* f)
         geometry.vertices[i + 5].palette_index = palette;
     }
 
+    geometry.valid = true;
     return geometry;
 }
 
@@ -394,49 +425,239 @@ static palette_t bin_palette(file_t* f)
         palette.data[i + 3] = c.w;
     }
 
+    palette.valid = true;
     return palette;
+}
+
+// read_light_color clamps the value between 0.0 and 1.0. These unclamped values
+// are used to affect the lighting model but it isn't understood yet.
+// https://ffhacktics.com/wiki/Maps/Mesh#Light_colors_and_positions.2C_background_gradient_colors
+static float bin_light_color(file_t* f)
+{
+    float val = bin_f1x3x12(f);
+    return MIN(MAX(0.0f, val), 1.0f);
+}
+
+static lighting_t bin_lighting(file_t* f)
+{
+    lighting_t lighting = { 0 };
+
+    f->offset = 0x64;
+    uint32_t intra_file_ptr = bin_u32(f);
+    if (intra_file_ptr == 0) {
+        return lighting;
+    }
+
+    f->offset = intra_file_ptr;
+
+    vec4s a_color = { .w = 1.0f };
+    vec4s b_color = { .w = 1.0f };
+    vec4s c_color = { .w = 1.0f };
+
+    a_color.x = bin_light_color(f);
+    b_color.x = bin_light_color(f);
+    c_color.x = bin_light_color(f);
+    a_color.y = bin_light_color(f);
+    b_color.y = bin_light_color(f);
+    c_color.y = bin_light_color(f);
+    a_color.z = bin_light_color(f);
+    b_color.z = bin_light_color(f);
+    c_color.z = bin_light_color(f);
+
+    bool a_valid = a_color.r + a_color.g + a_color.b > 0.0f;
+    bool b_valid = b_color.r + b_color.g + b_color.b > 0.0f;
+    bool c_valid = c_color.r + c_color.g + c_color.b > 0.0f;
+
+    vec3s a_pos = bin_position(f);
+    vec3s b_pos = bin_position(f);
+    vec3s c_pos = bin_position(f);
+
+    lighting.lights[0] = (light_t) { .color = a_color, .position = a_pos, .valid = a_valid };
+    lighting.lights[1] = (light_t) { .color = b_color, .position = b_pos, .valid = b_valid };
+    lighting.lights[2] = (light_t) { .color = c_color, .position = c_pos, .valid = c_valid };
+
+    lighting.ambient_color = bin_rgb8(f);
+    lighting.ambient_strength = 2.0f;
+
+    lighting.bg_top = bin_rgb8(f);
+    lighting.bg_bottom = bin_rgb8(f);
+
+    lighting.valid = true;
+    return lighting;
 }
 
 mesh_t bin_mesh(file_t* f)
 {
     mesh_t mesh = { 0 };
+
     mesh.geometry = bin_geometry(f);
     mesh.palette = bin_palette(f);
+    mesh.lighting = bin_lighting(f);
+
+    bool is_valid = mesh.geometry.valid || mesh.palette.valid || mesh.lighting.valid;
+    mesh.valid = is_valid;
+
     return mesh;
+}
+
+void merge_meshes(mesh_t* dst, mesh_t* src)
+{
+    assert(dst != NULL);
+    assert(src != NULL);
+
+    if (src->geometry.valid) {
+        for (int i = 0; i < src->geometry.count; i++) {
+            dst->geometry.vertices[dst->geometry.count++] = src->geometry.vertices[i];
+        }
+    }
+
+    if (src->palette.valid) {
+        dst->palette = src->palette;
+    }
+
+    bool override_has_lights = false;
+    for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
+        if (src->lighting.lights[i].valid) {
+            override_has_lights = true;
+            break;
+        }
+    }
+    if (override_has_lights) {
+        for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
+            dst->lighting.lights[i] = src->lighting.lights[i];
+        }
+    }
+
+    // Defaults w (alpha) is 0.0f, so 1.0f means we read the ambient color and background.
+    if (src->lighting.ambient_color.w == 1.0f) {
+        dst->lighting.ambient_color = src->lighting.ambient_color;
+    }
+
+    if (src->lighting.bg_top.w == 1.0f) {
+        dst->lighting.bg_top = src->lighting.bg_top;
+        dst->lighting.bg_bottom = src->lighting.bg_bottom;
+    }
 }
 
 model_t bin_map(FILE* bin, int num)
 {
-    model_t model = {
-        .transform = {
-            .translation = (vec3s) { { 0.0f, 0.0f, 0.0f } },
-            .rotation = (vec3s) { { 0.0f, 0.0f, 0.0f } },
-            .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } },
-        },
-    };
+    resource_t resources[BIN_MAX_RESOURCES];
+    int resource_count = 0;
 
     file_t gns_file = bin_file(bin, map_list[num].sector, BIN_GNS_FILE_MAX_SIZE);
     records_t records = bin_records(&gns_file);
+    resource_key_t requested_key = { .time = TIME_DAY, .weather = WEATHER_NONE, .layout = 0 };
+
+    model_t model = { 0 };
 
     for (int i = 0; i < records.count; i++) {
         record_t record = records.records[i];
+        resource_key_t record_key = { record.time, record.weather, record.layout, record.type };
 
         file_t file = bin_file(bin, record.sector, record.length);
 
         switch (record.type) {
         case FILE_TYPE_MESH_PRIMARY:
             model.mesh = bin_mesh(&file);
-            model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
+            if (!model.mesh.valid) {
+                assert(false);
+            }
             break;
-        case FILE_TYPE_TEXTURE:
-            model.texture = bin_texture(&file);
+
+        case FILE_TYPE_TEXTURE: {
+            // There can be duplicate textures for the same time/weather. Use the first one.
+            void* found = find_resource(resources, resource_count, record_key);
+            if (found == NULL) {
+                texture_t texture = bin_texture(&file);
+                add_resource(resources, resource_count, record_key, &texture);
+                resource_count++;
+            }
             break;
+        }
+
+        case FILE_TYPE_MESH_ALT: {
+            mesh_t mesh = bin_mesh(&file);
+            if (!mesh.geometry.valid) {
+                break;
+            }
+            add_resource(resources, resource_count, record_key, &mesh);
+            resource_count++;
+            break;
+        }
+
+        case FILE_TYPE_MESH_OVERRIDE: {
+            mesh_t mesh = bin_mesh(&file);
+            if (!mesh.geometry.valid) {
+                break;
+            }
+
+            add_resource(resources, resource_count, record_key, &mesh);
+            resource_count++;
+            break;
+        }
+
         default:
             break;
         }
     }
 
+    // FIXME: We might not want to use fallback. Maybe use fallback only if there is no primary mesh.
+
+    requested_key.type = FILE_TYPE_MESH_OVERRIDE;
+    mesh_t* override_mesh = find_resource_or_fallback(resources, resource_count, requested_key);
+    if (override_mesh != NULL) {
+        merge_meshes(&model.mesh, override_mesh);
+    }
+
+    requested_key.type = FILE_TYPE_MESH_ALT;
+    mesh_t* alt_mesh = find_resource_or_fallback(resources, resource_count, requested_key);
+    if (alt_mesh != NULL) {
+        merge_meshes(&model.mesh, alt_mesh);
+    }
+
+    // Select texture
+    requested_key.type = FILE_TYPE_TEXTURE;
+    texture_t* texture = find_resource_or_fallback(resources, resource_count, requested_key);
+    assert(texture != NULL);
+
+    model.mesh.texture = *texture;
+    model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
+    model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
+
     return model;
+}
+
+void add_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key, void* resource)
+{
+    assert(count < BIN_MAX_RESOURCES);
+    resources[count].key = key;
+    resources[count].valid = true;
+    resources[count].resource_data = resource;
+}
+
+void* find_resource(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key)
+{
+    for (int i = 0; i < count; i++) {
+        resource_key_t mk = resources[i].key;
+        if (resources[i].valid && mk.type == key.type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
+            return resources[i].resource_data;
+        }
+    }
+    return NULL;
+}
+
+void* find_resource_or_fallback(resource_t resources[static BIN_MAX_RESOURCES], int count, resource_key_t key)
+{
+    void* resource_data = find_resource(resources, count, key);
+    if (resource_data != NULL) {
+        return resource_data;
+    }
+
+    resource_key_t fb = fallback_key_base;
+    fb.type = key.type;
+
+    void* fallback_data = find_resource(resources, count, fb);
+    return fallback_data;
 }
 
 map_t map_list[128] = {

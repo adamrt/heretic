@@ -36,10 +36,11 @@ void main() {
 
 @fs standard_fs
 uniform fs_standard_params {
-    vec3 u_light_position;
-    vec4 u_light_color;
-    vec4 u_ambient_color;
+    vec4  u_ambient_color;
     float u_ambient_strength;
+    vec4  u_light_positions[10];
+    vec4  u_light_colors[10];
+    int   u_light_count;
 };
 
 uniform texture2D u_texture;
@@ -55,12 +56,14 @@ out vec4 frag_color;
 
 void main() {
     vec3 norm = normalize(v_normal);
-    vec3 direction = normalize(u_light_position - v_position.xyz);
-    float intensity = clamp(dot(norm, direction), 0.0, 1.0);
+    vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
+    for (int i = 0; i < u_light_count; i++) {
+        vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
+        float intensity = clamp(dot(norm, direction), 0.0, 1.0);
+        diffuse_light += u_light_colors[i] * intensity;
+    }
 
-    vec4 ambient = u_ambient_color * u_ambient_strength;
-    vec4 diffuse = u_light_color * intensity;
-    vec4 light = ambient + diffuse;
+    vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
 
     // Draw black for triangles without normals (untextured triangles)
     if (v_uv.x + v_uv.y == 0.0) {
