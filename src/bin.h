@@ -30,6 +30,7 @@ typedef struct {
 } file_t;
 
 typedef enum {
+    FILE_TYPE_NONE = 0x0000,
     FILE_TYPE_TEXTURE = 0x1701,
     FILE_TYPE_MESH_PRIMARY = 0x2E01,
     FILE_TYPE_MESH_OVERRIDE = 0x2F01,
