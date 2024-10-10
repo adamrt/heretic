@@ -255,7 +255,7 @@ static void state_load_map(int num)
 {
     state_unload_map();
 
-    model_t model = bin_map(state.fft.bin, num);
+    model_t model = read_map(state.fft.bin, num);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(model.mesh.geometry.vertices),

@@ -15,6 +15,6 @@ typedef struct {
 
 extern map_t map_list[];
 
-model_t bin_map(FILE* bin, int num);
+model_t read_map(FILE* bin, int num);
 
 #endif // BIN_H_

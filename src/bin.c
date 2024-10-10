@@ -95,45 +95,45 @@ static resource_key_t fallback_key = (resource_key_t) {
 static void add_resource(resource_t*, int, file_type_e, resource_key_t, void*);
 static void* find_resource(resource_t*, int, file_type_e, resource_key_t);
 
-static uint8_t bin_u8(file_t*);
-static uint16_t bin_u16(file_t*);
-static uint32_t bin_u32(file_t*);
-static int8_t bin_i8(file_t*);
-static int16_t bin_i16(file_t*);
-static int32_t bin_i32(file_t*);
+static uint8_t read_u8(file_t*);
+static uint16_t read_u16(file_t*);
+static uint32_t read_u32(file_t*);
+static int8_t read_i8(file_t*);
+static int16_t read_i16(file_t*);
+static int32_t read_i32(file_t*);
 
-static bytes_t bin_bytes(file_t*, int);
-static sector_t bin_sector(FILE*, int32_t);
-static file_t bin_file(FILE*, int, int);
+static bytes_t read_bytes(file_t*, int);
+static sector_t read_sector(FILE*, int32_t);
+static file_t read_file(FILE*, int, int);
 
-static float bin_f1x3x12(file_t*);
-static vec3s bin_position(file_t*);
-static vec3s bin_normal(file_t*);
-static vec4s bin_rgb8(file_t*);
-static vec4s bin_rgb15(file_t*);
-static float bin_light_color(file_t*);
+static float read_f1x3x12(file_t*);
+static vec3s read_position(file_t*);
+static vec3s read_normal(file_t*);
+static vec4s read_rgb8(file_t*);
+static vec4s read_rgb15(file_t*);
+static float read_light_color(file_t*);
 
-static record_t bin_record(file_t*);
-static records_t bin_records(file_t*);
+static record_t read_record(file_t*);
+static records_t read_records(file_t*);
 
-static geometry_t bin_geometry(file_t*);
-static texture_t bin_texture(file_t*);
-static palette_t bin_palette(file_t*);
-static lighting_t bin_lighting(file_t*);
+static geometry_t read_geometry(file_t*);
+static texture_t read_texture(file_t*);
+static palette_t read_palette(file_t*);
+static lighting_t read_lighting(file_t*);
 
-static mesh_t bin_mesh(file_t*);
+static mesh_t read_mesh(file_t*);
 
 // Utility functions
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
 
-model_t bin_map(FILE* bin, int num)
+model_t read_map(FILE* bin, int num)
 {
     resource_t resources[GNS_RECORD_MAX_NUM];
     int resource_count = 0;
 
-    file_t gns_file = bin_file(bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
-    records_t records = bin_records(&gns_file);
+    file_t gns_file = read_file(bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
+    records_t records = read_records(&gns_file);
     resource_key_t requested_key = { .time = TIME_DAY, .weather = WEATHER_NONE, .layout = 0 };
 
     model_t model = { 0 };
@@ -142,11 +142,11 @@ model_t bin_map(FILE* bin, int num)
         record_t record = records.records[i];
         resource_key_t record_key = { record.time, record.weather, record.layout };
 
-        file_t file = bin_file(bin, record.sector, record.length);
+        file_t file = read_file(bin, record.sector, record.length);
 
         switch (record.type) {
         case FILE_TYPE_MESH_PRIMARY:
-            model.mesh = bin_mesh(&file);
+            model.mesh = read_mesh(&file);
             if (!model.mesh.valid) {
                 assert(false);
             }
@@ -156,7 +156,7 @@ model_t bin_map(FILE* bin, int num)
             // There can be duplicate textures for the same time/weather. Use the first one.
             void* found = find_resource(resources, resource_count, record.type, record_key);
             if (found == NULL) {
-                texture_t texture = bin_texture(&file);
+                texture_t texture = read_texture(&file);
                 add_resource(resources, resource_count, record.type, record_key, &texture);
                 resource_count++;
             }
@@ -164,7 +164,7 @@ model_t bin_map(FILE* bin, int num)
         }
 
         case FILE_TYPE_MESH_ALT: {
-            mesh_t mesh = bin_mesh(&file);
+            mesh_t mesh = read_mesh(&file);
             if (!mesh.geometry.valid) {
                 break;
             }
@@ -174,7 +174,7 @@ model_t bin_map(FILE* bin, int num)
         }
 
         case FILE_TYPE_MESH_OVERRIDE: {
-            mesh_t mesh = bin_mesh(&file);
+            mesh_t mesh = read_mesh(&file);
             if (!mesh.geometry.valid) {
                 break;
             }
@@ -222,40 +222,40 @@ model_t bin_map(FILE* bin, int num)
     return model;
 }
 
-static geometry_t bin_geometry(file_t* f)
+static geometry_t read_geometry(file_t* f)
 {
     geometry_t geometry = { 0 };
 
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
     f->offset = 0x40;
-    f->offset = bin_u32(f);
+    f->offset = read_u32(f);
     if (f->offset == 0) {
         return geometry;
     }
 
     // The number of each type of polygon.
-    int N = bin_u16(f); // Textured triangles
-    int P = bin_u16(f); // Textured quads
-    int Q = bin_u16(f); // Untextured triangles
-    int R = bin_u16(f); // Untextured quads
+    int N = read_u16(f); // Textured triangles
+    int P = read_u16(f); // Textured quads
+    int Q = read_u16(f); // Untextured triangles
+    int R = read_u16(f); // Untextured quads
 
     // Validate maximum values
     assert(N < 512 && P < 768 && Q < 64 && R < 256);
 
     // Textured triangle
     for (int i = 0; i < N; i++) {
-        geometry.vertices[geometry.count++].position = bin_position(f);
-        geometry.vertices[geometry.count++].position = bin_position(f);
-        geometry.vertices[geometry.count++].position = bin_position(f);
+        geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count++].position = read_position(f);
     }
 
     // Textured quads
     for (int i = 0; i < P; i++) {
-        vec3s a = bin_position(f);
-        vec3s b = bin_position(f);
-        vec3s c = bin_position(f);
-        vec3s d = bin_position(f);
+        vec3s a = read_position(f);
+        vec3s b = read_position(f);
+        vec3s c = read_position(f);
+        vec3s d = read_position(f);
 
         // Tri A
         geometry.vertices[geometry.count++].position = a;
@@ -270,17 +270,17 @@ static geometry_t bin_geometry(file_t* f)
 
     // Untextured triangle
     for (int i = 0; i < Q; i++) {
-        geometry.vertices[geometry.count++].position = bin_position(f);
-        geometry.vertices[geometry.count++].position = bin_position(f);
-        geometry.vertices[geometry.count++].position = bin_position(f);
+        geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count++].position = read_position(f);
     }
 
     // Untextured quads
     for (int i = 0; i < R; i++) {
-        vec3s a = bin_position(f);
-        vec3s b = bin_position(f);
-        vec3s c = bin_position(f);
-        vec3s d = bin_position(f);
+        vec3s a = read_position(f);
+        vec3s b = read_position(f);
+        vec3s c = read_position(f);
+        vec3s d = read_position(f);
 
         // Tri A
         geometry.vertices[geometry.count++].position = a;
@@ -295,17 +295,17 @@ static geometry_t bin_geometry(file_t* f)
 
     // Triangle normals
     for (int i = 0; i < N * 3; i = i + 3) {
-        geometry.vertices[i + 0].normal = bin_normal(f);
-        geometry.vertices[i + 1].normal = bin_normal(f);
-        geometry.vertices[i + 2].normal = bin_normal(f);
+        geometry.vertices[i + 0].normal = read_normal(f);
+        geometry.vertices[i + 1].normal = read_normal(f);
+        geometry.vertices[i + 2].normal = read_normal(f);
     };
 
     // Quad normals
     for (int i = N * 3; i < N * 3 + (P * 3 * 2); i = i + 6) {
-        vec3s a = bin_normal(f);
-        vec3s b = bin_normal(f);
-        vec3s c = bin_normal(f);
-        vec3s d = bin_normal(f);
+        vec3s a = read_normal(f);
+        vec3s b = read_normal(f);
+        vec3s c = read_normal(f);
+        vec3s d = read_normal(f);
 
         // Tri A
         geometry.vertices[i + 0].normal = a;
@@ -320,16 +320,16 @@ static geometry_t bin_geometry(file_t* f)
 
     // Triangle UV
     for (int i = 0; i < N * 3; i = i + 3) {
-        float au = bin_u8(f);
-        float av = bin_u8(f);
-        float palette = bin_u8(f);
-        (void)bin_u8(f); // padding
-        float bu = bin_u8(f);
-        float bv = bin_u8(f);
-        float page = (bin_u8(f) & 0x03); // 0b00000011
-        (void)bin_u8(f);                 // padding
-        float cu = bin_u8(f);
-        float cv = bin_u8(f);
+        float au = read_u8(f);
+        float av = read_u8(f);
+        float palette = read_u8(f);
+        (void)read_u8(f); // padding
+        float bu = read_u8(f);
+        float bv = read_u8(f);
+        float page = (read_u8(f) & 0x03); // 0b00000011
+        (void)read_u8(f);                 // padding
+        float cu = read_u8(f);
+        float cv = read_u8(f);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -345,18 +345,18 @@ static geometry_t bin_geometry(file_t* f)
 
     // Quad UV. Split into 2 triangles.
     for (int i = N * 3; i < N * 3 + (P * 3 * 2); i = i + 6) {
-        float au = bin_u8(f);
-        float av = bin_u8(f);
-        float palette = bin_u8(f);
-        (void)bin_u8(f); // padding
-        float bu = bin_u8(f);
-        float bv = bin_u8(f);
-        float page = (bin_u8(f) & 0x03); // 0b00000011
-        (void)bin_u8(f);                 // padding
-        float cu = bin_u8(f);
-        float cv = bin_u8(f);
-        float du = bin_u8(f);
-        float dv = bin_u8(f);
+        float au = read_u8(f);
+        float av = read_u8(f);
+        float palette = read_u8(f);
+        (void)read_u8(f); // padding
+        float bu = read_u8(f);
+        float bv = read_u8(f);
+        float page = (read_u8(f) & 0x03); // 0b00000011
+        (void)read_u8(f);                 // padding
+        float cu = read_u8(f);
+        float cv = read_u8(f);
+        float du = read_u8(f);
+        float dv = read_u8(f);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -384,14 +384,14 @@ static geometry_t bin_geometry(file_t* f)
     return geometry;
 }
 
-static texture_t bin_texture(file_t* f)
+static texture_t read_texture(file_t* f)
 {
     const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2); // Each pixel stored as 1/2 a byte
 
     texture_t texture = { 0 };
 
     for (int i = 0; i < TEXTURE_ON_DISK_SIZE * 8; i += 8) {
-        uint8_t raw_pixel = bin_u8(f);
+        uint8_t raw_pixel = read_u8(f);
         uint8_t right = ((raw_pixel & 0x0F));
         uint8_t left = ((raw_pixel & 0xF0) >> 4);
         texture.data[i + 0] = right;
@@ -407,15 +407,15 @@ static texture_t bin_texture(file_t* f)
     return texture;
 }
 
-static palette_t bin_palette(file_t* f)
+static palette_t read_palette(file_t* f)
 {
     palette_t palette = { 0 };
 
     f->offset = 0x44;
-    f->offset = bin_u32(f);
+    f->offset = read_u32(f);
 
     for (int i = 0; i < 16 * 16 * 4; i = i + 4) {
-        vec4s c = bin_rgb15(f);
+        vec4s c = read_rgb15(f);
         palette.data[i + 0] = c.x;
         palette.data[i + 1] = c.y;
         palette.data[i + 2] = c.z;
@@ -429,12 +429,12 @@ static palette_t bin_palette(file_t* f)
 // read_light_color clamps the value between 0.0 and 1.0. These unclamped values
 // are used to affect the lighting model but it isn't understood yet.
 // https://ffhacktics.com/wiki/Maps/Mesh#Light_colors_and_positions.2C_background_gradient_colors
-static lighting_t bin_lighting(file_t* f)
+static lighting_t read_lighting(file_t* f)
 {
     lighting_t lighting = { 0 };
 
     f->offset = 0x64;
-    uint32_t intra_file_ptr = bin_u32(f);
+    uint32_t intra_file_ptr = read_u32(f);
     if (intra_file_ptr == 0) {
         return lighting;
     }
@@ -445,45 +445,45 @@ static lighting_t bin_lighting(file_t* f)
     vec4s b_color = { .w = 1.0f };
     vec4s c_color = { .w = 1.0f };
 
-    a_color.x = bin_light_color(f);
-    b_color.x = bin_light_color(f);
-    c_color.x = bin_light_color(f);
-    a_color.y = bin_light_color(f);
-    b_color.y = bin_light_color(f);
-    c_color.y = bin_light_color(f);
-    a_color.z = bin_light_color(f);
-    b_color.z = bin_light_color(f);
-    c_color.z = bin_light_color(f);
+    a_color.x = read_light_color(f);
+    b_color.x = read_light_color(f);
+    c_color.x = read_light_color(f);
+    a_color.y = read_light_color(f);
+    b_color.y = read_light_color(f);
+    c_color.y = read_light_color(f);
+    a_color.z = read_light_color(f);
+    b_color.z = read_light_color(f);
+    c_color.z = read_light_color(f);
 
     bool a_valid = a_color.r + a_color.g + a_color.b > 0.0f;
     bool b_valid = b_color.r + b_color.g + b_color.b > 0.0f;
     bool c_valid = c_color.r + c_color.g + c_color.b > 0.0f;
 
-    vec3s a_pos = bin_position(f);
-    vec3s b_pos = bin_position(f);
-    vec3s c_pos = bin_position(f);
+    vec3s a_pos = read_position(f);
+    vec3s b_pos = read_position(f);
+    vec3s c_pos = read_position(f);
 
     lighting.lights[0] = (light_t) { .color = a_color, .position = a_pos, .valid = a_valid };
     lighting.lights[1] = (light_t) { .color = b_color, .position = b_pos, .valid = b_valid };
     lighting.lights[2] = (light_t) { .color = c_color, .position = c_pos, .valid = c_valid };
 
-    lighting.ambient_color = bin_rgb8(f);
+    lighting.ambient_color = read_rgb8(f);
     lighting.ambient_strength = 2.0f;
 
-    lighting.bg_top = bin_rgb8(f);
-    lighting.bg_bottom = bin_rgb8(f);
+    lighting.bg_top = read_rgb8(f);
+    lighting.bg_bottom = read_rgb8(f);
 
     lighting.valid = true;
     return lighting;
 }
 
-mesh_t bin_mesh(file_t* f)
+mesh_t read_mesh(file_t* f)
 {
     mesh_t mesh = { 0 };
 
-    mesh.geometry = bin_geometry(f);
-    mesh.palette = bin_palette(f);
-    mesh.lighting = bin_lighting(f);
+    mesh.geometry = read_geometry(f);
+    mesh.palette = read_palette(f);
+    mesh.lighting = read_lighting(f);
 
     bool is_valid = mesh.geometry.valid || mesh.palette.valid || mesh.lighting.valid;
     mesh.valid = is_valid;
@@ -511,7 +511,7 @@ void* find_resource(resource_t* resources, int count, file_type_e type, resource
     return NULL;
 }
 
-static uint8_t bin_u8(file_t* f)
+static uint8_t read_u8(file_t* f)
 {
     uint8_t value;
     memcpy(&value, &f->data[f->offset], sizeof(uint8_t));
@@ -519,7 +519,7 @@ static uint8_t bin_u8(file_t* f)
     return value;
 }
 
-static uint16_t bin_u16(file_t* f)
+static uint16_t read_u16(file_t* f)
 {
     uint16_t value;
     memcpy(&value, &f->data[f->offset], sizeof(uint16_t));
@@ -527,7 +527,7 @@ static uint16_t bin_u16(file_t* f)
     return value;
 }
 
-static uint32_t bin_u32(file_t* f)
+static uint32_t read_u32(file_t* f)
 {
     uint32_t value;
     memcpy(&value, &f->data[f->offset], sizeof(uint32_t));
@@ -535,7 +535,7 @@ static uint32_t bin_u32(file_t* f)
     return value;
 }
 
-static int8_t bin_i8(file_t* f)
+static int8_t read_i8(file_t* f)
 {
     int8_t value;
     memcpy(&value, &f->data[f->offset], sizeof(int8_t));
@@ -543,7 +543,7 @@ static int8_t bin_i8(file_t* f)
     return value;
 }
 
-static int16_t bin_i16(file_t* f)
+static int16_t read_i16(file_t* f)
 {
     int16_t value;
     memcpy(&value, &f->data[f->offset], sizeof(int16_t));
@@ -551,7 +551,7 @@ static int16_t bin_i16(file_t* f)
     return value;
 }
 
-static int32_t bin_i32(file_t* f)
+static int32_t read_i32(file_t* f)
 {
     int32_t value;
     memcpy(&value, &f->data[f->offset], sizeof(int32_t));
@@ -559,17 +559,17 @@ static int32_t bin_i32(file_t* f)
     return value;
 }
 
-static bytes_t bin_bytes(file_t* f, int size)
+static bytes_t read_bytes(file_t* f, int size)
 {
     bytes_t bytes = { .size = size };
     for (int i = 0; i < size; i++) {
-        bytes.data[i] = bin_u8(f);
+        bytes.data[i] = read_u8(f);
     }
     return bytes;
 }
 
-// bin_read_sector reads a sector to `out_bytes`.
-static sector_t bin_sector(FILE* file, int32_t sector_num)
+// read_read_sector reads a sector to `out_bytes`.
+static sector_t read_sector(FILE* file, int32_t sector_num)
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
     if (fseek(file, seek_to, SEEK_SET) != 0) {
@@ -582,7 +582,7 @@ static sector_t bin_sector(FILE* file, int32_t sector_num)
     return sector;
 }
 
-static file_t bin_file(FILE* bin, int sector_num, int size)
+static file_t read_file(FILE* bin, int sector_num, int size)
 {
     file_t file = { .size = size };
 
@@ -590,7 +590,7 @@ static file_t bin_file(FILE* bin, int sector_num, int size)
     uint32_t occupied_sectors = ceil((float)size / (float)SECTOR_SIZE);
 
     for (uint32_t i = 0; i < occupied_sectors; i++) {
-        sector_t sector_data = bin_sector(bin, sector_num + i);
+        sector_t sector_data = read_sector(bin, sector_num + i);
 
         int remaining_size = size - offset;
         int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
@@ -602,17 +602,17 @@ static file_t bin_file(FILE* bin, int sector_num, int size)
     return file;
 }
 
-static float bin_f1x3x12(file_t* f)
+static float read_f1x3x12(file_t* f)
 {
-    float value = bin_i16(f);
+    float value = read_i16(f);
     return value / 4096.0f;
 }
 
-static vec3s bin_position(file_t* f)
+static vec3s read_position(file_t* f)
 {
-    float x = bin_i16(f) / GLOBAL_SCALE;
-    float y = bin_i16(f) / GLOBAL_SCALE;
-    float z = bin_i16(f) / GLOBAL_SCALE;
+    float x = read_i16(f) / GLOBAL_SCALE;
+    float y = read_i16(f) / GLOBAL_SCALE;
+    float z = read_i16(f) / GLOBAL_SCALE;
 
     y = -y;
     z = -z;
@@ -620,11 +620,11 @@ static vec3s bin_position(file_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s bin_normal(file_t* f)
+static vec3s read_normal(file_t* f)
 {
-    float x = bin_f1x3x12(f);
-    float y = bin_f1x3x12(f);
-    float z = bin_f1x3x12(f);
+    float x = read_f1x3x12(f);
+    float y = read_f1x3x12(f);
+    float z = read_f1x3x12(f);
 
     y = -y;
     z = -z;
@@ -632,17 +632,17 @@ static vec3s bin_normal(file_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-static vec4s bin_rgb8(file_t* f)
+static vec4s read_rgb8(file_t* f)
 {
-    float r = bin_u8(f) / 255.0f;
-    float g = bin_u8(f) / 255.0f;
-    float b = bin_u8(f) / 255.0f;
+    float r = read_u8(f) / 255.0f;
+    float g = read_u8(f) / 255.0f;
+    float b = read_u8(f) / 255.0f;
     return (vec4s) { { r, g, b, 1.0f } };
 }
 
-static vec4s bin_rgb15(file_t* f)
+static vec4s read_rgb15(file_t* f)
 {
-    uint16_t val = bin_u16(f);
+    uint16_t val = read_u16(f);
     uint8_t a = val == 0 ? 0x00 : 0xFF;
     uint8_t b = (val & 0x7C00) >> 7; // 0b0111110000000000
     uint8_t g = (val & 0x03E0) >> 2; // 0b0000001111100000
@@ -650,15 +650,15 @@ static vec4s bin_rgb15(file_t* f)
     return (vec4s) { { r, g, b, a } };
 }
 
-static float bin_light_color(file_t* f)
+static float read_light_color(file_t* f)
 {
-    float val = bin_f1x3x12(f);
+    float val = read_f1x3x12(f);
     return MIN(MAX(0.0f, val), 1.0f);
 }
 
-static record_t bin_record(file_t* f)
+static record_t read_record(file_t* f)
 {
-    bytes_t bytes = bin_bytes(f, GNS_RECORD_SIZE);
+    bytes_t bytes = read_bytes(f, GNS_RECORD_SIZE);
     int sector = bytes.data[8] | bytes.data[9] << 8;
     uint64_t length = (uint32_t)(bytes.data[12]) | ((uint32_t)(bytes.data[13]) << 8) | ((uint32_t)(bytes.data[14]) << 16) | ((uint32_t)(bytes.data[15]) << 24);
     file_type_e type = (bytes.data[4] | (bytes.data[5] << 8));
@@ -678,11 +678,11 @@ static record_t bin_record(file_t* f)
     return record;
 }
 
-static records_t bin_records(file_t* f)
+static records_t read_records(file_t* f)
 {
     records_t records = { .count = 0 };
     while (true) {
-        record_t record = bin_record(f);
+        record_t record = read_record(f);
         if (record.type == FILE_TYPE_END) {
             break;
         }
