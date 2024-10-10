@@ -227,6 +227,8 @@ static void engine_update(void)
 
 static void engine_cleanup(void)
 {
+    fclose(state.fft.bin);
+
     state_unload_map();
     snk_shutdown();
     sg_shutdown();

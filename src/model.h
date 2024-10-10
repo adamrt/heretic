@@ -13,7 +13,7 @@
 // use it everywhere.
 #define GLOBAL_SCALE (256.0f)
 
-#define MESH_MAX_VERTICES (5420)
+#define MESH_MAX_VERTICES (7620)
 #define MESH_MAX_LIGHTS (3)
 
 #define SCENE_MAX_MODELS (125)

@@ -13,7 +13,7 @@
 #define BIN_FILE_MAX_SIZE (131072)
 
 #define BIN_GNS_FILE_MAX_SIZE (2388)
-#define BIN_GNS_RECORD_MAX_NUM (25)
+#define BIN_GNS_RECORD_MAX_NUM (100)
 #define BIN_GNS_RECORD_SIZE (20)
 
 typedef struct {
