@@ -448,8 +448,8 @@ static void gfx_frame(void)
 
         model_t* model = &state.scene.model;
 
-        mat4s proj = camera_proj();
-        mat4s view = camera_view();
+        mat4s proj = camera_get_proj();
+        mat4s view = camera_get_view();
 
         vs_standard_params_t vs_params = {
             .u_proj = proj,

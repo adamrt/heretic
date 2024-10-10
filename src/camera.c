@@ -2,6 +2,9 @@
 
 #include "camera.h"
 
+#define CAMERA_MIN_DIST (0.5f)
+#define CAMERA_MAX_DIST (5.0f)
+
 typedef struct {
     mat4s proj;
     mat4s view;
@@ -71,5 +74,5 @@ void camera_zoom(float delta)
     cam.zoom_factor = glm_clamp(cam.zoom_factor, 0.1f, 5.0f);
 }
 
-mat4s camera_proj(void) { return cam.proj; }
-mat4s camera_view(void) { return cam.view; }
+mat4s camera_get_proj(void) { return cam.proj; }
+mat4s camera_get_view(void) { return cam.view; }
