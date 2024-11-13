@@ -70,15 +70,23 @@ static void gui_draw(void)
     }
     nk_end(ctx);
 
-    if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
-        nk_layout_row_dynamic(ctx, 30, 1);
+    if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 250, 450), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+        nk_layout_row_dynamic(ctx, 25, 1);
 
         scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
         map_desc_t map = map_list[scenario.map_id];
 
-        char buffer[64];
-        snprintf(buffer, 64, "Map %d: %s", map.id, map.name);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
+        char mapbuffer[64];
+        snprintf(mapbuffer, 64, "Map %d: %s", map.id, map.name);
+        nk_label(ctx, mapbuffer, NK_TEXT_LEFT);
+
+        char weather_name[12];
+        weather_str(scenario.weather, weather_name);
+        char time_name[8];
+        time_str(scenario.time, time_name);
+        char condbuffer[40];
+        snprintf(condbuffer, 40, "Weather: %s, Time: %s", weather_name, time_name);
+        nk_label(ctx, condbuffer, NK_TEXT_LEFT);
 
         nk_bool centered = game.scene.center_model;
         nk_checkbox_label(ctx, "Centered", &centered);

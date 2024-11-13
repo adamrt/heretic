@@ -1,10 +1,9 @@
-#include "cglm/struct.h"
-
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
 #include "sokol_log.h"
 
+#include "cglm/struct.h"
 #include "shader.glsl.h"
 
 #include "camera.h"

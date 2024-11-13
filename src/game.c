@@ -1,7 +1,6 @@
-#include "cglm/struct.h"
-
 #include "sokol_gfx.h"
 
+#include "cglm/struct.h"
 #include "shader.glsl.h"
 
 #include "bin.h"
@@ -150,7 +149,6 @@ static void scenario_prev(void)
 
 static void map_load(int num, resource_key_t resource_key)
 {
-    game.scene.current_scenario = num;
     map_unload();
 
     model_t model = read_map(num, resource_key);
