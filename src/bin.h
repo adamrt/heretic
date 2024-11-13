@@ -2,7 +2,6 @@
 #define BIN_H_
 
 #include <stdint.h>
-#include <stdio.h>
 
 #include "model.h"
 
