@@ -81,7 +81,8 @@ typedef struct {
 typedef struct {
     resource_key_t key;
     file_type_e type;
-    void* resource_data;
+    texture_t texture;
+    mesh_t mesh;
     bool valid;
 } resource_t;
 
@@ -129,7 +130,7 @@ static vec2s process_tex_coords(float u, float v, uint8_t page);
 
 model_t read_map(FILE* bin, int num)
 {
-    resource_t resources[GNS_RECORD_MAX_NUM];
+    resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;
 
     file_t gns_file = read_file(bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
@@ -218,6 +219,8 @@ model_t read_map(FILE* bin, int num)
     model.mesh.texture = *texture;
     model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
     model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
+
+    free(resources);
 
     return model;
 }
@@ -505,8 +508,17 @@ void add_resource(resource_t* resources, int count, file_type_e type, resource_k
     assert(count < GNS_RECORD_MAX_NUM);
     resources[count].key = key;
     resources[count].valid = true;
-    resources[count].resource_data = resource;
     resources[count].type = type;
+
+    if (type == FILE_TYPE_TEXTURE) {
+        resources[count].texture = *(texture_t*)resource;
+        return;
+    }
+
+    if (type == FILE_TYPE_MESH_PRIMARY || type == FILE_TYPE_MESH_OVERRIDE || type == FILE_TYPE_MESH_ALT) {
+        resources[count].mesh = *(mesh_t*)resource;
+        return;
+    }
 }
 
 void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key)
@@ -514,7 +526,12 @@ void* find_resource(resource_t* resources, int count, file_type_e type, resource
     for (int i = 0; i < count; i++) {
         resource_key_t mk = resources[i].key;
         if (resources[i].valid && resources[i].type == type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
-            return resources[i].resource_data;
+            if (type == FILE_TYPE_TEXTURE) {
+                return &resources[i].texture;
+            }
+            if (type == FILE_TYPE_MESH_PRIMARY || type == FILE_TYPE_MESH_OVERRIDE || type == FILE_TYPE_MESH_ALT) {
+                return &resources[i].mesh;
+            }
         }
     }
     return NULL;
