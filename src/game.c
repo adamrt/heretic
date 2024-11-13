@@ -14,7 +14,10 @@
 #include "gfx.h"
 #include "ui.h"
 
-game_t game;
+game_t game = {
+    .scene.center_model = true,
+    .scene.current_map = 49,
+};
 
 // Forward declarations
 static void state_update(void);
@@ -25,18 +28,16 @@ static void map_unload(void);
 
 void game_init(void)
 {
+    game.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
+    if (game.bin == NULL) {
+        assert(false);
+    }
+
     gfx_init();
     camera_init();
     ui_init();
 
-    game.fft.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
-    if (game.fft.bin == NULL) {
-        assert(false);
-    }
-
-    game.scene.center_model = true;
-    game.fft.current_map = 49;
-    map_load(game.fft.current_map);
+    map_load(game.scene.current_map);
 }
 
 void game_input(const sapp_event* event)
@@ -104,7 +105,7 @@ void game_update(void)
 
 void game_shutdown(void)
 {
-    fclose(game.fft.bin);
+    fclose(game.bin);
     map_unload();
 
     snk_shutdown();
@@ -132,47 +133,48 @@ static void state_update(void)
 
 static void map_next(void)
 {
-    game.fft.current_map++;
+    game.scene.current_map++;
 
     while (true) {
-        map_t desc = map_list[game.fft.current_map];
+        map_t desc = map_list[game.scene.current_map];
         if (!desc.valid) {
-            game.fft.current_map++;
-            if (game.fft.current_map >= 128) {
-                game.fft.current_map = 0;
+            game.scene.current_map++;
+            if (game.scene.current_map >= 128) {
+                game.scene.current_map = 0;
             }
             continue;
         }
         break;
     }
 
-    map_load(game.fft.current_map);
+    map_load(game.scene.current_map);
 }
 
 static void map_prev(void)
 {
-    game.fft.current_map--;
+    game.scene.current_map--;
 
     while (true) {
-        map_t desc = map_list[game.fft.current_map];
+        map_t desc = map_list[game.scene.current_map];
         if (!desc.valid) {
-            game.fft.current_map--;
-            if (game.fft.current_map < 0) {
-                game.fft.current_map = 127;
+            game.scene.current_map--;
+            if (game.scene.current_map < 0) {
+                game.scene.current_map = 127;
             }
             continue;
         }
         break;
     }
 
-    map_load(game.fft.current_map);
+    map_load(game.scene.current_map);
 }
 
 static void map_load(int num)
 {
+    game.scene.current_map = num;
     map_unload();
 
-    model_t model = read_map(game.fft.bin, num);
+    model_t model = read_map(game.bin, num);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(model.mesh.geometry.vertices),

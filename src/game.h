@@ -11,17 +11,13 @@ void game_input(const sapp_event* event);
 void game_shutdown(void);
 
 typedef struct {
+    FILE* bin;
     scene_t scene;
 
     struct {
         bool mouse_left;
         bool mouse_right;
     } input;
-
-    struct {
-        FILE* bin;
-        int current_map;
-    } fft;
 } game_t;
 
 extern game_t game;

@@ -101,6 +101,7 @@ typedef struct {
 typedef struct {
     model_t model;
     bool center_model;
+    int current_map;
 } scene_t;
 
 vec3s geometry_centered_translation(geometry_t* geometry);

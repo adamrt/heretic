@@ -39,9 +39,9 @@ void ui_draw(struct nk_context* ctx)
     if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
 
-        map_t desc = map_list[game.fft.current_map];
+        map_t desc = map_list[game.scene.current_map];
         char buffer[64];
-        sprintf(buffer, "Map %d: %s", game.fft.current_map, desc.name);
+        sprintf(buffer, "Map %d: %s", game.scene.current_map, desc.name);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
         nk_spacer(ctx);
 
