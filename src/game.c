@@ -12,14 +12,15 @@
 
 game_t game = {
     .scene.center_model = true,
-    .scene.current_map = 49,
+    .scene.current_scenario = 2,
+
 };
 
 // Forward declarations
 static void state_update(void);
-static void map_prev(void);
-static void map_next(void);
-static void map_load(int num);
+static void scenario_prev(void);
+static void scenario_next(void);
+static void map_load(int num, resource_key_t);
 static void map_unload(void);
 
 void game_init(void)
@@ -35,7 +36,9 @@ void game_init(void)
     camera_init();
     ui_init();
 
-    map_load(game.scene.current_map);
+    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
+    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
+    map_load(scenario.map_id, scenario_key);
 }
 
 void game_input(const sapp_event* event)
@@ -56,10 +59,10 @@ void game_input(const sapp_event* event)
         case SAPP_KEYCODE_ESCAPE:
             sapp_request_quit();
         case SAPP_KEYCODE_K:
-            map_next();
+            scenario_next();
             break;
         case SAPP_KEYCODE_J:
-            map_prev();
+            scenario_prev();
             break;
         default:
             break;
@@ -129,50 +132,28 @@ static void state_update(void)
     model->model_matrix = model_matrix;
 }
 
-static void map_next(void)
+static void scenario_next(void)
 {
-    game.scene.current_map++;
-
-    while (true) {
-        map_desc_t desc = map_list[game.scene.current_map];
-        if (!desc.valid) {
-            game.scene.current_map++;
-            if (game.scene.current_map >= 128) {
-                game.scene.current_map = 0;
-            }
-            continue;
-        }
-        break;
-    }
-
-    map_load(game.scene.current_map);
+    game.scene.current_scenario++;
+    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
+    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
+    map_load(scenario.map_id, scenario_key);
 }
 
-static void map_prev(void)
+static void scenario_prev(void)
 {
-    game.scene.current_map--;
-
-    while (true) {
-        map_desc_t desc = map_list[game.scene.current_map];
-        if (!desc.valid) {
-            game.scene.current_map--;
-            if (game.scene.current_map < 0) {
-                game.scene.current_map = 127;
-            }
-            continue;
-        }
-        break;
-    }
-
-    map_load(game.scene.current_map);
+    game.scene.current_scenario--;
+    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
+    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
+    map_load(scenario.map_id, scenario_key);
 }
 
-static void map_load(int num)
+static void map_load(int num, resource_key_t resource_key)
 {
-    game.scene.current_map = num;
+    game.scene.current_scenario = num;
     map_unload();
 
-    model_t model = read_map(num);
+    model_t model = read_map(num, resource_key);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(model.mesh.geometry.vertices),

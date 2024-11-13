@@ -19,6 +19,14 @@ typedef enum {
     WEATHER_VERY_STRONG = 0x4,
 } weather_e;
 
+// Each resource is a file that contains a single type of data (mesh, texture).
+// Each resource is related to a specific time, weather, and layout.
+typedef struct {
+    time_e time;
+    weather_e weather;
+    int layout;
+} resource_key_t;
+
 typedef struct {
     int id;
     int map_id;
@@ -34,7 +42,7 @@ typedef struct {
     int count;
 } scenarios_t;
 
-model_t read_map(int num);
+model_t read_map(int num, resource_key_t requested_key);
 scenarios_t read_scenarios(void);
 
 void time_str(time_e, char[static 8]);

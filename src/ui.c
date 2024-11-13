@@ -1,3 +1,4 @@
+#include "gfx.h"
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
@@ -6,6 +7,7 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_INCLUDE_STANDARD_VARARGS
 #include "nuklear.h"
+#include "src/nuklear_internal.h"
 
 #include "sokol_app.h"
 #include "sokol_gfx.h"
@@ -46,14 +48,37 @@ void ui_shutdown(void)
 static void ui_draw(void)
 {
     struct nk_context* ctx = snk_new_frame();
+
+    if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+        nk_layout_row_dynamic(ctx, 15, 2);
+        for (int i = 0; i < game.fft.scenarios.count; i++) {
+            scenario_t* scenario = &game.fft.scenarios.scenarios[i];
+
+            char buffer_id[64];
+            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, map_list[scenario->map_id].name);
+
+            char weather_name[12];
+            weather_str(scenario->weather, weather_name);
+            char time_name[8];
+            time_str(scenario->time, time_name);
+            char buffer_weather[40];
+            snprintf(buffer_weather, 40, "Weather: %s, Time: %s, ENTD: %d", weather_name, time_name, scenario->entd_id);
+
+            nk_label(ctx, buffer_id, NK_TEXT_LEFT);
+            nk_label(ctx, buffer_weather, NK_TEXT_LEFT);
+        }
+        nk_end(ctx);
+    }
+
     if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
 
-        map_desc_t desc = map_list[game.scene.current_map];
+        scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
+        map_desc_t map = map_list[scenario.map_id];
+
         char buffer[64];
-        snprintf(buffer, 64, "Map %d: %s", game.scene.current_map, desc.name);
+        snprintf(buffer, 64, "Map %d: %s", map.id, map.name);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
-        nk_spacer(ctx);
 
         nk_bool centered = game.scene.center_model;
         nk_checkbox_label(ctx, "Centered", &centered);

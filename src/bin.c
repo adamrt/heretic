@@ -58,14 +58,6 @@ typedef struct {
     int count;
 } records_t;
 
-// Each resource is a file that contains a single type of data (mesh, texture,
-// etc). Each resource is related to a specific time, weather, and layout.
-typedef struct {
-    time_e time;
-    weather_e weather;
-    int layout;
-} resource_key_t;
-
 typedef struct {
     resource_key_t key;
     file_type_e type;
@@ -144,14 +136,13 @@ scenarios_t read_scenarios(void)
     return scenarios;
 }
 
-model_t read_map(int num)
+model_t read_map(int num, resource_key_t requested_key)
 {
     resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;
 
     file_t gns_file = read_file(map_list[num].sector, GNS_FILE_MAX_SIZE);
     records_t records = read_records(&gns_file);
-    resource_key_t requested_key = { .time = TIME_DAY, .weather = WEATHER_NONE, .layout = 0 };
 
     model_t model = { 0 };
 
