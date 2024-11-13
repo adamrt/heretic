@@ -10,8 +10,8 @@
 #include "camera.h"
 #include "game.h"
 #include "gfx.h"
+#include "gui.h"
 #include "model.h"
-#include "ui.h"
 
 // Global gfx state
 gfx_t gfx;
@@ -64,7 +64,7 @@ void gfx_update(void)
     });
     {
         frame_display();
-        ui_update();
+        gui_update();
     }
     sg_end_pass();
 

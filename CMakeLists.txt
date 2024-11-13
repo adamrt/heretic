@@ -34,7 +34,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 # Add Starterkit executable
-add_executable(starterkit src/main.c src/bin.c src/camera.c src/game.c src/gfx.c src/model.c src/ui.c)
+add_executable(starterkit src/main.c src/bin.c src/camera.c src/game.c src/gui.c src/gfx.c src/model.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)

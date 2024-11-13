@@ -17,11 +17,11 @@
 
 #include "bin.h"
 #include "game.h"
-#include "ui.h"
+#include "gui.h"
 
-static void ui_draw(void);
+static void gui_draw(void);
 
-void ui_init(void)
+void gui_init(void)
 {
     snk_setup(&(snk_desc_t) {
         .dpi_scale = sapp_dpi_scale(),
@@ -29,23 +29,23 @@ void ui_init(void)
     });
 }
 
-void ui_update(void)
+void gui_update(void)
 {
-    ui_draw();
+    gui_draw();
     snk_render(sapp_width(), sapp_height());
 }
 
-bool ui_input(const sapp_event* event)
+bool gui_input(const sapp_event* event)
 {
     return snk_handle_event(event);
 }
 
-void ui_shutdown(void)
+void gui_shutdown(void)
 {
     snk_shutdown();
 }
 
-static void ui_draw(void)
+static void gui_draw(void)
 {
     struct nk_context* ctx = snk_new_frame();
 

@@ -8,7 +8,7 @@
 #include "camera.h"
 #include "game.h"
 #include "gfx.h"
-#include "ui.h"
+#include "gui.h"
 
 game_t game = {
     .scene.center_model = true,
@@ -34,7 +34,7 @@ void game_init(void)
     // Initialize sub systems
     gfx_init();
     camera_init();
-    ui_init();
+    gui_init();
 
     scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
     resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
@@ -43,7 +43,7 @@ void game_init(void)
 
 void game_input(const sapp_event* event)
 {
-    bool handled_by_ui = ui_input(event);
+    bool handled_by_ui = gui_input(event);
     bool is_mouse_event = event->type == SAPP_EVENTTYPE_MOUSE_MOVE
         || event->type == SAPP_EVENTTYPE_MOUSE_SCROLL
         || event->type == SAPP_EVENTTYPE_MOUSE_DOWN
@@ -109,7 +109,7 @@ void game_shutdown(void)
     fclose(game.bin);
     map_unload();
 
-    ui_shutdown();
+    gui_shutdown();
     gfx_shutdown();
 }
 
