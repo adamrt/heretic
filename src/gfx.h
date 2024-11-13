@@ -8,6 +8,7 @@
 
 void gfx_init(void);
 void gfx_update(void);
+void gfx_shutdown(void);
 
 typedef struct {
     sg_image color_image;
@@ -20,6 +21,11 @@ typedef struct {
         sg_pipeline pipeline;
         sg_pass pass;
     } offscreen;
+
+    struct {
+        sg_pipeline pipeline;
+        sg_bindings bindings;
+    } background;
 
     struct {
         sg_pipeline pipeline;

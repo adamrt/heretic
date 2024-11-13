@@ -113,5 +113,32 @@ void main() {
 }
 @end
 
-@program standard standard_vs standard_fs
-@program quad quad_vs quad_fs
+@vs background_vs
+in vec3 a_position;
+
+out vec2 v_uv;
+
+void main() {
+    gl_Position = vec4(a_position, 1.0);
+    v_uv = a_position.xy;
+}
+@end
+
+@fs background_fs
+uniform fs_background_params {
+    vec4 u_top_color;
+    vec4 u_bottom_color;
+};
+
+in vec2 v_uv;
+
+out vec4 frag_color;
+
+void main() {
+    frag_color = mix(u_bottom_color, u_top_color, v_uv.y);
+}
+@end
+
+@program standard   standard_vs   standard_fs
+@program background background_vs background_fs
+@program quad       quad_vs       quad_fs

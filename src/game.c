@@ -110,7 +110,7 @@ void game_shutdown(void)
     map_unload();
 
     ui_shutdown();
-    sg_shutdown();
+    gfx_shutdown();
 }
 
 static void state_update(void)
