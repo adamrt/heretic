@@ -51,7 +51,7 @@ static void ui_draw(void)
 
         map_t desc = map_list[game.scene.current_map];
         char buffer[64];
-        sprintf(buffer, "Map %d: %s", game.scene.current_map, desc.name);
+        snprintf(buffer, 64, "Map %d: %s", game.scene.current_map, desc.name);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
         nk_spacer(ctx);
 
@@ -66,7 +66,7 @@ static void ui_draw(void)
             }
 
             char buffer[64];
-            sprintf(buffer, "Light %d", i);
+            snprintf(buffer, 64, "Light %d", i);
             nk_label(ctx, buffer, NK_TEXT_LEFT);
 
             struct nk_colorf light_color_nk = { light->color.r, light->color.g, light->color.b, light->color.a };
@@ -90,7 +90,7 @@ static void ui_draw(void)
             }
 
             char posbuffer[64];
-            sprintf(posbuffer, "%.2f, %.2f, %.2f", light->direction.x, light->direction.y, light->direction.z);
+            snprintf(posbuffer, 64, "%.2f, %.2f, %.2f", light->direction.x, light->direction.y, light->direction.z);
             if (nk_combo_begin_label(ctx, posbuffer, nk_vec2(200, 200))) {
                 nk_layout_row_dynamic(ctx, 25, 1);
                 nk_property_float(ctx, "#X:", -30.0f, &light->direction.x, 30.0f, 1, 0.5f);
