@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "bin.h"
+#include "game.h"
 #include "model.h"
 
 #define SECTOR_HEADER_SIZE (24)
@@ -91,8 +92,8 @@ static int16_t read_i16(file_t*);
 static int32_t read_i32(file_t*);
 
 static bytes_t read_bytes(file_t*, int);
-static sector_t read_sector(FILE*, int32_t);
-static file_t read_file(FILE*, int, int);
+static sector_t read_sector(int32_t);
+static file_t read_file(int, int);
 
 static float read_f1x3x12(file_t*);
 static vec3s read_position(file_t*);
@@ -115,11 +116,11 @@ static mesh_t read_mesh(file_t*);
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
 
-scenarios_t read_scenarios(FILE* bin)
+scenarios_t read_scenarios(void)
 {
     int attack_out_sector = 2448;
     int attack_out_size = 125956;
-    file_t attack_out_file = read_file(bin, attack_out_sector, attack_out_size);
+    file_t attack_out_file = read_file(attack_out_sector, attack_out_size);
 
     // Skip ahead to the scenario data in the file.
     int scenario_intra_file_offset = 0x10938;
@@ -143,12 +144,12 @@ scenarios_t read_scenarios(FILE* bin)
     return scenarios;
 }
 
-model_t read_map(FILE* bin, int num)
+model_t read_map(int num)
 {
     resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;
 
-    file_t gns_file = read_file(bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
+    file_t gns_file = read_file(map_list[num].sector, GNS_FILE_MAX_SIZE);
     records_t records = read_records(&gns_file);
     resource_key_t requested_key = { .time = TIME_DAY, .weather = WEATHER_NONE, .layout = 0 };
 
@@ -158,7 +159,7 @@ model_t read_map(FILE* bin, int num)
         record_t record = records.records[i];
         resource_key_t record_key = { record.time, record.weather, record.layout };
 
-        file_t file = read_file(bin, record.sector, record.length);
+        file_t file = read_file(record.sector, record.length);
 
         switch (record.type) {
         case FILE_TYPE_MESH_PRIMARY:
@@ -608,20 +609,20 @@ static bytes_t read_bytes(file_t* f, int size)
 }
 
 // read_read_sector reads a sector to `out_bytes`.
-static sector_t read_sector(FILE* file, int32_t sector_num)
+static sector_t read_sector(int32_t sector_num)
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(file, seek_to, SEEK_SET) != 0) {
+    if (fseek(game.bin, seek_to, SEEK_SET) != 0) {
         assert(false);
     }
 
     sector_t sector;
-    size_t n = fread(sector.data, sizeof(uint8_t), SECTOR_SIZE, file);
+    size_t n = fread(sector.data, sizeof(uint8_t), SECTOR_SIZE, game.bin);
     assert(n == SECTOR_SIZE);
     return sector;
 }
 
-static file_t read_file(FILE* bin, int sector_num, int size)
+static file_t read_file(int sector_num, int size)
 {
     file_t file = { .size = size };
 
@@ -629,7 +630,7 @@ static file_t read_file(FILE* bin, int sector_num, int size)
     uint32_t occupied_sectors = ceil((float)size / (float)SECTOR_SIZE);
 
     for (uint32_t i = 0; i < occupied_sectors; i++) {
-        sector_t sector_data = read_sector(bin, sector_num + i);
+        sector_t sector_data = read_sector(sector_num + i);
 
         int remaining_size = size - offset;
         int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;

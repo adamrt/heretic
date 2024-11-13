@@ -28,7 +28,7 @@ void game_init(void)
     assert(game.bin != NULL);
 
     // Setup global game data
-    game.fft.scenarios = read_scenarios(game.bin);
+    game.fft.scenarios = read_scenarios();
 
     // Initialize sub systems
     gfx_init();
@@ -172,7 +172,7 @@ static void map_load(int num)
     game.scene.current_map = num;
     map_unload();
 
-    model_t model = read_map(game.bin, num);
+    model_t model = read_map(num);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(model.mesh.geometry.vertices),

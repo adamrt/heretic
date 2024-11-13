@@ -34,8 +34,8 @@ typedef struct {
     int count;
 } scenarios_t;
 
-model_t read_map(FILE* bin, int num);
-scenarios_t read_scenarios(FILE* bin);
+model_t read_map(int num);
+scenarios_t read_scenarios(void);
 
 // Scenario and map descriptors
 typedef struct {
