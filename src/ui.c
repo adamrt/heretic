@@ -49,7 +49,7 @@ static void ui_draw(void)
     if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
 
-        map_t desc = map_list[game.scene.current_map];
+        map_desc_t desc = map_list[game.scene.current_map];
         char buffer[64];
         snprintf(buffer, 64, "Map %d: %s", game.scene.current_map, desc.name);
         nk_label(ctx, buffer, NK_TEXT_LEFT);

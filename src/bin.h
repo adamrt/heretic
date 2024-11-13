@@ -13,8 +13,8 @@ typedef struct {
     uint16_t sector;
     bool valid;
     const char* name;
-} map_t;
+} map_desc_t;
 
-extern map_t map_list[];
+extern map_desc_t map_list[];
 
 #endif // BIN_H_

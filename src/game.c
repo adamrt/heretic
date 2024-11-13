@@ -132,7 +132,7 @@ static void map_next(void)
     game.scene.current_map++;
 
     while (true) {
-        map_t desc = map_list[game.scene.current_map];
+        map_desc_t desc = map_list[game.scene.current_map];
         if (!desc.valid) {
             game.scene.current_map++;
             if (game.scene.current_map >= 128) {
@@ -151,7 +151,7 @@ static void map_prev(void)
     game.scene.current_map--;
 
     while (true) {
-        map_t desc = map_list[game.scene.current_map];
+        map_desc_t desc = map_list[game.scene.current_map];
         if (!desc.valid) {
             game.scene.current_map--;
             if (game.scene.current_map < 0) {
