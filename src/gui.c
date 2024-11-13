@@ -70,7 +70,7 @@ static void gui_draw(void)
     }
     nk_end(ctx);
 
-    if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+    if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
 
         scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
