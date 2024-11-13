@@ -36,6 +36,7 @@ typedef struct {
     vec3s normal;
     vec2s uv;
     float palette_index;
+    float is_textured;
 } vertex_t;
 
 typedef struct {
@@ -54,7 +55,7 @@ typedef struct {
 } palette_t;
 
 typedef struct {
-    vec3s position;
+    vec3s direction;
     vec4s color;
     bool valid;
 } light_t;

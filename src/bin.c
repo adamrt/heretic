@@ -246,8 +246,11 @@ static geometry_t read_geometry(file_t* f)
     // Textured triangle
     for (int i = 0; i < N; i++) {
         geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count].is_textured = 1.0f;
         geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count].is_textured = 1.0f;
         geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count].is_textured = 1.0f;
     }
 
     // Textured quads
@@ -259,13 +262,19 @@ static geometry_t read_geometry(file_t* f)
 
         // Tri A
         geometry.vertices[geometry.count++].position = a;
+        geometry.vertices[geometry.count].is_textured = 1.0f;
         geometry.vertices[geometry.count++].position = b;
+        geometry.vertices[geometry.count].is_textured = 1.0f;
         geometry.vertices[geometry.count++].position = c;
+        geometry.vertices[geometry.count].is_textured = 1.0f;
 
         // Tri B
         geometry.vertices[geometry.count++].position = b;
+        geometry.vertices[geometry.count].is_textured = 1.0f;
         geometry.vertices[geometry.count++].position = d;
+        geometry.vertices[geometry.count].is_textured = 1.0f;
         geometry.vertices[geometry.count++].position = c;
+        geometry.vertices[geometry.count].is_textured = 1.0f;
     }
 
     // Untextured triangle
@@ -463,9 +472,9 @@ static lighting_t read_lighting(file_t* f)
     vec3s b_pos = read_position(f);
     vec3s c_pos = read_position(f);
 
-    lighting.lights[0] = (light_t) { .color = a_color, .position = a_pos, .valid = a_valid };
-    lighting.lights[1] = (light_t) { .color = b_color, .position = b_pos, .valid = b_valid };
-    lighting.lights[2] = (light_t) { .color = c_color, .position = c_pos, .valid = c_valid };
+    lighting.lights[0] = (light_t) { .color = a_color, .direction = a_pos, .valid = a_valid };
+    lighting.lights[1] = (light_t) { .color = b_color, .direction = b_pos, .valid = b_valid };
+    lighting.lights[2] = (light_t) { .color = c_color, .direction = c_pos, .valid = c_valid };
 
     lighting.ambient_color = read_rgb8(f);
     lighting.ambient_strength = 2.0f;

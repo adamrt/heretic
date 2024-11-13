@@ -14,23 +14,24 @@ in vec3 a_position;
 in vec3 a_normal;
 in vec2 a_uv;
 in float a_palette_index;
+in float a_is_textured;
 
 out vec4 v_position;
 out vec3 v_normal;
 out vec2 v_uv;
 out float v_palette_index;
+out float v_is_textured;
 
 void main() {
+    v_position = u_model * vec4(a_position, 1.0);
+    gl_Position = u_proj * u_view * v_position;
 
     mat3 normal_matrix = transpose(inverse(mat3(u_model)));
-
-    v_position = u_model * vec4(a_position, 1.0);
     v_normal = normalize(normal_matrix * a_normal);
+
     v_uv = a_uv;
     v_palette_index = a_palette_index;
-
-    mat4 view_proj = u_proj * u_view;
-    gl_Position = view_proj * v_position;
+    v_is_textured = a_is_textured;
 }
 @end
 
@@ -38,7 +39,7 @@ void main() {
 uniform fs_standard_params {
     vec4  u_ambient_color;
     float u_ambient_strength;
-    vec4  u_light_positions[10];
+    vec4  u_light_directions[10];
     vec4  u_light_colors[10];
     int   u_light_count;
 };
@@ -51,6 +52,7 @@ in vec4 v_position;
 in vec3 v_normal;
 in vec2 v_uv;
 in float v_palette_index;
+in float v_is_textured;
 
 out vec4 frag_color;
 
@@ -58,17 +60,15 @@ void main() {
     vec3 norm = normalize(v_normal);
     vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
     for (int i = 0; i < u_light_count; i++) {
-        vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
+        vec3 direction = normalize(u_light_directions[i].xyz);
         float intensity = clamp(dot(norm, direction), 0.0, 1.0);
         diffuse_light += u_light_colors[i] * intensity;
     }
 
     vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
 
-    // Draw black for triangles without normals (untextured triangles)
-    if (v_uv.x + v_uv.y == 0.0) {
-        // Draw black for things without normals and uv coords.
-        // The uv coords and normal could actually be 0 so we check them both.
+   // Handle untextured triangles
+    if (v_is_textured < 0.5) { // Assuming a_is_textured is 1.0 for textured and 0.0 for untextured
         frag_color = light * vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }

@@ -380,6 +380,7 @@ static void gfx_init(void)
                     [ATTR_standard_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
                     [ATTR_standard_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
                     [ATTR_standard_vs_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,
+                    [ATTR_standard_vs_a_is_textured].format = SG_VERTEXFORMAT_FLOAT,
                 },
             },
             .shader = sg_make_shader(standard_shader_desc(sg_query_backend())),
@@ -470,7 +471,7 @@ static void gfx_frame(void)
             }
 
             fs_params.u_light_colors[light_count] = light.color;
-            fs_params.u_light_positions[light_count] = glms_vec4(light.position, 1.0f);
+            fs_params.u_light_directions[light_count] = glms_vec4(light.direction, 1.0f);
             light_count++;
         }
         fs_params.u_light_count = light_count;
@@ -565,12 +566,12 @@ static void ui_draw(struct nk_context* ctx)
             }
 
             char posbuffer[64];
-            sprintf(posbuffer, "%.2f, %.2f, %.2f", light->position.x, light->position.y, light->position.z);
+            sprintf(posbuffer, "%.2f, %.2f, %.2f", light->direction.x, light->direction.y, light->direction.z);
             if (nk_combo_begin_label(ctx, posbuffer, nk_vec2(200, 200))) {
                 nk_layout_row_dynamic(ctx, 25, 1);
-                nk_property_float(ctx, "#X:", -30.0f, &light->position.x, 30.0f, 1, 0.5f);
-                nk_property_float(ctx, "#Y:", -30.0f, &light->position.y, 30.0f, 1, 0.5f);
-                nk_property_float(ctx, "#Z:", -30.0f, &light->position.z, 30.0f, 1, 0.5f);
+                nk_property_float(ctx, "#X:", -30.0f, &light->direction.x, 30.0f, 1, 0.5f);
+                nk_property_float(ctx, "#Y:", -30.0f, &light->direction.y, 30.0f, 1, 0.5f);
+                nk_property_float(ctx, "#Z:", -30.0f, &light->direction.z, 30.0f, 1, 0.5f);
                 nk_combo_end(ctx);
             }
         }
