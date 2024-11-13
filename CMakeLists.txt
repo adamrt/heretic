@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 project(starterkit)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 
 # Linux -pthread shenanigans
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -50,11 +52,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(starterkit PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
 endif()
 
-target_compile_options(starterkit PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unused-function)
+target_compile_options(starterkit PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unused-function -fsanitize=address -fno-omit-frame-pointer)
 
 # Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(starterkit PRIVATE LINKER:-dead_strip)
+    target_link_options(starterkit PRIVATE LINKER:-dead_strip -fsanitize=address)
 elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(starterkit PRIVATE -Wl,--gc-sections)
+    target_link_options(starterkit PRIVATE -Wl,--gc-sections -fsanitize=address)
 endif()
+
