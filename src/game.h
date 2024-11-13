@@ -3,6 +3,7 @@
 
 #include "sokol_app.h"
 
+#include "bin.h"
 #include "model.h"
 
 void game_init(void);
@@ -18,6 +19,10 @@ typedef struct {
         bool mouse_left;
         bool mouse_right;
     } input;
+
+    struct {
+        scenarios_t scenarios;
+    } fft;
 } game_t;
 
 extern game_t game;

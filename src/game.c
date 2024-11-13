@@ -25,10 +25,12 @@ static void map_unload(void);
 void game_init(void)
 {
     game.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
-    if (game.bin == NULL) {
-        assert(false);
-    }
+    assert(game.bin != NULL);
 
+    // Setup global game data
+    game.fft.scenarios = read_scenarios(game.bin);
+
+    // Initialize sub systems
     gfx_init();
     camera_init();
     ui_init();
@@ -209,8 +211,7 @@ static void map_load(int num)
 
 static void map_unload(void)
 {
-    model_t model = game.scene.model;
-    sg_destroy_image(model.texture);
-    sg_destroy_image(model.palette);
-    sg_destroy_buffer(model.vbuffer);
+    sg_destroy_image(game.scene.model.texture);
+    sg_destroy_image(game.scene.model.palette);
+    sg_destroy_buffer(game.scene.model.vbuffer);
 }
