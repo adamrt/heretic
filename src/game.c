@@ -1,10 +1,6 @@
 #include "cglm/struct.h"
 
-#include "nuklear.h"
-
-#include "sokol_app.h"
 #include "sokol_gfx.h"
-#include "util/sokol_nuklear.h"
 
 #include "shader.glsl.h"
 
@@ -42,7 +38,7 @@ void game_init(void)
 
 void game_input(const sapp_event* event)
 {
-    bool handled_by_ui = snk_handle_event(event);
+    bool handled_by_ui = ui_input(event);
     bool is_mouse_event = event->type == SAPP_EVENTTYPE_MOUSE_MOVE
         || event->type == SAPP_EVENTTYPE_MOUSE_SCROLL
         || event->type == SAPP_EVENTTYPE_MOUSE_DOWN
@@ -108,7 +104,7 @@ void game_shutdown(void)
     fclose(game.bin);
     map_unload();
 
-    snk_shutdown();
+    ui_shutdown();
     sg_shutdown();
 }
 

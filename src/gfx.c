@@ -227,8 +227,9 @@ static void frame_display(void)
 
     sg_apply_pipeline(gfx.display.pipeline);
     sg_apply_bindings(&gfx.display.bindings);
-
     sg_draw(0, 6, 1);
-    ui_frame();
+
+    ui_update();
+
     sg_end_pass();
 }

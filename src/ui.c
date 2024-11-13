@@ -17,6 +17,8 @@
 #include "game.h"
 #include "ui.h"
 
+static void ui_draw(void);
+
 void ui_init(void)
 {
     snk_setup(&(snk_desc_t) {
@@ -25,17 +27,25 @@ void ui_init(void)
     });
 }
 
-void ui_frame(void)
+void ui_update(void)
 {
-    struct nk_context* ctx = snk_new_frame();
-
-    ui_draw(ctx);
-
+    ui_draw();
     snk_render(sapp_width(), sapp_height());
 }
 
-void ui_draw(struct nk_context* ctx)
+bool ui_input(const sapp_event* event)
 {
+    return snk_handle_event(event);
+}
+
+void ui_shutdown(void)
+{
+    snk_shutdown();
+}
+
+static void ui_draw(void)
+{
+    struct nk_context* ctx = snk_new_frame();
     if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
 
