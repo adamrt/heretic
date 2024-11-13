@@ -779,6 +779,45 @@ static vec2s process_tex_coords(float u, float v, uint8_t page)
     return (vec2s) { { u, v } };
 }
 
+void time_str(time_e value, char out[static 8])
+{
+    switch (value) {
+    case TIME_DAY:
+        strcpy(out, "Day");
+        break;
+    case TIME_NIGHT:
+        strcpy(out, "Night");
+        break;
+    default:
+        strcpy(out, "Unknown");
+        break;
+    }
+}
+
+void weather_str(weather_e value, char out[static 12])
+{
+    switch (value) {
+    case WEATHER_NONE:
+        strcpy(out, "None");
+        break;
+    case WEATHER_NONE_ALT:
+        strcpy(out, "NoneAlt");
+        break;
+    case WEATHER_NORMAL:
+        strcpy(out, "Normal");
+        break;
+    case WEATHER_STRONG:
+        strcpy(out, "Strong");
+        break;
+    case WEATHER_VERY_STRONG:
+        strcpy(out, "VeryStrong");
+        break;
+    default:
+        strcpy(out, "Unknown");
+        break;
+    }
+}
+
 // Thanks to FFTPAtcher for the scenario name list.
 // https://github.com/Glain/FFTPatcher/blob/master/EntryEdit/EntryData/PSX/ScenarioNames.xml
 scenario_desc_t scenario_list[500] = {

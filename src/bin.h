@@ -37,6 +37,9 @@ typedef struct {
 model_t read_map(int num);
 scenarios_t read_scenarios(void);
 
+void time_str(time_e, char[static 8]);
+void weather_str(weather_e, char[static 12]);
+
 // Scenario and map descriptors
 typedef struct {
     uint16_t id;
