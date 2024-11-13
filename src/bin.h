@@ -6,6 +6,8 @@
 
 #include "model.h"
 
+model_t read_map(FILE* bin, int num);
+
 typedef struct {
     uint8_t id;
     uint16_t sector;
@@ -14,7 +16,5 @@ typedef struct {
 } map_t;
 
 extern map_t map_list[];
-
-model_t read_map(FILE* bin, int num);
 
 #endif // BIN_H_

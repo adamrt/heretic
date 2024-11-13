@@ -1,3 +1,4 @@
 ---
 BasedOnStyle: WebKit
 AlignTrailingComments: true
+AlignConsecutiveMacros: true

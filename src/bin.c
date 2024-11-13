@@ -7,14 +7,14 @@
 #include "model.h"
 
 #define SECTOR_HEADER_SIZE (24)
-#define SECTOR_SIZE (2048)
-#define SECTOR_SIZE_RAW (2352)
+#define SECTOR_SIZE        (2048)
+#define SECTOR_SIZE_RAW    (2352)
 
 #define FILE_MAX_SIZE (131072)
 
-#define GNS_FILE_MAX_SIZE (2388)
+#define GNS_FILE_MAX_SIZE  (2388)
 #define GNS_RECORD_MAX_NUM (100)
-#define GNS_RECORD_SIZE (20)
+#define GNS_RECORD_SIZE    (20)
 
 typedef struct {
     uint8_t data[FILE_MAX_SIZE];

@@ -16,8 +16,8 @@
 // Global gfx state
 gfx_t gfx;
 
-#define GFX_SCALE (2)
-#define GFX_OFFSCREEN_WIDTH (GFX_DISPLAY_WIDTH / GFX_SCALE)
+#define GFX_SCALE            (2)
+#define GFX_OFFSCREEN_WIDTH  (GFX_DISPLAY_WIDTH / GFX_SCALE)
 #define GFX_OFFSCREEN_HEIGHT (GFX_DISPLAY_HEIGHT / GFX_SCALE)
 
 // Forward declarations
