@@ -67,8 +67,8 @@ static void ui_draw(void)
             nk_label(ctx, buffer_id, NK_TEXT_LEFT);
             nk_label(ctx, buffer_weather, NK_TEXT_LEFT);
         }
-        nk_end(ctx);
     }
+    nk_end(ctx);
 
     if (nk_begin(ctx, "Starterkit", nk_rect(10, 25, 250, 600), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 30, 1);
@@ -149,7 +149,7 @@ static void ui_draw(void)
         nk_label(ctx, "Ambient Strength", NK_TEXT_LEFT);
         nk_slider_float(ctx, 0, &game.scene.model.mesh.lighting.ambient_strength, 3.0f, 0.1f);
     }
-
     nk_end(ctx);
+
     return;
 }
