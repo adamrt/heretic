@@ -3,10 +3,12 @@
 #include "camera.h"
 
 #define MAX_ELEVATION (M_PI_2 - 0.01f)
-#define MIN_ELEVATION (-(M_PI_2 - 0.01f))
+#define MIN_ELEVATION (-M_PI_2 - 0.01f)
 #define MIN_DIST      (0.5f)
 #define MAX_DIST      (5.0f)
 #define SENSITIVITY   (0.02f)
+#define ZNEAR         (-10.0f)
+#define ZFAR          (10.0f)
 
 typedef struct {
     mat4s proj;
@@ -36,14 +38,11 @@ void camera_init(void)
 
 static void camera_update_proj(void)
 {
-    float near_plane = -10.0f;
-    float far_plane = 10.0f;
     float aspect = sapp_widthf() / sapp_heightf();
+    float w = cam.zoom_factor;
+    float h = w / aspect;
 
-    float ortho_width = cam.zoom_factor;
-    float ortho_height = ortho_width / aspect;
-
-    cam.proj = glms_ortho(-ortho_width, ortho_width, -ortho_height, ortho_height, near_plane, far_plane);
+    cam.proj = glms_ortho(-w, w, -h, h, ZNEAR, ZFAR);
 }
 
 void camera_update(void)
@@ -53,8 +52,6 @@ void camera_update(void)
     float y = sinf(cam.elevation);
     float z = cosf(cam.elevation) * cosf(cam.azimuth);
 
-    // center is typically (0, 0, 0), so the addition doesn't matter, but as we
-    // add transitions it could become important.
     cam.eye = (vec3s) { { cam.center.x + x, cam.center.y + y, cam.center.z + z } };
     cam.view = glms_lookat(cam.eye, cam.center, cam.up);
 
