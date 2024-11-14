@@ -101,7 +101,7 @@ void game_update(void)
 
 void game_load_scenario(int num)
 {
-    scenario_t scenario = game.fft.scenarios->scenarios[num];
+    scenario_t scenario = game.fft.scenarios[num];
     resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
     map_load(scenario.map_id, scenario_key);
 }

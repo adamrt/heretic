@@ -57,20 +57,19 @@ void gui_shutdown(void)
 
 void render_dropdown(struct nk_context* ctx)
 {
-    const int num_items = 500;
-    scenario_t scenario = game.fft.scenarios->scenarios[game.scene.current_scenario];
+    scenario_t scenario = game.fft.scenarios[game.scene.current_scenario];
 
     char selected_buffer[64];
     snprintf(selected_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
 
-    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(300, 200))) {
+    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        for (int i = 0; i < num_items; ++i) {
+        for (int i = 0; i < SCENARIO_USABLE_COUNT; ++i) {
 
-            scenario_t scenario = game.fft.scenarios->scenarios[i];
+            scenario_t scenario = game.fft.scenarios[i];
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario.id, scenario_list[scenario.id].name);
+            snprintf(item_buffer, 64, "%d %s", scenario_list[scenario.id].id, scenario_list[scenario.id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 game.scene.current_scenario = i;
@@ -160,8 +159,8 @@ static void draw_scenarios(struct nk_context* ctx)
 {
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
-        for (int i = 0; i < game.fft.scenarios->count; i++) {
-            scenario_t* scenario = &game.fft.scenarios->scenarios[i];
+        for (int i = 0; i < SCENARIO_USABLE_COUNT; i++) {
+            scenario_t* scenario = &game.fft.scenarios[i];
 
             char buffer_id[64];
             snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, map_list[scenario->map_id].name);
@@ -195,7 +194,7 @@ static void gui_draw(void)
 
         render_dropdown(ctx);
 
-        scenario_t scenario = game.fft.scenarios->scenarios[game.scene.current_scenario];
+        scenario_t scenario = game.fft.scenarios[game.scene.current_scenario];
         map_desc_t map = map_list[scenario.map_id];
 
         char weather_name[12];

@@ -5,6 +5,10 @@
 
 #include "model.h"
 
+#define EVENT_COUNT           (500)
+#define SCENARIO_TOTAL_COUNT  (488)
+#define SCENARIO_USABLE_COUNT (302)
+
 typedef enum {
     TIME_DAY = 0x0,
     TIME_NIGHT = 0x1,
@@ -37,22 +41,13 @@ typedef struct {
 } scenario_t;
 
 typedef struct {
-    scenario_t scenarios[500];
-    int count;
-} scenarios_t;
-
-typedef struct {
-    int test_count;
+    int text_count;
     int code_count;
 
     uint8_t text[8192];
     uint8_t code[8192];
+    bool valid;
 } event_t;
-
-typedef struct {
-    event_t events[500];
-    int count;
-} events_t;
 
 // Scenario and map descriptors
 typedef struct {

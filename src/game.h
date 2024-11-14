@@ -22,8 +22,8 @@ typedef struct {
     } input;
 
     struct {
-        scenarios_t* scenarios;
-        events_t* events;
+        scenario_t* scenarios;
+        event_t* events;
     } fft;
 } game_t;
 
