@@ -10,8 +10,8 @@
 #define MIN_DIST (0.5f)
 #define MAX_DIST (5.0f)
 
+#define MIN_ELEVATION (-M_PI_2 + 0.01f)
 #define MAX_ELEVATION (M_PI_2 - 0.01f)
-#define MIN_ELEVATION (-M_PI_2 - 0.01f)
 
 typedef struct {
     mat4s proj;
@@ -33,8 +33,8 @@ static void camera_update_proj(void);
 void camera_init(void)
 {
     cam.center = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-    cam.azimuth = 0.6f;
-    cam.elevation = 0.4f;
+    cam.azimuth = glm_rad(30.0f);
+    cam.elevation = glm_rad(20.0f);
     cam.zoom_factor = 1.0f;
     cam.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
 
@@ -60,10 +60,13 @@ static void camera_update_proj(void)
     cam.proj = glms_ortho(-w, w, -h, h, ZNEAR, ZFAR);
 }
 
-void camera_rotate(float delta_azimuth, float delta_elevation)
+void camera_rotate(float dx_deg, float dy_deg)
 {
-    cam.azimuth = cam.azimuth - (delta_azimuth * SENSITIVITY);
-    cam.elevation = cam.elevation + (delta_elevation * SENSITIVITY);
+    float dx_rad = glm_rad(dx_deg);
+    float dy_rad = glm_rad(dy_deg);
+
+    cam.azimuth -= dx_rad;
+    cam.elevation += dy_rad;
     cam.elevation = glm_clamp(cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
 }
 
