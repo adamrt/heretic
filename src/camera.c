@@ -60,7 +60,7 @@ static void camera_update_proj(void)
     cam.proj = glms_ortho(-w, w, -h, h, ZNEAR, ZFAR);
 }
 
-void camera_rotate(float dx_deg, float dy_deg)
+void camera_orbit(float dx_deg, float dy_deg)
 {
     float dx_rad = glm_rad(dx_deg);
     float dy_rad = glm_rad(dy_deg);

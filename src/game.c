@@ -81,7 +81,7 @@ void game_input(const sapp_event* event)
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (game.input.mouse_left) {
-            camera_rotate(event->mouse_dx, event->mouse_dy);
+            camera_orbit(event->mouse_dx, event->mouse_dy);
         }
         break;
 
