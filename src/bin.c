@@ -192,7 +192,7 @@ static void load_scenarios(void)
     free(attack_out_file.data);
 }
 
-model_t read_map(int num, resource_key_t requested_key)
+model_t read_scenario(int num, resource_key_t requested_key)
 {
     resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;

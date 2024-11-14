@@ -57,7 +57,7 @@ void gfx_update(void)
 
     // Display the offscreen image to a fullscreen quad and render the UI
     sg_begin_pass(&(sg_pass) {
-        .action = gfx.default_pass_action,
+        .action = gfx.pass_action,
         .swapchain = sglue_swapchain(),
         .label = "swapchain-pass",
     });
@@ -79,7 +79,7 @@ void gfx_shutdown(void)
     sg_destroy_image(gfx.color_image);
     sg_destroy_image(gfx.depth_image);
 
-    sg_destroy_sampler(gfx.default_sampler);
+    sg_destroy_sampler(gfx.sampler);
 
     sg_shutdown();
 }
@@ -102,14 +102,14 @@ static void init_shared(void)
         .label = "depth-image",
     });
 
-    gfx.default_sampler = sg_make_sampler(&(sg_sampler_desc) {
+    gfx.sampler = sg_make_sampler(&(sg_sampler_desc) {
         .min_filter = SG_FILTER_NEAREST,
         .mag_filter = SG_FILTER_NEAREST,
         .wrap_u = SG_WRAP_REPEAT,
         .wrap_v = SG_WRAP_REPEAT,
     });
 
-    gfx.default_pass_action = (sg_pass_action) {
+    gfx.pass_action = (sg_pass_action) {
         .colors[0] = (sg_color_attachment_action) {
             .load_action = SG_LOADACTION_CLEAR,
             .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
@@ -125,7 +125,7 @@ static void init_offscreen(void)
             .depth_stencil.image = gfx.depth_image,
             .label = "offscreen-attachments",
         }),
-        .action = gfx.default_pass_action,
+        .action = gfx.pass_action,
         .label = "offscreen-pass",
     };
 
@@ -253,7 +253,7 @@ static void init_display(void)
         .index_buffer = quad_ibuf,
         .fs = {
             .images[SLOT_tex] = gfx.color_image,
-            .samplers[SLOT_smp] = gfx.default_sampler,
+            .samplers[SLOT_smp] = gfx.sampler,
         }
     };
 }

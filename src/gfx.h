@@ -14,8 +14,8 @@ typedef struct {
     sg_image color_image;
     sg_image depth_image;
 
-    sg_sampler default_sampler;
-    sg_pass_action default_pass_action;
+    sg_sampler sampler;
+    sg_pass_action pass_action;
 
     struct {
         sg_pipeline pipeline;

@@ -62,13 +62,21 @@ typedef struct {
     const char* name;
 } map_desc_t;
 
+//
+// Public functions
+//
+
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
-model_t read_map(int num, resource_key_t requested_key);
+model_t read_scenario(int, resource_key_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);
+
+//
+// Public variables
+//
 
 extern scenario_desc_t scenario_list[];
 extern map_desc_t map_list[];

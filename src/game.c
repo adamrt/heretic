@@ -152,7 +152,7 @@ static void map_load(int num, resource_key_t resource_key)
 {
     map_unload();
 
-    model_t model = read_map(num, resource_key);
+    model_t model = read_scenario(num, resource_key);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(model.mesh.geometry.vertices),
@@ -182,7 +182,7 @@ static void map_load(int num, resource_key_t resource_key)
         .fs = {
             .images[SLOT_u_texture] = texture,
             .images[SLOT_u_palette] = palette,
-            .samplers[SLOT_u_sampler] = gfx.default_sampler,
+            .samplers[SLOT_u_sampler] = gfx.sampler,
         },
     };
 
