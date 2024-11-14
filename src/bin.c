@@ -27,7 +27,7 @@ typedef struct {
 } sector_t;
 
 typedef struct {
-    uint8_t data[FILE_MAX_SIZE];
+    uint8_t* data;
     size_t offset;
     size_t size;
 } file_t;
@@ -133,6 +133,8 @@ scenarios_t read_scenarios(void)
         scenarios.count++;
     }
 
+    free(attack_out_file.data);
+
     return scenarios;
 }
 
@@ -143,6 +145,7 @@ model_t read_map(int num, resource_key_t requested_key)
 
     file_t gns_file = read_file(map_list[num].sector, GNS_FILE_MAX_SIZE);
     records_t records = read_records(&gns_file);
+    free(gns_file.data);
 
     model_t model = { 0 };
 
@@ -195,6 +198,8 @@ model_t read_map(int num, resource_key_t requested_key)
         default:
             break;
         }
+
+        free(file.data);
     }
 
     mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, requested_key);
@@ -616,6 +621,7 @@ static sector_t read_sector(int32_t sector_num)
 static file_t read_file(int sector_num, int size)
 {
     file_t file = { .size = size };
+    file.data = calloc(1, size);
 
     int offset = 0;
     uint32_t occupied_sectors = ceil((float)size / (float)SECTOR_SIZE);
