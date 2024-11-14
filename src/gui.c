@@ -63,16 +63,14 @@ void render_dropdown(struct nk_context* ctx)
     char selected_buffer[64];
     snprintf(selected_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
 
-    // Begin the combo (dropdown) box
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(300, 200))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        // Loop through items and create selectable labels
         for (int i = 0; i < num_items; ++i) {
 
             scenario_t scenario = game.fft.scenarios.scenarios[i];
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
+            snprintf(item_buffer, 64, "%d %s", scenario.id, scenario_list[scenario.id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 game.scene.current_scenario = i;
