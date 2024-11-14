@@ -45,10 +45,38 @@ void gui_shutdown(void)
     snk_shutdown();
 }
 
-static void gui_draw(void)
+void render_dropdown(struct nk_context* ctx)
 {
-    struct nk_context* ctx = snk_new_frame();
+    const int num_items = 500;
+    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
 
+    char selected_buffer[64];
+    snprintf(selected_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
+
+    // Begin the combo (dropdown) box
+    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(300, 200))) {
+        nk_layout_row_dynamic(ctx, 25, 1);
+
+        // Loop through items and create selectable labels
+        for (int i = 0; i < num_items; ++i) {
+
+            scenario_t scenario = game.fft.scenarios.scenarios[i];
+            char item_buffer[64];
+            snprintf(item_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
+
+            if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
+                game.scene.current_scenario = i;
+                game_load_scenario(game.scene.current_scenario);
+            }
+        }
+
+        // End the combo (dropdown) box
+        nk_combo_end(ctx);
+    }
+}
+
+static void draw_scenarios(struct nk_context* ctx)
+{
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < game.fft.scenarios.count; i++) {
@@ -69,9 +97,18 @@ static void gui_draw(void)
         }
     }
     nk_end(ctx);
+}
 
-    if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 250, 450), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+static void gui_draw(void)
+{
+    struct nk_context* ctx = snk_new_frame();
+
+    draw_scenarios(ctx);
+
+    if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 350, 550), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 25, 1);
+
+        render_dropdown(ctx);
 
         scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
         map_desc_t map = map_list[scenario.map_id];
