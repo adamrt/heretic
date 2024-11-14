@@ -9,6 +9,7 @@
 void game_init(void);
 void game_update(void);
 void game_input(const sapp_event* event);
+void game_load_scenario(int num);
 void game_shutdown(void);
 
 typedef struct {

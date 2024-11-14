@@ -35,9 +35,7 @@ void game_init(void)
     camera_init();
     gui_init();
 
-    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
-    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
-    map_load(scenario.map_id, scenario_key);
+    game_load_scenario(game.scene.current_scenario);
 }
 
 void game_input(const sapp_event* event)
@@ -103,6 +101,13 @@ void game_update(void)
     gfx_update();
 }
 
+void game_load_scenario(int num)
+{
+    scenario_t scenario = game.fft.scenarios.scenarios[num];
+    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
+    map_load(scenario.map_id, scenario_key);
+}
+
 void game_shutdown(void)
 {
     fclose(game.bin);
@@ -134,17 +139,13 @@ static void state_update(void)
 static void scenario_next(void)
 {
     game.scene.current_scenario++;
-    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
-    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
-    map_load(scenario.map_id, scenario_key);
+    game_load_scenario(game.scene.current_scenario);
 }
 
 static void scenario_prev(void)
 {
     game.scene.current_scenario--;
-    scenario_t scenario = game.fft.scenarios.scenarios[game.scene.current_scenario];
-    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
-    map_load(scenario.map_id, scenario_key);
+    game_load_scenario(game.scene.current_scenario);
 }
 
 static void map_load(int num, resource_key_t resource_key)
