@@ -748,6 +748,7 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
             }
         }
 
+        dst->lighting.ambient_strength = src->lighting.ambient_strength;
         dst->lighting.ambient_color = src->lighting.ambient_color;
         dst->lighting.bg_top = src->lighting.bg_top;
         dst->lighting.bg_bottom = src->lighting.bg_bottom;
