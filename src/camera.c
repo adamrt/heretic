@@ -4,6 +4,7 @@
 
 #define CAMERA_MIN_DIST (0.5f)
 #define CAMERA_MAX_DIST (5.0f)
+#define CAM_SENSITIVITY (0.02f)
 
 typedef struct {
     mat4s proj;
@@ -60,8 +61,8 @@ void camera_update(void)
 
 void camera_rotate(float delta_azimuth, float delta_elevation)
 {
-    cam.azimuth -= delta_azimuth;
-    cam.elevation += delta_elevation;
+    cam.azimuth = cam.azimuth - (delta_azimuth * CAM_SENSITIVITY);
+    cam.elevation = cam.elevation + (delta_elevation * CAM_SENSITIVITY);
 
     float max_elevation = M_PI_2 - 0.01f; // Near 90 degrees
     float min_elevation = -0.15f;
@@ -70,7 +71,7 @@ void camera_rotate(float delta_azimuth, float delta_elevation)
 
 void camera_zoom(float delta)
 {
-    cam.zoom_factor -= delta;
+    cam.zoom_factor -= delta * CAM_SENSITIVITY;
     cam.zoom_factor = glm_clamp(cam.zoom_factor, 0.1f, 5.0f);
 }
 

@@ -81,12 +81,12 @@ void game_input(const sapp_event* event)
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (game.input.mouse_left) {
-            camera_rotate(event->mouse_dx * 0.01f, event->mouse_dy * 0.01f);
+            camera_rotate(event->mouse_dx, event->mouse_dy);
         }
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        camera_zoom(event->scroll_y * 0.01f);
+        camera_zoom(event->scroll_y);
         break;
 
     default:
