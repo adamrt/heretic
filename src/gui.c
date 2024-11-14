@@ -163,7 +163,7 @@ static void draw_scenarios(struct nk_context* ctx)
             scenario_t* scenario = &game.fft.scenarios[i];
 
             char buffer_id[64];
-            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, map_list[scenario->map_id].name);
+            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, scenario_list[scenario->id].name);
 
             char weather_name[12];
             weather_str(scenario->weather, weather_name);

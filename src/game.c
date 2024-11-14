@@ -11,7 +11,7 @@
 
 game_t game = {
     .scene.center_model = true,
-    .scene.current_scenario = 2,
+    .scene.current_scenario = 1,
 };
 
 // Forward declarations
