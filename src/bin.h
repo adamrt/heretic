@@ -41,11 +41,18 @@ typedef struct {
     int count;
 } scenarios_t;
 
-model_t read_map(int num, resource_key_t requested_key);
-scenarios_t read_scenarios(void);
+typedef struct {
+    int test_count;
+    int code_count;
 
-void time_str(time_e, char[static 8]);
-void weather_str(weather_e, char[static 12]);
+    uint8_t text[8192];
+    uint8_t code[8192];
+} event_t;
+
+typedef struct {
+    event_t events[500];
+    int count;
+} events_t;
 
 // Scenario and map descriptors
 typedef struct {
@@ -59,6 +66,14 @@ typedef struct {
     bool valid;
     const char* name;
 } map_desc_t;
+
+void bin_load_global_data(void);
+void bin_free_global_data(void);
+
+model_t read_map(int num, resource_key_t requested_key);
+
+void time_str(time_e, char[static 8]);
+void weather_str(weather_e, char[static 12]);
 
 extern scenario_desc_t scenario_list[];
 extern map_desc_t map_list[];

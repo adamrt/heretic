@@ -108,7 +108,50 @@ static mesh_t read_mesh(file_t*);
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
 
-scenarios_t read_scenarios(void)
+static void load_events(void);
+static void load_scenarios(void);
+
+void bin_load_global_data(void)
+{
+    load_events();
+    load_scenarios();
+}
+
+void bin_free_global_data(void)
+{
+    free(game.fft.scenarios);
+    free(game.fft.events);
+}
+
+static void load_events(void)
+{
+    int event_file_sector = 3707;
+    int event_file_size = 4096000;
+    file_t event_file = read_file(event_file_sector, event_file_size);
+
+    int event_count = 500;
+    int event_size = 8192;
+
+    events_t* events = calloc(1, sizeof(events_t) * 500);
+    for (int i = 0; i < event_count; i++) {
+        bytes_t bytes = read_bytes(&event_file, event_size);
+
+        uint32_t text_offset = (uint32_t)((bytes.data[0] & 0xFF) | ((bytes.data[1] & 0xFF) << 8) | ((bytes.data[2] & 0xFF) << 16) | ((bytes.data[3] & 0xFF) << 24));
+        if (text_offset == 0xF2F2F2F2) { // skip these events
+            continue;
+        }
+        memcpy(events->events[i].text, bytes.data + text_offset, 8192 - text_offset - 4);
+        memcpy(events->events[i].code, bytes.data + 4, text_offset - 4);
+        events->count++;
+    }
+    printf("Loaded %d events\n", events->count);
+
+    free(event_file.data);
+
+    game.fft.events = events;
+}
+
+static void load_scenarios(void)
 {
     int attack_out_sector = 2448;
     int attack_out_size = 125956;
@@ -121,21 +164,22 @@ scenarios_t read_scenarios(void)
     int scenario_count = 488;
     int scenario_size = 24;
 
-    scenarios_t scenarios = { 0 };
+    scenarios_t* scenarios = calloc(1, sizeof(scenarios_t) * 500);
     for (int i = 0; i < scenario_count; i++) {
         bytes_t bytes = read_bytes(&attack_out_file, scenario_size);
-        scenarios.scenarios[i].id = bytes.data[0] | (bytes.data[1] << 8);
-        scenarios.scenarios[i].map_id = bytes.data[2];
-        scenarios.scenarios[i].weather = bytes.data[3];
-        scenarios.scenarios[i].time = bytes.data[4];
-        scenarios.scenarios[i].entd_id = bytes.data[7] | (bytes.data[8] << 8);
-        scenarios.scenarios[i].next_scenario_id = bytes.data[18] | (bytes.data[19] << 8);
-        scenarios.count++;
+        scenarios->scenarios[i].id = bytes.data[0] | (bytes.data[1] << 8);
+        scenarios->scenarios[i].map_id = bytes.data[2];
+        scenarios->scenarios[i].weather = bytes.data[3];
+        scenarios->scenarios[i].time = bytes.data[4];
+        scenarios->scenarios[i].entd_id = bytes.data[7] | (bytes.data[8] << 8);
+        scenarios->scenarios[i].next_scenario_id = bytes.data[18] | (bytes.data[19] << 8);
+        scenarios->count++;
     }
 
+    printf("Loaded %d scenarios\n", scenarios->count);
     free(attack_out_file.data);
 
-    return scenarios;
+    game.fft.scenarios = scenarios;
 }
 
 model_t read_map(int num, resource_key_t requested_key)
