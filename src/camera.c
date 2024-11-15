@@ -16,7 +16,7 @@ void camera_init(void)
     g.cam.azimuth = glm_rad(-30.0f);
     g.cam.elevation = glm_rad(20.0f);
     g.cam.znear = 0.01f;
-    g.cam.zfar = 2048.0f;
+    g.cam.zfar = CAM_MAX_ZFAR;
     g.cam.zoom_factor = 256.0f;
 
     camera_update();

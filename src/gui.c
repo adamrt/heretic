@@ -98,11 +98,11 @@ static void draw_camera(struct nk_context* ctx)
 
     snprintf(buffer, sizeof(buffer), "Near: %f", g.cam.znear);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &g.cam.znear, 5000.0f, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.znear, CAM_MAX_ZFAR, 0.1f);
 
     snprintf(buffer, sizeof(buffer), "Far: %f", g.cam.zfar);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &g.cam.zfar, 5000.0f, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.zfar, CAM_MAX_ZFAR, 0.1f);
 }
 
 static void draw_lights(struct nk_context* ctx)

@@ -5,6 +5,7 @@
 
 #define CAM_MIN_ZOOM_FACTOR (0.01f)
 #define CAM_MAX_ZOOM_FACTOR (1000.0f)
+#define CAM_MAX_ZFAR        (2048.0f)
 
 typedef struct {
     mat4s proj, view;
