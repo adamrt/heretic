@@ -3,7 +3,7 @@
 
 #include "sokol_gfx.h"
 
-#define GFX_DISPLAY_WIDTH  (1280)
+#define GFX_DISPLAY_WIDTH  (1440)
 #define GFX_DISPLAY_HEIGHT (960)
 
 void gfx_init(void);

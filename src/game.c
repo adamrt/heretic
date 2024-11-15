@@ -12,7 +12,7 @@
 game_t g = {
     .scene = {
         .center_model = true,
-        .current_scenario = 1,
+        .current_scenario = 52,
     },
 };
 
