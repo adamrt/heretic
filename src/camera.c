@@ -1,14 +1,12 @@
+#include "game.h"
 #include "sokol_app.h"
 
 #include "camera.h"
 
-#define SENSITIVITY (0.02f)
+#define SENSITIVITY (2.0f)
 
-#define ZNEAR (-10.0f)
-#define ZFAR  (10.0f)
-
-#define MIN_DIST (0.5f)
-#define MAX_DIST (5.0f)
+#define MIN_DIST (0.01f)
+#define MAX_DIST (1000.0f)
 
 #define MIN_ELEVATION (-M_PI_2 + 0.01f)
 #define MAX_ELEVATION (M_PI_2 - 0.01f)
@@ -23,7 +21,6 @@ typedef struct {
 
     float azimuth;
     float elevation;
-    float zoom_factor;
 } camera_t;
 
 static camera_t cam;
@@ -35,7 +32,6 @@ void camera_init(void)
     cam.center = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     cam.azimuth = glm_rad(30.0f);
     cam.elevation = glm_rad(20.0f);
-    cam.zoom_factor = 1.0f;
     cam.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
 
     camera_update();
@@ -50,14 +46,16 @@ void camera_update(void)
 
     cam.eye = (vec3s) { { cam.center.x + x, cam.center.y + y, cam.center.z + z } };
     cam.view = glms_lookat(cam.eye, cam.center, cam.up);
+    camera_update_proj();
 }
 
 static void camera_update_proj(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = cam.zoom_factor;
+    float w = game.camera.zoom_factor;
     float h = w / aspect;
-    cam.proj = glms_ortho(-w, w, -h, h, ZNEAR, ZFAR);
+
+    cam.proj = glms_ortho(-w, w, -h, h, game.camera.znear, game.camera.zfar);
 }
 
 void camera_orbit(float dx_deg, float dy_deg)
@@ -77,8 +75,8 @@ void camera_orbit(float dx_deg, float dy_deg)
 
 void camera_zoom(float delta)
 {
-    cam.zoom_factor -= delta * SENSITIVITY;
-    cam.zoom_factor = glm_clamp(cam.zoom_factor, MIN_DIST, MAX_DIST);
+    game.camera.zoom_factor -= delta * SENSITIVITY;
+    game.camera.zoom_factor = glm_clamp(game.camera.zoom_factor, MIN_DIST, MAX_DIST);
 
     camera_update_proj(); // Zoom affects the projection matrix
 }

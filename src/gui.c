@@ -1,11 +1,13 @@
 #include "gfx.h"
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_DEFAULT_FONT
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_STANDARD_BOOL
+#define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+
 #include "nuklear.h"
 #include "src/nuklear_internal.h"
 
@@ -80,6 +82,23 @@ void render_dropdown(struct nk_context* ctx)
         // End the combo (dropdown) box
         nk_combo_end(ctx);
     }
+}
+static void draw_camera(struct nk_context* ctx)
+{
+    nk_layout_row_dynamic(ctx, 25, 2);
+
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "Zoom: %f", game.camera.zoom_factor);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
+    nk_slider_float(ctx, 0.001f, &game.camera.zoom_factor, 1000.0f, 0.1f);
+
+    snprintf(buffer, sizeof(buffer), "Near: %f", game.camera.znear);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
+    nk_slider_float(ctx, -10.001f, &game.camera.znear, 1000.0f, 0.1f);
+
+    snprintf(buffer, sizeof(buffer), "Far: %f", game.camera.zfar);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
+    nk_slider_float(ctx, 0.01f, &game.camera.zfar, 4000.0f, 0.1f);
 }
 
 static void draw_lights(struct nk_context* ctx)
@@ -190,6 +209,11 @@ static void gui_draw(void)
     nk_flags window_flags = NK_WINDOW_BORDER | NK_WINDOW_SCALABLE | NK_WINDOW_MOVABLE | NK_WINDOW_MINIMIZABLE;
 
     if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 400, 600), window_flags)) {
+        nk_layout_row_dynamic(ctx, 25, 2);
+
+        nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
+        nk_checkbox_label(ctx, "Centered", &game.scene.center_model);
+
         nk_layout_row_dynamic(ctx, 25, 1);
 
         render_dropdown(ctx);
@@ -203,20 +227,19 @@ static void gui_draw(void)
         time_str(scenario.time, time_name);
 
         char buffer[64];
-
         snprintf(buffer, sizeof(buffer), "Map %d: %s", map.id, map.name);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
 
         snprintf(buffer, sizeof(buffer), "Weather: %s, Time: %s", weather_name, time_name);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
 
-        nk_checkbox_label(ctx, "Centered", &state.center_model);
-        game.scene.center_model = state.center_model;
-
-        nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
-
         if (nk_tree_push(ctx, NK_TREE_TAB, "Lighting", NK_MINIMIZED)) {
             draw_lights(ctx);
+            nk_tree_pop(ctx);
+        }
+
+        if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
+            draw_camera(ctx);
             nk_tree_pop(ctx);
         }
     }

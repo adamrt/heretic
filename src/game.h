@@ -22,6 +22,12 @@ typedef struct {
     } input;
 
     struct {
+        float zoom_factor;
+        float znear;
+        float zfar;
+    } camera;
+
+    struct {
         scenario_t* scenarios;
         event_t* events;
     } fft;

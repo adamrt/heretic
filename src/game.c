@@ -10,8 +10,15 @@
 #include "gui.h"
 
 game_t game = {
-    .scene.center_model = true,
-    .scene.current_scenario = 1,
+    .scene = {
+        .center_model = true,
+        .current_scenario = 1,
+    },
+    .camera = {
+        .zoom_factor = 256.0f,
+        .znear = 0.001f,
+        .zfar = 1000.0f,
+    },
 };
 
 // Forward declarations
