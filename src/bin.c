@@ -701,9 +701,9 @@ static float read_f1x3x12(file_t* f)
 
 static vec3s read_position(file_t* f)
 {
-    float x = read_i16(f) / GLOBAL_SCALE;
-    float y = read_i16(f) / GLOBAL_SCALE;
-    float z = read_i16(f) / GLOBAL_SCALE;
+    float x = read_i16(f);
+    float y = read_i16(f);
+    float z = read_i16(f);
 
 #ifdef CGLM_FORCE_LEFT_HANDED
     x = -x;
