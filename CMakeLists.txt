@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 3.5)
-project(heretic)
-set(CMAKE_C_STANDARD 11)
+project(
+  Heretic
+  VERSION     0.1
+  DESCRIPTION "Final Fantasy Tactics Toolkit"
+  LANGUAGES   C)
+
 set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Linux -pthread shenanigans
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -12,7 +23,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 # Enable compile commands export for tools like clang-tidy
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add Sokol library
 add_library(sokol STATIC lib/sokol.c)
@@ -58,12 +68,27 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(starterkit PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
 endif()
 
-target_compile_options(starterkit PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unused-function -fsanitize=address -fno-omit-frame-pointer)
+target_compile_options(starterkit PUBLIC
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Werror
+    -Wno-unused-function
+    -fsanitize=address
+    -fsanitize=undefined
+    -fno-omit-frame-pointer)
 
 # Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(starterkit PRIVATE LINKER:-dead_strip -fsanitize=address)
+    target_link_options(starterkit PRIVATE
+        LINKER:-dead_strip
+        -fsanitize=address
+        -fsanitize=undefined)
+
 elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(starterkit PRIVATE -Wl,--gc-sections -fsanitize=address)
+    target_link_options(starterkit PRIVATE
+        -Wl,
+        --gc-sections
+        -fsanitize=address)
 endif()
 

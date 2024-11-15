@@ -140,7 +140,10 @@ static void load_events(void)
     for (int i = 0; i < EVENT_COUNT; i++) {
         bytes_t bytes = read_bytes(&event_file, EVENT_SIZE);
 
-        uint32_t text_offset = (uint32_t)((bytes.data[0] & 0xFF) | ((bytes.data[1] & 0xFF) << 8) | ((bytes.data[2] & 0xFF) << 16) | ((bytes.data[3] & 0xFF) << 24));
+        uint32_t text_offset = (uint32_t)((uint32_t)(bytes.data[0] & 0xFF)
+            | ((uint32_t)(bytes.data[1] & 0xFF) << 8)
+            | ((uint32_t)(bytes.data[2] & 0xFF) << 16)
+            | ((uint32_t)(bytes.data[3] & 0xFF) << 24));
 
         events[i].valid = text_offset != 0xF2F2F2F2;
 
