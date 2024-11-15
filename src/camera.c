@@ -15,9 +15,9 @@ void camera_init(void)
     g.cam.target = glms_vec3_zero();
     g.cam.azimuth = glm_rad(-30.0f);
     g.cam.elevation = glm_rad(20.0f);
-    g.cam.znear = 0.01f;
+    g.cam.distance = 256.0f;
+    g.cam.znear = CAM_MIN_ZNEAR;
     g.cam.zfar = CAM_MAX_ZFAR;
-    g.cam.zoom_factor = 256.0f;
 
     camera_update();
 }
@@ -25,7 +25,7 @@ void camera_init(void)
 void camera_update(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = g.cam.zoom_factor;
+    float w = g.cam.distance;
     float h = w / aspect;
 
     vec3s offset = { {
@@ -34,7 +34,7 @@ void camera_update(void)
         cosf(g.cam.elevation) * cosf(g.cam.azimuth),
     } };
 
-    vec3s scaled_offset = glms_vec3_scale(offset, g.cam.zoom_factor);
+    vec3s scaled_offset = glms_vec3_scale(offset, g.cam.distance);
 
     g.cam.eye = glms_vec3_add(g.cam.target, scaled_offset);
     g.cam.view = glms_lookat(g.cam.eye, g.cam.target, GLMS_YUP);
@@ -63,6 +63,6 @@ void camera_orbit(float dx_deg, float dy_deg)
 
 void camera_zoom(float delta)
 {
-    g.cam.zoom_factor -= delta * SENSITIVITY;
-    g.cam.zoom_factor = glm_clamp(g.cam.zoom_factor, CAM_MIN_ZOOM_FACTOR, CAM_MAX_ZOOM_FACTOR);
+    g.cam.distance -= delta * SENSITIVITY;
+    g.cam.distance = glm_clamp(g.cam.distance, CAM_MIN_DIST, CAM_MAX_DIST);
 }
