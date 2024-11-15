@@ -1,5 +1,8 @@
-#include "camera.h"
-#include "gfx.h"
+#include "sokol_app.h"
+#include "sokol_gfx.h"
+#include "sokol_log.h"
+
+// If these are changed, update the libs.c file as well.
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_INCLUDE_FIXED_TYPES
@@ -8,18 +11,13 @@
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-
 #include "nuklear.h"
-#include "src/nuklear_internal.h"
-
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_log.h"
-
 #include "util/sokol_nuklear.h"
 
 #include "bin.h"
+#include "camera.h"
 #include "game.h"
+#include "gfx.h"
 #include "gui.h"
 
 static void gui_draw(void);

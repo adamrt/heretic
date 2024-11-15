@@ -24,14 +24,14 @@ endif()
 
 # Enable compile commands export for tools like clang-tidy
 
-# Add Sokol library
-add_library(sokol STATIC lib/sokol.c)
-target_include_directories(sokol PUBLIC lib/sokol lib/sokol/util)
+# Add Sokol and nuklear libraries
+add_library(libs STATIC lib/libs.c)
+target_include_directories(libs PUBLIC lib/sokol lib/sokol/util)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    # Compile sokol.c as Objective-C
-    target_compile_options(sokol PRIVATE -x objective-c)
-    target_link_libraries(sokol
+    # Compile libs.c as Objective-C
+    target_compile_options(libs PRIVATE -x objective-c)
+    target_link_libraries(libs
         "-framework QuartzCore"
         "-framework Cocoa"
         "-framework MetalKit"
@@ -40,7 +40,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
         "-framework AudioToolbox")
 elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
     # Linux specific settings
-    target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL asound dl m Threads::Threads)
+    target_link_libraries(libs INTERFACE X11 Xi Xcursor GL asound dl m Threads::Threads)
 endif()
 
 # Add Starterkit executable
@@ -52,8 +52,8 @@ option(CGLM_USE_C99 "" ON)
 add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
 target_include_directories(starterkit PUBLIC lib/nuklear)
 
-# Link sokol and cglm library
-target_link_libraries(starterkit sokol cglm_headers)
+# Link sokol, nuklear and cglm library
+target_link_libraries(starterkit libs cglm_headers)
 
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
