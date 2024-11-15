@@ -65,7 +65,12 @@ void camera_orbit(float dx_deg, float dy_deg)
     float dx_rad = glm_rad(dx_deg);
     float dy_rad = glm_rad(dy_deg);
 
+#ifdef CGLM_FORCE_LEFT_HANDED
+    cam.azimuth += dx_rad;
+#else
     cam.azimuth -= dx_rad;
+#endif
+
     cam.elevation += dy_rad;
     cam.elevation = glm_clamp(cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
 }
