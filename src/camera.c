@@ -14,7 +14,7 @@ void camera_init(void)
 {
     g.cam.target = glms_vec3_zero();
     g.cam.azimuth = glm_rad(30.0f);
-    g.cam.elevation = glm_rad(20.0f);
+    g.cam.elevation = glm_rad(30.0f);
     g.cam.distance = 256.0f;
     g.cam.znear = CAM_MIN_ZNEAR;
     g.cam.zfar = CAM_MAX_ZFAR;
