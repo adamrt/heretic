@@ -4,6 +4,12 @@
 @ctype vec3 vec3s
 
 @vs standard_vs
+
+// This is necessary because the Y-axis is flipped in OpenGL.
+@glsl_options flip_vert_y
+// This is necessary because the clip space is different in Metal.
+@msl_options fixup_clipspace
+
 uniform vs_standard_params {
     mat4 u_proj;
     mat4 u_view;
@@ -85,9 +91,6 @@ void main() {
 
 
 @vs quad_vs
-
-// flip_vert_y fixes the discrepancy between Y-axis orientation in APIs.
-@glsl_options flip_vert_y
 
 in vec3 a_position;
 in vec2 a_uv;

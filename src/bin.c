@@ -708,9 +708,6 @@ static vec3s read_position(file_t* f)
     float y = read_i16(f);
     float z = read_i16(f);
 
-#ifdef CGLM_FORCE_LEFT_HANDED
-    x = -x;
-#endif
     y = -y;
     z = -z;
 
@@ -723,9 +720,6 @@ static vec3s read_normal(file_t* f)
     float y = read_f1x3x12(f);
     float z = read_f1x3x12(f);
 
-#ifdef CGLM_FORCE_LEFT_HANDED
-    x = -x;
-#endif
     y = -y;
     z = -z;
 

@@ -52,12 +52,6 @@ option(CGLM_USE_C99 "" ON)
 add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
 target_include_directories(starterkit PUBLIC lib/nuklear)
 
-if (CMAKE_SYSTEM_NAME STREQUAL Darwin)  # For macOS using Metal
-    target_compile_definitions(sokol PUBLIC
-        CGLM_FORCE_DEPTH_ZERO_TO_ONE
-        CGLM_FORCE_LEFT_HANDED)
-endif()
-
 # Link sokol and cglm library
 target_link_libraries(starterkit sokol cglm_headers)
 

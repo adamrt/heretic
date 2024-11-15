@@ -29,6 +29,8 @@ static void frame_offscreen(void);
 static void frame_background(void);
 static void frame_display(void);
 
+static sg_face_winding face_winding;
+
 // There are two passes so we can render the offscreen image to a fullscreen
 // quad. The offscreen is rendered in a lower resolution and then upscaled to
 // the window size to keep the pixelated look.
@@ -38,6 +40,13 @@ void gfx_init(void)
         .environment = sglue_environment(),
         .logger.func = slog_func,
     });
+
+    sg_backend backend = sg_query_backend();
+    if (backend == SG_BACKEND_D3D11 || backend == SG_BACKEND_METAL_MACOS) {
+        face_winding = SG_FACEWINDING_CW;
+    } else {
+        face_winding = SG_FACEWINDING_CCW;
+    }
 
     init_shared();
     init_offscreen();
@@ -140,7 +149,7 @@ static void init_offscreen(void)
             },
         },
         .shader = sg_make_shader(standard_shader_desc(sg_query_backend())),
-        .face_winding = SG_FACEWINDING_CW,
+        .face_winding = face_winding,
         .cull_mode = SG_CULLMODE_BACK,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,

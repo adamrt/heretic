@@ -13,7 +13,7 @@
 void camera_init(void)
 {
     g.cam.target = glms_vec3_zero();
-    g.cam.azimuth = glm_rad(-30.0f);
+    g.cam.azimuth = glm_rad(30.0f);
     g.cam.elevation = glm_rad(20.0f);
     g.cam.distance = 256.0f;
     g.cam.znear = CAM_MIN_ZNEAR;
@@ -51,12 +51,7 @@ void camera_orbit(float dx_deg, float dy_deg)
     float dx_rad = glm_rad(dx_deg);
     float dy_rad = glm_rad(dy_deg);
 
-#ifdef CGLM_FORCE_LEFT_HANDED
-    g.cam.azimuth += dx_rad;
-#else
     g.cam.azimuth -= dx_rad;
-#endif
-
     g.cam.elevation += dy_rad;
     g.cam.elevation = glm_clamp(g.cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
 }
