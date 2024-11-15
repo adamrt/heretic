@@ -3,12 +3,17 @@
 
 #include "cglm/struct.h"
 
+#define CAM_MIN_ZOOM_FACTOR (0.01f)
+#define CAM_MAX_ZOOM_FACTOR (1000.0f)
+
 typedef struct {
     mat4s proj, view;
     vec3s eye, target;
     float azimuth, elevation;
     float znear, zfar;
     float zoom_factor;
+
+    bool use_perspective;
 } camera_t;
 
 void camera_init(void);

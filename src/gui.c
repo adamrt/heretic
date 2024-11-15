@@ -1,3 +1,4 @@
+#include "camera.h"
 #include "gfx.h"
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_DEFAULT_FONT
@@ -85,20 +86,23 @@ void render_dropdown(struct nk_context* ctx)
 }
 static void draw_camera(struct nk_context* ctx)
 {
+    nk_layout_row_dynamic(ctx, 25, 1);
+    nk_checkbox_label(ctx, "Perspective", &g.cam.use_perspective);
+
     nk_layout_row_dynamic(ctx, 25, 2);
 
     char buffer[64];
     snprintf(buffer, sizeof(buffer), "Zoom: %f", g.cam.zoom_factor);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.001f, &g.cam.zoom_factor, 1000.0f, 0.1f);
+    nk_slider_float(ctx, 0.001f, &g.cam.zoom_factor, CAM_MAX_ZOOM_FACTOR, 0.1f);
 
     snprintf(buffer, sizeof(buffer), "Near: %f", g.cam.znear);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, -10.001f, &g.cam.znear, 1000.0f, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.znear, 5000.0f, 0.1f);
 
     snprintf(buffer, sizeof(buffer), "Far: %f", g.cam.zfar);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &g.cam.zfar, 4000.0f, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.zfar, 5000.0f, 0.1f);
 }
 
 static void draw_lights(struct nk_context* ctx)
