@@ -43,26 +43,26 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
     target_link_libraries(libs INTERFACE X11 Xi Xcursor GL asound dl m Threads::Threads)
 endif()
 
-# Add Starterkit executable
-add_executable(starterkit src/main.c src/bin.c src/camera.c src/game.c src/gui.c src/gfx.c src/model.c)
+# Add Heretic executable
+add_executable(heretic src/main.c src/bin.c src/camera.c src/game.c src/gui.c src/gfx.c src/model.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)
 option(CGLM_USE_C99 "" ON)
 add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
-target_include_directories(starterkit PUBLIC lib/nuklear)
+target_include_directories(heretic PUBLIC lib/nuklear)
 
 # Link sokol, nuklear and cglm library
-target_link_libraries(starterkit libs cglm_headers)
+target_link_libraries(heretic libs cglm_headers)
 
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    target_link_options(starterkit PUBLIC --shell-file ../lib/shell.html)
-    target_link_options(starterkit PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
+    target_link_options(heretic PUBLIC --shell-file ../lib/shell.html)
+    target_link_options(heretic PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
 endif()
 
-target_compile_options(starterkit PUBLIC
+target_compile_options(heretic PUBLIC
     -Wall
     -Wextra
     -Wpedantic
@@ -74,13 +74,13 @@ target_compile_options(starterkit PUBLIC
 
 # Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(starterkit PRIVATE
+    target_link_options(heretic PRIVATE
         LINKER:-dead_strip
         -fsanitize=address
         -fsanitize=undefined)
 
 elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(starterkit PRIVATE
+    target_link_options(heretic PRIVATE
         -Wl,
         --gc-sections
         -fsanitize=address)

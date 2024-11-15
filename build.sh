@@ -76,12 +76,12 @@ case "$TARGET" in
         echo "Building for WebAssembly..."
         emcmake cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
         cmake --build . -j"$NUMCORES"
-        emrun starterkit.html
+        emrun heretic.html
         ;;
     native)
         echo "Building natively..."
         cmake -DCMAKE_BUILD_TYPE=Debug ..
         cmake --build . -j"$NUMCORES"
-        ./starterkit
+        ./heretic
         ;;
 esac
