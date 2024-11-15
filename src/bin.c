@@ -128,8 +128,8 @@ void bin_load_global_data(void)
 
 void bin_free_global_data(void)
 {
-    free(game.fft.scenarios);
-    free(game.fft.events);
+    free(g.fft.scenarios);
+    free(g.fft.events);
 }
 
 static void load_events(void)
@@ -153,7 +153,7 @@ static void load_events(void)
         }
     }
 
-    game.fft.events = events;
+    g.fft.events = events;
 
     free(event_file.data);
 }
@@ -172,7 +172,7 @@ static void load_scenarios(void)
 
         int event_id = bytes.data[0] | (bytes.data[1] << 8);
 
-        event_t event = game.fft.events[event_id];
+        event_t event = g.fft.events[event_id];
         if (!event.valid) {
             continue;
         }
@@ -187,7 +187,7 @@ static void load_scenarios(void)
         index++;
     }
 
-    game.fft.scenarios = scenarios;
+    g.fft.scenarios = scenarios;
 
     free(attack_out_file.data);
 }
@@ -662,12 +662,12 @@ static bytes_t read_bytes(file_t* f, int size)
 static sector_t read_sector(int32_t sector_num)
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(game.bin, seek_to, SEEK_SET) != 0) {
+    if (fseek(g.bin, seek_to, SEEK_SET) != 0) {
         assert(false);
     }
 
     sector_t sector;
-    size_t n = fread(sector.data, sizeof(uint8_t), SECTOR_SIZE, game.bin);
+    size_t n = fread(sector.data, sizeof(uint8_t), SECTOR_SIZE, g.bin);
     assert(n == SECTOR_SIZE);
     return sector;
 }

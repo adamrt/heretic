@@ -33,6 +33,6 @@ typedef struct {
     } fft;
 } game_t;
 
-extern game_t game;
+extern game_t g;
 
 #endif // GAME_H_

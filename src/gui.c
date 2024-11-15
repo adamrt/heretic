@@ -38,7 +38,7 @@ void gui_init(void)
 
     state.show_scenarios = false;
     state.show_lights = false;
-    state.center_model = game.scene.center_model;
+    state.center_model = g.scene.center_model;
 }
 
 void gui_update(void)
@@ -59,7 +59,7 @@ void gui_shutdown(void)
 
 void render_dropdown(struct nk_context* ctx)
 {
-    scenario_t scenario = game.fft.scenarios[game.scene.current_scenario];
+    scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
 
     char selected_buffer[64];
     snprintf(selected_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
@@ -69,13 +69,13 @@ void render_dropdown(struct nk_context* ctx)
 
         for (int i = 0; i < SCENARIO_USABLE_COUNT; ++i) {
 
-            scenario_t scenario = game.fft.scenarios[i];
+            scenario_t scenario = g.fft.scenarios[i];
             char item_buffer[64];
             snprintf(item_buffer, 64, "%d %s", scenario_list[scenario.id].id, scenario_list[scenario.id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
-                game.scene.current_scenario = i;
-                game_load_scenario(game.scene.current_scenario);
+                g.scene.current_scenario = i;
+                game_load_scenario(g.scene.current_scenario);
             }
         }
 
@@ -88,17 +88,17 @@ static void draw_camera(struct nk_context* ctx)
     nk_layout_row_dynamic(ctx, 25, 2);
 
     char buffer[64];
-    snprintf(buffer, sizeof(buffer), "Zoom: %f", game.camera.zoom_factor);
+    snprintf(buffer, sizeof(buffer), "Zoom: %f", g.camera.zoom_factor);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.001f, &game.camera.zoom_factor, 1000.0f, 0.1f);
+    nk_slider_float(ctx, 0.001f, &g.camera.zoom_factor, 1000.0f, 0.1f);
 
-    snprintf(buffer, sizeof(buffer), "Near: %f", game.camera.znear);
+    snprintf(buffer, sizeof(buffer), "Near: %f", g.camera.znear);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, -10.001f, &game.camera.znear, 1000.0f, 0.1f);
+    nk_slider_float(ctx, -10.001f, &g.camera.znear, 1000.0f, 0.1f);
 
-    snprintf(buffer, sizeof(buffer), "Far: %f", game.camera.zfar);
+    snprintf(buffer, sizeof(buffer), "Far: %f", g.camera.zfar);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &game.camera.zfar, 4000.0f, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.camera.zfar, 4000.0f, 0.1f);
 }
 
 static void draw_lights(struct nk_context* ctx)
@@ -109,9 +109,9 @@ static void draw_lights(struct nk_context* ctx)
     nk_label(ctx, "Ambient Strenght and Color", NK_TEXT_LEFT);
 
     nk_layout_row_dynamic(ctx, 25, 2);
-    nk_slider_float(ctx, 0, &game.scene.model.mesh.lighting.ambient_strength, 3.0f, 0.1f);
+    nk_slider_float(ctx, 0, &g.scene.model.mesh.lighting.ambient_strength, 3.0f, 0.1f);
 
-    vec4s* ambient_color = &game.scene.model.mesh.lighting.ambient_color;
+    vec4s* ambient_color = &g.scene.model.mesh.lighting.ambient_color;
     struct nk_colorf ambient_color_nk = { ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a };
     if (nk_combo_begin_color(ctx, nk_rgba_f(ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a), nk_vec2(200, 400))) {
         nk_layout_row_dynamic(ctx, 120, 1);
@@ -132,7 +132,7 @@ static void draw_lights(struct nk_context* ctx)
     }
     for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
         nk_layout_row_dynamic(ctx, 25, 1);
-        light_t* light = &game.scene.model.mesh.lighting.lights[i];
+        light_t* light = &g.scene.model.mesh.lighting.lights[i];
         if (!light->valid) {
             continue;
         }
@@ -179,7 +179,7 @@ static void draw_scenarios(struct nk_context* ctx)
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_USABLE_COUNT; i++) {
-            scenario_t* scenario = &game.fft.scenarios[i];
+            scenario_t* scenario = &g.fft.scenarios[i];
 
             char buffer_id[64];
             snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, scenario_list[scenario->id].name);
@@ -212,13 +212,13 @@ static void gui_draw(void)
         nk_layout_row_dynamic(ctx, 25, 2);
 
         nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
-        nk_checkbox_label(ctx, "Centered", &game.scene.center_model);
+        nk_checkbox_label(ctx, "Centered", &g.scene.center_model);
 
         nk_layout_row_dynamic(ctx, 25, 1);
 
         render_dropdown(ctx);
 
-        scenario_t scenario = game.fft.scenarios[game.scene.current_scenario];
+        scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
         map_desc_t map = map_list[scenario.map_id];
 
         char weather_name[12];

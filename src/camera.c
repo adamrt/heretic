@@ -52,10 +52,10 @@ void camera_update(void)
 static void camera_update_proj(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = game.camera.zoom_factor;
+    float w = g.camera.zoom_factor;
     float h = w / aspect;
 
-    cam.proj = glms_ortho(-w, w, -h, h, game.camera.znear, game.camera.zfar);
+    cam.proj = glms_ortho(-w, w, -h, h, g.camera.znear, g.camera.zfar);
 }
 
 void camera_orbit(float dx_deg, float dy_deg)
@@ -75,8 +75,8 @@ void camera_orbit(float dx_deg, float dy_deg)
 
 void camera_zoom(float delta)
 {
-    game.camera.zoom_factor -= delta * SENSITIVITY;
-    game.camera.zoom_factor = glm_clamp(game.camera.zoom_factor, MIN_DIST, MAX_DIST);
+    g.camera.zoom_factor -= delta * SENSITIVITY;
+    g.camera.zoom_factor = glm_clamp(g.camera.zoom_factor, MIN_DIST, MAX_DIST);
 
     camera_update_proj(); // Zoom affects the projection matrix
 }

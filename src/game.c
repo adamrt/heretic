@@ -9,7 +9,7 @@
 #include "gfx.h"
 #include "gui.h"
 
-game_t game = {
+game_t g = {
     .scene = {
         .center_model = true,
         .current_scenario = 1,
@@ -30,8 +30,8 @@ static void map_unload(void);
 
 void game_init(void)
 {
-    game.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
-    assert(game.bin != NULL);
+    g.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
+    assert(g.bin != NULL);
 
     bin_load_global_data();
 
@@ -40,7 +40,7 @@ void game_init(void)
     camera_init();
     gui_init();
 
-    game_load_scenario(game.scene.current_scenario);
+    game_load_scenario(g.scene.current_scenario);
 }
 
 void game_input(const sapp_event* event)
@@ -75,17 +75,17 @@ void game_input(const sapp_event* event)
         bool is_down = (event->type == SAPP_EVENTTYPE_MOUSE_DOWN);
         if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(is_down);
-            game.input.mouse_left = is_down;
+            g.input.mouse_left = is_down;
         }
         if (event->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
             sapp_lock_mouse(is_down);
-            game.input.mouse_right = is_down;
+            g.input.mouse_right = is_down;
         }
         break;
     }
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
-        if (game.input.mouse_left) {
+        if (g.input.mouse_left) {
             camera_orbit(event->mouse_dx, event->mouse_dy);
         }
         break;
@@ -108,14 +108,14 @@ void game_update(void)
 
 void game_load_scenario(int num)
 {
-    scenario_t scenario = game.fft.scenarios[num];
+    scenario_t scenario = g.fft.scenarios[num];
     resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
     map_load(scenario.map_id, scenario_key);
 }
 
 void game_shutdown(void)
 {
-    fclose(game.bin);
+    fclose(g.bin);
     map_unload();
 
     bin_free_global_data();
@@ -126,8 +126,8 @@ void game_shutdown(void)
 
 static void state_update(void)
 {
-    model_t* model = &game.scene.model;
-    if (game.scene.center_model) {
+    model_t* model = &g.scene.model;
+    if (g.scene.center_model) {
         model->transform.translation = model->centered_translation;
     } else {
         model->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
@@ -145,14 +145,14 @@ static void state_update(void)
 
 static void scenario_next(void)
 {
-    game.scene.current_scenario++;
-    game_load_scenario(game.scene.current_scenario);
+    g.scene.current_scenario++;
+    game_load_scenario(g.scene.current_scenario);
 }
 
 static void scenario_prev(void)
 {
-    game.scene.current_scenario--;
-    game_load_scenario(game.scene.current_scenario);
+    g.scene.current_scenario--;
+    game_load_scenario(g.scene.current_scenario);
 }
 
 static void map_load(int num, resource_key_t resource_key)
@@ -193,12 +193,12 @@ static void map_load(int num, resource_key_t resource_key)
         },
     };
 
-    game.scene.model = model;
+    g.scene.model = model;
 }
 
 static void map_unload(void)
 {
-    sg_destroy_image(game.scene.model.texture);
-    sg_destroy_image(game.scene.model.palette);
-    sg_destroy_buffer(game.scene.model.vbuffer);
+    sg_destroy_image(g.scene.model.texture);
+    sg_destroy_image(g.scene.model.palette);
+    sg_destroy_buffer(g.scene.model.vbuffer);
 }

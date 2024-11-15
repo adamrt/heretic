@@ -260,7 +260,7 @@ static void init_display(void)
 
 static void frame_offscreen(void)
 {
-    model_t* model = &game.scene.model;
+    model_t* model = &g.scene.model;
 
     mat4s proj = camera_get_proj();
     mat4s view = camera_get_view();
@@ -302,8 +302,8 @@ static void frame_background(void)
     sg_apply_pipeline(gfx.background.pipeline);
 
     fs_background_params_t fs_params;
-    fs_params.u_top_color = game.scene.model.mesh.lighting.bg_top;
-    fs_params.u_bottom_color = game.scene.model.mesh.lighting.bg_bottom;
+    fs_params.u_top_color = g.scene.model.mesh.lighting.bg_top;
+    fs_params.u_bottom_color = g.scene.model.mesh.lighting.bg_bottom;
 
     sg_apply_pipeline(gfx.background.pipeline);
     sg_apply_bindings(&gfx.background.bindings);
