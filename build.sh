@@ -50,7 +50,8 @@ case "$TARGET" in
     native)
         case "$OS" in
             Linux) SHADER_LANG="glsl430" ;;
-            Darwin) SHADER_LANG="metal_macos" ;;
+            Darwin) SHADER_LANG="glsl410" ;;
+            # Darwin) SHADER_LANG="metal_macos" ;;
             *) echo "Unsupported OS: $OS" && exit 1 ;;
         esac
         ;;

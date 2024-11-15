@@ -3,18 +3,8 @@
 // sokol_nuklear.h is heavily tied to sokol, so these aren't split into separate
 // files.
 
+// Specify the backend (SOKOL_GLCORE, SOKOL_METAL, etc) in CMakeLists.txt.
 #define SOKOL_IMPL
-#if defined(_MSC_VER)
-#define SOKOL_D3D11
-#elif defined(__EMSCRIPTEN__)
-#define SOKOL_GLES3
-#elif defined(__APPLE__)
-// NOTE: on macOS, sokol.c is compiled explicitly as ObjC
-#define SOKOL_METAL
-// #define SOKOL_GLCORE
-#else
-#define SOKOL_GLCORE
-#endif
 #include "sokol_app.h"
 #include "sokol_audio.h"
 #include "sokol_gfx.h"
