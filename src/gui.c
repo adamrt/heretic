@@ -88,17 +88,17 @@ static void draw_camera(struct nk_context* ctx)
     nk_layout_row_dynamic(ctx, 25, 2);
 
     char buffer[64];
-    snprintf(buffer, sizeof(buffer), "Zoom: %f", g.camera.zoom_factor);
+    snprintf(buffer, sizeof(buffer), "Zoom: %f", g.cam.zoom_factor);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.001f, &g.camera.zoom_factor, 1000.0f, 0.1f);
+    nk_slider_float(ctx, 0.001f, &g.cam.zoom_factor, 1000.0f, 0.1f);
 
-    snprintf(buffer, sizeof(buffer), "Near: %f", g.camera.znear);
+    snprintf(buffer, sizeof(buffer), "Near: %f", g.cam.znear);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, -10.001f, &g.camera.znear, 1000.0f, 0.1f);
+    nk_slider_float(ctx, -10.001f, &g.cam.znear, 1000.0f, 0.1f);
 
-    snprintf(buffer, sizeof(buffer), "Far: %f", g.camera.zfar);
+    snprintf(buffer, sizeof(buffer), "Far: %f", g.cam.zfar);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &g.camera.zfar, 4000.0f, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.zfar, 4000.0f, 0.1f);
 }
 
 static void draw_lights(struct nk_context* ctx)

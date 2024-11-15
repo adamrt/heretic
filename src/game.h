@@ -4,6 +4,7 @@
 #include "sokol_app.h"
 
 #include "bin.h"
+#include "camera.h"
 #include "model.h"
 
 void game_init(void);
@@ -15,17 +16,12 @@ void game_shutdown(void);
 typedef struct {
     FILE* bin;
     scene_t scene;
+    camera_t cam;
 
     struct {
         bool mouse_left;
         bool mouse_right;
     } input;
-
-    struct {
-        float zoom_factor;
-        float znear;
-        float zfar;
-    } camera;
 
     struct {
         scenario_t* scenarios;

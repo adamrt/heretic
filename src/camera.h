@@ -3,12 +3,17 @@
 
 #include "cglm/struct.h"
 
+typedef struct {
+    mat4s proj, view;
+    vec3s eye, target;
+    float azimuth, elevation;
+    float znear, zfar;
+    float zoom_factor;
+} camera_t;
+
 void camera_init(void);
 void camera_update(void);
-void camera_orbit(float azimuth, float elevation);
-void camera_zoom(float distance);
-
-mat4s camera_get_proj(void);
-mat4s camera_get_view(void);
+void camera_orbit(float, float);
+void camera_zoom(float);
 
 #endif // CAMERA_H_

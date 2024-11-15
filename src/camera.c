@@ -1,3 +1,4 @@
+#include "cglm/struct/vec3.h"
 #include "game.h"
 #include "sokol_app.h"
 
@@ -11,51 +12,33 @@
 #define MIN_ELEVATION (-M_PI_2 + 0.01f)
 #define MAX_ELEVATION (M_PI_2 - 0.01f)
 
-typedef struct {
-    mat4s proj;
-    mat4s view;
-
-    vec3s eye;
-    vec3s center;
-    vec3s up;
-
-    float azimuth;
-    float elevation;
-} camera_t;
-
-static camera_t cam;
-
-static void camera_update_proj(void);
-
 void camera_init(void)
 {
-    cam.center = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-    cam.azimuth = glm_rad(30.0f);
-    cam.elevation = glm_rad(20.0f);
-    cam.up = (vec3s) { { 0.0f, 1.0f, 0.0f } };
+    g.cam.target = glms_vec3_zero();
+    g.cam.azimuth = glm_rad(30.0f);
+    g.cam.elevation = glm_rad(20.0f);
+    g.cam.znear = 0.001f;
+    g.cam.zfar = 1000.0f;
+    g.cam.zoom_factor = 256.0f;
 
     camera_update();
-    camera_update_proj();
 }
 
 void camera_update(void)
 {
-    float x = cosf(cam.elevation) * sinf(cam.azimuth);
-    float y = sinf(cam.elevation);
-    float z = cosf(cam.elevation) * cosf(cam.azimuth);
+    vec3s offset = { {
+        cosf(g.cam.elevation) * sinf(g.cam.azimuth),
+        sinf(g.cam.elevation),
+        cosf(g.cam.elevation) * cosf(g.cam.azimuth),
+    } };
 
-    cam.eye = (vec3s) { { cam.center.x + x, cam.center.y + y, cam.center.z + z } };
-    cam.view = glms_lookat(cam.eye, cam.center, cam.up);
-    camera_update_proj();
-}
+    g.cam.eye = glms_vec3_add(g.cam.target, offset);
+    g.cam.view = glms_lookat(g.cam.eye, g.cam.target, GLMS_YUP);
 
-static void camera_update_proj(void)
-{
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = g.camera.zoom_factor;
+    float w = g.cam.zoom_factor;
     float h = w / aspect;
-
-    cam.proj = glms_ortho(-w, w, -h, h, g.camera.znear, g.camera.zfar);
+    g.cam.proj = glms_ortho(-w, w, -h, h, g.cam.znear, g.cam.zfar);
 }
 
 void camera_orbit(float dx_deg, float dy_deg)
@@ -64,22 +47,17 @@ void camera_orbit(float dx_deg, float dy_deg)
     float dy_rad = glm_rad(dy_deg);
 
 #ifdef CGLM_FORCE_LEFT_HANDED
-    cam.azimuth += dx_rad;
+    g.cam.azimuth += dx_rad;
 #else
-    cam.azimuth -= dx_rad;
+    g.cam.azimuth -= dx_rad;
 #endif
 
-    cam.elevation += dy_rad;
-    cam.elevation = glm_clamp(cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
+    g.cam.elevation += dy_rad;
+    g.cam.elevation = glm_clamp(g.cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
 }
 
 void camera_zoom(float delta)
 {
-    g.camera.zoom_factor -= delta * SENSITIVITY;
-    g.camera.zoom_factor = glm_clamp(g.camera.zoom_factor, MIN_DIST, MAX_DIST);
-
-    camera_update_proj(); // Zoom affects the projection matrix
+    g.cam.zoom_factor -= delta * SENSITIVITY;
+    g.cam.zoom_factor = glm_clamp(g.cam.zoom_factor, MIN_DIST, MAX_DIST);
 }
-
-mat4s camera_get_proj(void) { return cam.proj; }
-mat4s camera_get_view(void) { return cam.view; }

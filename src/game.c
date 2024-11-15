@@ -14,11 +14,6 @@ game_t g = {
         .center_model = true,
         .current_scenario = 1,
     },
-    .camera = {
-        .zoom_factor = 256.0f,
-        .znear = 0.001f,
-        .zfar = 1000.0f,
-    },
 };
 
 // Forward declarations
