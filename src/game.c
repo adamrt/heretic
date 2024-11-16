@@ -55,6 +55,7 @@ void game_input(const sapp_event* event)
         switch (event->key_code) {
         case SAPP_KEYCODE_ESCAPE:
             sapp_request_quit();
+            break;
         case SAPP_KEYCODE_K:
             scenario_next();
             break;
@@ -65,6 +66,7 @@ void game_input(const sapp_event* event)
             break;
         }
 
+        __attribute__((fallthrough));
     case SAPP_EVENTTYPE_MOUSE_DOWN:
     case SAPP_EVENTTYPE_MOUSE_UP: {
         bool is_down = (event->type == SAPP_EVENTTYPE_MOUSE_DOWN);

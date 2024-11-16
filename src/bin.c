@@ -681,7 +681,7 @@ static file_t read_file(int sector_num, int size)
     file.data = calloc(1, size);
 
     int offset = 0;
-    uint32_t occupied_sectors = ceil((float)size / (float)SECTOR_SIZE);
+    uint32_t occupied_sectors = ceil((double)size / (double)SECTOR_SIZE);
 
     for (uint32_t i = 0; i < occupied_sectors; i++) {
         sector_t sector_data = read_sector(sector_num + i);
@@ -728,20 +728,20 @@ static vec3s read_normal(file_t* f)
 
 static vec4s read_rgb8(file_t* f)
 {
-    float r = read_u8(f) / 255.0f;
-    float g = read_u8(f) / 255.0f;
-    float b = read_u8(f) / 255.0f;
-    return (vec4s) { { r, g, b, 1.0f } };
+    float red = read_u8(f) / 255.0f;
+    float green = read_u8(f) / 255.0f;
+    float blue = read_u8(f) / 255.0f;
+    return (vec4s) { { red, green, blue, 1.0f } };
 }
 
 static vec4s read_rgb15(file_t* f)
 {
     uint16_t val = read_u16(f);
     uint8_t a = val == 0 ? 0x00 : 0xFF;
-    uint8_t b = (val & 0x7C00) >> 7; // 0b0111110000000000
-    uint8_t g = (val & 0x03E0) >> 2; // 0b0000001111100000
-    uint8_t r = (val & 0x001F) << 3; // 0b0000000000011111
-    return (vec4s) { { r, g, b, a } };
+    uint8_t blue = (val & 0x7C00) >> 7;  // 0b0111110000000000
+    uint8_t green = (val & 0x03E0) >> 2; // 0b0000001111100000
+    uint8_t red = (val & 0x001F) << 3;   // 0b0000000000011111
+    return (vec4s) { { red, green, blue, a } };
 }
 
 static float read_light_color(file_t* f)

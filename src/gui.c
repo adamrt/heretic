@@ -58,10 +58,10 @@ void gui_shutdown(void)
 
 void render_dropdown(struct nk_context* ctx)
 {
-    scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
+    scenario_t selected_scenario = g.fft.scenarios[g.scene.current_scenario];
 
     char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d %s", scenario.id, map_list[scenario.map_id].name);
+    snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, map_list[selected_scenario.map_id].name);
 
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);

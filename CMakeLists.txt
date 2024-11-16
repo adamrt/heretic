@@ -11,10 +11,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g3 -ggdb")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# set(CMAKE_C_CLANG_TIDY "clang-tidy;-checks=*,performance-*,-clang-analyzer-*")
 
 # Linux -pthread shenanigans
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -68,21 +68,19 @@ target_compile_options(heretic PUBLIC
     -Wpedantic
     -Werror
     -Wno-unused-function
+    -Wshadow
+    -Wunreachable-code
+    -Wnull-dereference
+    -Wformat=2
+    -Wstrict-aliasing
+    -Wimplicit-fallthrough
     -fsanitize=address
     -fsanitize=undefined
     -fno-omit-frame-pointer)
 
-# Explicitly strip dead code
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(heretic PRIVATE
-        LINKER:-dead_strip
-        -fsanitize=address
-        -fsanitize=undefined)
+    target_link_options(heretic PRIVATE LINKER:-dead_strip -fsanitize=address)
 
 elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-    target_link_options(heretic PRIVATE
-        -Wl,
-        --gc-sections
-        -fsanitize=address)
+    target_link_options(heretic PRIVATE -Wl, --gc-sections)
 endif()
-

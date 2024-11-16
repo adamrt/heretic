@@ -7,8 +7,8 @@
 
 #define SENSITIVITY (2.0f)
 
-#define MIN_ELEVATION (-M_PI_2 + 0.01f)
-#define MAX_ELEVATION (M_PI_2 - 0.01f)
+#define MIN_ELEVATION (-M_PI_2 + 0.01)
+#define MAX_ELEVATION (M_PI_2 - 0.01)
 
 void camera_init(void)
 {
