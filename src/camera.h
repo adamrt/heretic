@@ -5,8 +5,8 @@
 
 #define CAM_MIN_DIST  (0.01f)
 #define CAM_MAX_DIST  (1000.0f)
-#define CAM_MIN_ZNEAR (0.001f)
-#define CAM_MAX_ZFAR  (2048.0f)
+#define CAM_MIN_ZNEAR (0.01f)
+#define CAM_MAX_ZFAR  (1000.0f)
 
 typedef struct {
     mat4s proj, view;
