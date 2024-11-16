@@ -55,8 +55,6 @@ target_include_directories(heretic PUBLIC lib/nuklear)
 # Link sokol, nuklear and cglm library
 target_link_libraries(heretic libs cglm_headers)
 
-target_compile_definitions(libs PUBLIC SOKOL_GLCORE)
-
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")

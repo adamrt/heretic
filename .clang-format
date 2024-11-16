@@ -2,3 +2,4 @@
 BasedOnStyle: WebKit
 AlignTrailingComments: true
 AlignConsecutiveMacros: true
+IndentPPDirectives: AfterHash
