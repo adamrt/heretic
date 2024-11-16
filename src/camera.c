@@ -18,8 +18,6 @@ void camera_init(void)
     g.cam.distance = 256.0f;
     g.cam.znear = 0.01f;
     g.cam.zfar = 1000.0f;
-
-    camera_update();
 }
 
 void camera_update(void)
@@ -28,15 +26,15 @@ void camera_update(void)
     float w = g.cam.distance;
     float h = w / aspect;
 
-    vec3s offset = { {
+    vec3s position = { {
         cosf(g.cam.elevation) * sinf(g.cam.azimuth),
         sinf(g.cam.elevation),
         cosf(g.cam.elevation) * cosf(g.cam.azimuth),
     } };
 
-    vec3s scaled_offset = glms_vec3_scale(offset, g.cam.distance);
+    vec3s scaled_position = glms_vec3_scale(position, g.cam.distance);
 
-    g.cam.eye = glms_vec3_add(g.cam.target, scaled_offset);
+    g.cam.eye = glms_vec3_add(g.cam.target, scaled_position);
     g.cam.view = glms_lookat(g.cam.eye, g.cam.target, GLMS_YUP);
 
     if (g.cam.use_perspective) {
