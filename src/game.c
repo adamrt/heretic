@@ -20,7 +20,7 @@ game_t g = {
 static void state_update(void);
 static void scenario_prev(void);
 static void scenario_next(void);
-static void map_load(int num, resource_key_t);
+static void map_load(int num, map_state_t);
 static void map_unload(void);
 
 void game_init(void)
@@ -106,8 +106,12 @@ void game_update(void)
 void game_load_scenario(int num)
 {
     scenario_t scenario = g.fft.scenarios[num];
-    resource_key_t scenario_key = { .time = scenario.time, .weather = scenario.weather, .layout = 0 };
-    map_load(scenario.map_id, scenario_key);
+    map_state_t scenario_state = {
+        .time = scenario.time,
+        .weather = scenario.weather,
+        .layout = 0,
+    };
+    map_load(scenario.map_id, scenario_state);
 }
 
 void game_shutdown(void)
@@ -152,11 +156,11 @@ static void scenario_prev(void)
     game_load_scenario(g.scene.current_scenario);
 }
 
-static void map_load(int num, resource_key_t resource_key)
+static void map_load(int num, map_state_t map_state)
 {
     map_unload();
 
-    model_t model = read_scenario(num, resource_key);
+    model_t model = read_scenario(num, map_state);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(model.mesh.geometry.vertices),

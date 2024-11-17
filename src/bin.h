@@ -28,7 +28,7 @@ typedef struct {
     time_e time;
     weather_e weather;
     int layout;
-} resource_key_t;
+} map_state_t;
 
 typedef struct {
     int id;
@@ -69,7 +69,7 @@ typedef struct {
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
-model_t read_scenario(int, resource_key_t);
+model_t read_scenario(int, map_state_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);

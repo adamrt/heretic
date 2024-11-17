@@ -68,22 +68,16 @@ typedef struct {
 } records_t;
 
 typedef struct {
-    resource_key_t key;
+    map_state_t state;
     file_type_e type;
     texture_t texture;
     mesh_t mesh;
     bool valid;
 } resource_t;
 
-static resource_key_t fallback_key = (resource_key_t) {
-    .time = TIME_DAY,
-    .weather = WEATHER_NONE,
-    .layout = 0,
-};
-
 // Forward declarations
-static void add_resource(resource_t*, int, file_type_e, resource_key_t, void*);
-static void* find_resource(resource_t*, int, file_type_e, resource_key_t);
+static void add_resource(resource_t*, int, file_type_e, map_state_t, void*);
+static void* find_resource(resource_t*, int, file_type_e, map_state_t);
 
 static uint8_t read_u8(file_t*);
 static uint16_t read_u16(file_t*);
@@ -119,6 +113,12 @@ static vec2s process_tex_coords(float u, float v, uint8_t page);
 
 static void load_events(void);
 static void load_scenarios(void);
+
+static map_state_t default_map_state = (map_state_t) {
+    .time = TIME_DAY,
+    .weather = WEATHER_NONE,
+    .layout = 0,
+};
 
 void bin_load_global_data(void)
 {
@@ -195,7 +195,7 @@ static void load_scenarios(void)
     free(attack_out_file.data);
 }
 
-model_t read_scenario(int num, resource_key_t requested_key)
+model_t read_scenario(int num, map_state_t state)
 {
     resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;
@@ -208,9 +208,8 @@ model_t read_scenario(int num, resource_key_t requested_key)
 
     for (int i = 0; i < records.count; i++) {
         record_t record = records.records[i];
-        resource_key_t record_key = { record.time, record.weather, record.layout };
-
         file_t file = read_file(record.sector, record.length);
+        map_state_t record_state = { record.time, record.weather, record.layout };
 
         switch (record.type) {
         case FILE_TYPE_MESH_PRIMARY:
@@ -222,10 +221,10 @@ model_t read_scenario(int num, resource_key_t requested_key)
 
         case FILE_TYPE_TEXTURE: {
             // There can be duplicate textures for the same time/weather. Use the first one.
-            void* found = find_resource(resources, resource_count, record.type, record_key);
+            void* found = find_resource(resources, resource_count, record.type, record_state);
             if (found == NULL) {
                 texture_t texture = read_texture(&file);
-                add_resource(resources, resource_count, record.type, record_key, &texture);
+                add_resource(resources, resource_count, record.type, record_state, &texture);
                 resource_count++;
             }
             break;
@@ -233,7 +232,7 @@ model_t read_scenario(int num, resource_key_t requested_key)
 
         case FILE_TYPE_MESH_ALT: {
             mesh_t mesh = read_mesh(&file);
-            add_resource(resources, resource_count, record.type, record_key, &mesh);
+            add_resource(resources, resource_count, record.type, record_state, &mesh);
             resource_count++;
             break;
         }
@@ -244,7 +243,7 @@ model_t read_scenario(int num, resource_key_t requested_key)
                 break;
             }
 
-            add_resource(resources, resource_count, record.type, record_key, &mesh);
+            add_resource(resources, resource_count, record.type, record_state, &mesh);
             resource_count++;
             break;
         }
@@ -256,10 +255,10 @@ model_t read_scenario(int num, resource_key_t requested_key)
         free(file.data);
     }
 
-    mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, requested_key);
+    mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, state);
     if (!model.mesh.valid) {
         if (override_mesh == NULL) {
-            override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, fallback_key);
+            override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, default_map_state);
             assert(override_mesh != NULL);
         }
     }
@@ -268,17 +267,15 @@ model_t read_scenario(int num, resource_key_t requested_key)
         merge_meshes(&model.mesh, override_mesh);
     }
 
-    mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, requested_key);
+    mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, state);
     if (alt_mesh != NULL) {
         merge_meshes(&model.mesh, alt_mesh);
     }
 
-    // Maps 51 and 105 have duplicate textures for the same conditions
-    // but they are the same image data. Some maps don't have a texture
-    // for the conditions so we need to fallback to the default.
-    texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, requested_key);
+    // Some maps don't have a texture for the state so we use the default.
+    texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, state);
     if (texture == NULL) {
-        texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, fallback_key);
+        texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, default_map_state);
     }
     assert(texture != NULL);
 
@@ -574,10 +571,10 @@ mesh_t read_mesh(file_t* f)
     return mesh;
 }
 
-void add_resource(resource_t* resources, int count, file_type_e type, resource_key_t key, void* resource)
+void add_resource(resource_t* resources, int count, file_type_e type, map_state_t state, void* resource)
 {
     assert(count < GNS_RECORD_MAX_NUM);
-    resources[count].key = key;
+    resources[count].state = state;
     resources[count].valid = true;
     resources[count].type = type;
 
@@ -592,11 +589,16 @@ void add_resource(resource_t* resources, int count, file_type_e type, resource_k
     }
 }
 
-void* find_resource(resource_t* resources, int count, file_type_e type, resource_key_t key)
+void* find_resource(resource_t* resources, int count, file_type_e type, map_state_t req_state)
 {
     for (int i = 0; i < count; i++) {
-        resource_key_t mk = resources[i].key;
-        if (resources[i].valid && resources[i].type == type && mk.time == key.time && mk.weather == key.weather && mk.layout == key.layout) {
+        map_state_t resource_state = resources[i].state;
+        bool is_match = resources[i].type == type
+            && resource_state.time == req_state.time
+            && resource_state.weather == req_state.weather
+            && resource_state.layout == req_state.layout;
+
+        if (resources[i].valid && is_match) {
             if (type == FILE_TYPE_TEXTURE) {
                 return &resources[i].texture;
             }
