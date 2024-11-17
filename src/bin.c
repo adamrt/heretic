@@ -276,7 +276,9 @@ model_t read_scenario(int num, resource_key_t requested_key)
         merge_meshes(&model.mesh, alt_mesh);
     }
 
-    // Select texture
+    // Maps 51 and 105 have duplicate textures for the same conditions
+    // but they are the same image data. Some maps don't have a texture
+    // for the conditions so we need to fallback to the default.
     texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, requested_key);
     if (texture == NULL) {
         texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, fallback_key);
@@ -491,7 +493,12 @@ static palette_t read_palette(file_t* f)
     palette_t palette = { 0 };
 
     f->offset = 0x44;
-    f->offset = read_u32(f);
+    uint32_t intra_file_ptr = read_u32(f);
+    if (intra_file_ptr == 0) {
+        return palette;
+    }
+
+    f->offset = intra_file_ptr;
 
     for (int i = 0; i < 16 * 16 * 4; i = i + 4) {
         vec4s c = read_rgb15(f);
