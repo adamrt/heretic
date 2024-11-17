@@ -8,6 +8,7 @@
 
 void gfx_init(void);
 void gfx_update(void);
+void gfx_scale_change(void);
 void gfx_shutdown(void);
 
 typedef struct {
@@ -18,6 +19,8 @@ typedef struct {
     sg_pass_action pass_action;
 
     struct {
+        int scale_divisor;
+
         sg_pipeline pipeline;
         sg_pass pass;
     } offscreen;
@@ -28,6 +31,9 @@ typedef struct {
     } background;
 
     struct {
+        int width;
+        int height;
+
         sg_pipeline pipeline;
         sg_bindings bindings;
     } display;

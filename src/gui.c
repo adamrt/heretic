@@ -211,6 +211,20 @@ static void gui_draw(void)
     nk_flags window_flags = NK_WINDOW_BORDER | NK_WINDOW_SCALABLE | NK_WINDOW_MOVABLE | NK_WINDOW_MINIMIZABLE;
 
     if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 400, 600), window_flags)) {
+        nk_layout_row_static(ctx, 20, 150, 1);
+        nk_label(ctx, "Scale Resolution", NK_TEXT_LEFT);
+
+        nk_layout_row_static(ctx, 30, 80, 4);
+        int prev_scale_divisor = gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "1", gfx.offscreen.scale_divisor == 1) ? 1 : gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "2", gfx.offscreen.scale_divisor == 2) ? 2 : gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "3", gfx.offscreen.scale_divisor == 3) ? 3 : gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "4", gfx.offscreen.scale_divisor == 4) ? 4 : gfx.offscreen.scale_divisor;
+
+        if (prev_scale_divisor != gfx.offscreen.scale_divisor) {
+            gfx_scale_change();
+        }
+
         nk_layout_row_dynamic(ctx, 25, 2);
 
         nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);

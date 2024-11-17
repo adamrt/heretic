@@ -15,11 +15,8 @@
 // Global gfx state
 gfx_t gfx;
 
-#define GFX_SCALE            (2)
-#define GFX_OFFSCREEN_WIDTH  (GFX_DISPLAY_WIDTH / GFX_SCALE)
-#define GFX_OFFSCREEN_HEIGHT (GFX_DISPLAY_HEIGHT / GFX_SCALE)
-
 // Forward declarations
+static void init_images(void);
 static void init_shared(void);
 static void init_offscreen(void);
 static void init_background(void);
@@ -48,6 +45,11 @@ void gfx_init(void)
         face_winding = SG_FACEWINDING_CCW;
     }
 
+    gfx.display.width = GFX_DISPLAY_WIDTH;
+    gfx.display.height = GFX_DISPLAY_HEIGHT;
+    gfx.offscreen.scale_divisor = 4;
+
+    init_images();
     init_shared();
     init_offscreen();
     init_background();
@@ -79,6 +81,28 @@ void gfx_update(void)
     sg_commit();
 }
 
+void gfx_scale_change(void)
+{
+    sg_destroy_image(gfx.color_image);
+    sg_destroy_image(gfx.depth_image);
+    sg_destroy_attachments(gfx.offscreen.pass.attachments);
+
+    init_images();
+
+    gfx.offscreen.pass = (sg_pass) {
+        .attachments = sg_make_attachments(&(sg_attachments_desc) {
+            .colors[0].image = gfx.color_image,
+            .depth_stencil.image = gfx.depth_image,
+            .label = "offscreen-attachments",
+        }),
+        .action = gfx.pass_action,
+        .label = "offscreen-pass",
+    };
+
+    gfx.display.bindings.fs.images[SLOT_tex] = gfx.color_image;
+    gfx.display.bindings.fs.samplers[SLOT_smp] = gfx.sampler;
+}
+
 void gfx_shutdown(void)
 {
     sg_destroy_pipeline(gfx.offscreen.pipeline);
@@ -93,24 +117,31 @@ void gfx_shutdown(void)
     sg_shutdown();
 }
 
-static void init_shared(void)
+static void init_images(void)
 {
+
+    int scaled_width = gfx.display.width / gfx.offscreen.scale_divisor;
+    int scaled_height = gfx.display.height / gfx.offscreen.scale_divisor;
+
     gfx.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
-        .width = GFX_OFFSCREEN_WIDTH,
-        .height = GFX_OFFSCREEN_HEIGHT,
+        .width = scaled_width,
+        .height = scaled_height,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "color-image",
     });
 
     gfx.depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
-        .width = GFX_OFFSCREEN_WIDTH,
-        .height = GFX_OFFSCREEN_HEIGHT,
+        .width = scaled_width,
+        .height = scaled_height,
         .pixel_format = SG_PIXELFORMAT_DEPTH,
         .label = "depth-image",
     });
+}
 
+static void init_shared(void)
+{
     gfx.sampler = sg_make_sampler(&(sg_sampler_desc) {
         .min_filter = SG_FILTER_NEAREST,
         .mag_filter = SG_FILTER_NEAREST,
