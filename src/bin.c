@@ -233,9 +233,6 @@ model_t read_scenario(int num, resource_key_t requested_key)
 
         case FILE_TYPE_MESH_ALT: {
             mesh_t mesh = read_mesh(&file);
-            if (!mesh.geometry.valid) {
-                break;
-            }
             add_resource(resources, resource_count, record.type, record_key, &mesh);
             resource_count++;
             break;

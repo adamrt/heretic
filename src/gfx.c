@@ -47,7 +47,7 @@ void gfx_init(void)
 
     gfx.display.width = GFX_DISPLAY_WIDTH;
     gfx.display.height = GFX_DISPLAY_HEIGHT;
-    gfx.offscreen.scale_divisor = 4;
+    gfx.offscreen.scale_divisor = 2;
 
     init_images();
     init_shared();
