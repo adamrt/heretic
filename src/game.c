@@ -144,21 +144,20 @@ void game_shutdown(void)
 
 static void state_update(void)
 {
-    model_t* model = &g.scene.model;
     if (g.scene.center_model) {
-        model->transform.translation = model->transform.centered_translation;
+        g.scene.map->transform.translation = g.scene.map->centered_translation;
     } else {
-        model->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        g.scene.map->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
 
     mat4s model_matrix = glms_mat4_identity();
-    model_matrix = glms_translate(model_matrix, model->transform.translation);
-    model_matrix = glms_rotate_x(model_matrix, model->transform.rotation.x);
-    model_matrix = glms_rotate_y(model_matrix, model->transform.rotation.y);
-    model_matrix = glms_rotate_z(model_matrix, model->transform.rotation.z);
-    model_matrix = glms_scale(model_matrix, model->transform.scale);
+    model_matrix = glms_translate(model_matrix, g.scene.map->transform.translation);
+    model_matrix = glms_rotate_x(model_matrix, g.scene.map->transform.rotation.x);
+    model_matrix = glms_rotate_y(model_matrix, g.scene.map->transform.rotation.y);
+    model_matrix = glms_rotate_z(model_matrix, g.scene.map->transform.rotation.z);
+    model_matrix = glms_scale(model_matrix, g.scene.map->transform.scale);
 
-    model->transform.model_matrix = model_matrix;
+    g.scene.map->model_matrix = model_matrix;
 }
 
 static void scenario_next(void)
@@ -190,10 +189,10 @@ static void map_load(int num, map_state_t map_state)
     g.scene.current_map = num;
     g.scene.map_state = map_state;
 
-    model_t model = read_scenario(num, map_state);
+    map_t* map = read_map(num, map_state);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(model.mesh.geometry.vertices),
+        .data = SG_RANGE(map->mesh.geometry.vertices),
         .label = "mesh-vertices",
     });
 
@@ -201,21 +200,21 @@ static void map_load(int num, map_state_t map_state)
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(model.mesh.texture.data),
+        .data.subimage[0][0] = SG_RANGE(map->mesh.texture.data),
     });
 
     sg_image palette = sg_make_image(&(sg_image_desc) {
         .width = PALETTE_WIDTH,
         .height = PALETTE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(model.mesh.palette.data),
+        .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
     });
 
-    model.renderable.texture = texture;
-    model.renderable.palette = palette;
-    model.renderable.vbuffer = vbuf;
+    map->renderable.texture = texture;
+    map->renderable.palette = palette;
+    map->renderable.vbuffer = vbuf;
 
-    model.renderable.bindings = (sg_bindings) {
+    map->renderable.bindings = (sg_bindings) {
         .vertex_buffers[0] = vbuf,
         .fs = {
             .images[SLOT_u_texture] = texture,
@@ -224,12 +223,16 @@ static void map_load(int num, map_state_t map_state)
         },
     };
 
-    g.scene.model = model;
+    g.scene.map = map;
 }
 
 static void map_unload(void)
 {
-    sg_destroy_image(g.scene.model.renderable.texture);
-    sg_destroy_image(g.scene.model.renderable.palette);
-    sg_destroy_buffer(g.scene.model.renderable.vbuffer);
+    if (g.scene.map != NULL) {
+        sg_destroy_image(g.scene.map->renderable.texture);
+        sg_destroy_image(g.scene.map->renderable.palette);
+        sg_destroy_buffer(g.scene.map->renderable.vbuffer);
+
+        free(g.scene.map);
+    }
 }

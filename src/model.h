@@ -33,6 +33,15 @@ typedef struct {
 typedef struct {
     vertex_t vertices[MESH_MAX_VERTICES];
     int count;
+
+    struct {
+        vec3s vmin;
+        vec3s vmax;
+        float vcount;
+        float tri_count;
+        float quad_count;
+    } meta;
+
     bool valid;
 } geometry_t;
 
@@ -49,13 +58,18 @@ typedef struct {
 typedef struct {
     vec3s direction;
     vec4s color;
+
     bool valid;
 } light_t;
 
+// Lighting is a collection of lights, ambient color, and background colors.
+// This is because of hose the data is stored on the PSX bin.
 typedef struct {
     light_t lights[MESH_MAX_LIGHTS];
+
     vec4s ambient_color;
     float ambient_strength;
+
     vec4s bg_top;
     vec4s bg_bottom;
 
@@ -75,9 +89,6 @@ typedef struct {
     vec3s translation;
     vec3s rotation;
     vec3s scale;
-
-    mat4s model_matrix;         // computed from transform
-    vec3s centered_translation; // computed from geometry
 } transform_t;
 
 vec3s geometry_centered_translation(geometry_t* geometry);

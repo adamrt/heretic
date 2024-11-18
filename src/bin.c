@@ -167,7 +167,7 @@ static void load_scenarios(void)
     free(attack_out_file.data);
 }
 
-model_t read_scenario(int num, map_state_t state)
+map_t* read_map(int num, map_state_t state)
 {
     resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;
@@ -176,7 +176,7 @@ model_t read_scenario(int num, map_state_t state)
     records_t records = read_records(&gns_file);
     free(gns_file.data);
 
-    model_t model = { 0 };
+    map_t* map = calloc(1, sizeof(map_t));
 
     for (int i = 0; i < records.count; i++) {
         record_t record = records.records[i];
@@ -198,8 +198,8 @@ model_t read_scenario(int num, map_state_t state)
             // There always only one primary mesh file and it uses default state.
             assert(record_state.time == TIME_DAY && record_state.weather == WEATHER_NONE && record_state.layout == 0);
 
-            model.mesh = read_mesh(&file);
-            assert(model.mesh.valid);
+            map->mesh = read_mesh(&file);
+            assert(map->mesh.valid);
             break;
 
         case FILE_TYPE_MESH_ALT: {
@@ -227,7 +227,7 @@ model_t read_scenario(int num, map_state_t state)
     }
 
     mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, state);
-    if (!model.mesh.valid) {
+    if (!map->mesh.valid) {
         if (override_mesh == NULL) {
             override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, default_map_state);
             assert(override_mesh != NULL);
@@ -235,15 +235,12 @@ model_t read_scenario(int num, map_state_t state)
     }
 
     if (override_mesh != NULL) {
-        merge_meshes(&model.mesh, override_mesh);
+        merge_meshes(&map->mesh, override_mesh);
     }
 
     mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, state);
     if (alt_mesh != NULL) {
-        printf("Merging alt mesh\n");
-        merge_meshes(&model.mesh, alt_mesh);
-    } else {
-        printf("No alt mesh\n");
+        merge_meshes(&map->mesh, alt_mesh);
     }
 
     // Some maps don't have a texture for the state so we use the default.
@@ -253,14 +250,14 @@ model_t read_scenario(int num, map_state_t state)
     }
     assert(texture != NULL);
 
-    model.mesh.texture = *texture;
-    model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
-    model.transform.centered_translation = geometry_centered_translation(&model.mesh.geometry);
-    model.records = records;
+    map->mesh.texture = *texture;
+    map->transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
+    map->centered_translation = geometry_centered_translation(&map->mesh.geometry);
+    map->meta.records = records;
 
     free(resources);
 
-    return model;
+    return map;
 }
 
 static geometry_t read_geometry(file_t* f)

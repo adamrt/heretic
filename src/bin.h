@@ -79,14 +79,21 @@ typedef struct {
 
 typedef struct {
     mesh_t mesh;
-    records_t records;
-
     transform_t transform;
     renderable_t renderable;
-} model_t;
+
+    struct {
+        records_t records;
+        texture_t textures[16];
+    } meta;
+
+    // computed properties
+    mat4s model_matrix;
+    vec3s centered_translation;
+} map_t;
 
 typedef struct {
-    model_t model;
+    map_t* map;
     bool center_model;
     int current_scenario;
     int current_map;
@@ -113,7 +120,7 @@ typedef struct {
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
-model_t read_scenario(int, map_state_t);
+map_t* read_map(int, map_state_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);
