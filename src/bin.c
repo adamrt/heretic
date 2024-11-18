@@ -13,9 +13,7 @@
 
 #define FILE_MAX_SIZE (131072)
 
-#define GNS_FILE_MAX_SIZE  (2388)
-#define GNS_RECORD_MAX_NUM (100)
-#define GNS_RECORD_SIZE    (20)
+#define GNS_FILE_MAX_SIZE (2388)
 
 #define EVENT_FILE_SECTOR (3707)
 #define EVENT_FILE_SIZE   (4096000)
@@ -41,32 +39,6 @@ typedef struct {
     size_t size;
 } file_t;
 
-typedef enum {
-    FILE_TYPE_NONE = 0x0000,
-    FILE_TYPE_TEXTURE = 0x1701,
-    FILE_TYPE_MESH_PRIMARY = 0x2E01,
-    FILE_TYPE_MESH_OVERRIDE = 0x2F01,
-    FILE_TYPE_MESH_ALT = 0x3001,
-    FILE_TYPE_END = 0x3101,
-} file_type_e;
-
-typedef struct {
-    file_type_e type;
-    size_t sector;
-    size_t length;
-
-    time_e time;
-    weather_e weather;
-    int layout;
-
-    uint8_t data[GNS_RECORD_SIZE];
-} record_t;
-
-typedef struct {
-    record_t records[GNS_RECORD_MAX_NUM];
-    int count;
-} records_t;
-
 typedef struct {
     map_state_t state;
     file_type_e type;
@@ -74,6 +46,12 @@ typedef struct {
     mesh_t mesh;
     bool valid;
 } resource_t;
+
+static map_state_t default_map_state = (map_state_t) {
+    .time = TIME_DAY,
+    .weather = WEATHER_NONE,
+    .layout = 0,
+};
 
 // Forward declarations
 static void add_resource(resource_t*, int, file_type_e, map_state_t, void*);
@@ -113,12 +91,6 @@ static vec2s process_tex_coords(float u, float v, uint8_t page);
 
 static void load_events(void);
 static void load_scenarios(void);
-
-static map_state_t default_map_state = (map_state_t) {
-    .time = TIME_DAY,
-    .weather = WEATHER_NONE,
-    .layout = 0,
-};
 
 void bin_load_global_data(void)
 {
@@ -209,16 +181,9 @@ model_t read_scenario(int num, map_state_t state)
     for (int i = 0; i < records.count; i++) {
         record_t record = records.records[i];
         file_t file = read_file(record.sector, record.length);
-        map_state_t record_state = { record.time, record.weather, record.layout };
+        map_state_t record_state = { record.state.time, record.state.weather, record.state.layout };
 
         switch (record.type) {
-        case FILE_TYPE_MESH_PRIMARY:
-            model.mesh = read_mesh(&file);
-            if (!model.mesh.valid) {
-                assert(false);
-            }
-            break;
-
         case FILE_TYPE_TEXTURE: {
             // There can be duplicate textures for the same time/weather. Use the first one.
             void* found = find_resource(resources, resource_count, record.type, record_state);
@@ -229,6 +194,10 @@ model_t read_scenario(int num, map_state_t state)
             }
             break;
         }
+        case FILE_TYPE_MESH_PRIMARY:
+            model.mesh = read_mesh(&file);
+            assert(model.mesh.valid);
+            break;
 
         case FILE_TYPE_MESH_ALT: {
             mesh_t mesh = read_mesh(&file);
@@ -238,11 +207,8 @@ model_t read_scenario(int num, map_state_t state)
         }
 
         case FILE_TYPE_MESH_OVERRIDE: {
+            assert(record_state.time == TIME_DAY && record_state.weather == WEATHER_NONE && record_state.layout == 0);
             mesh_t mesh = read_mesh(&file);
-            if (!mesh.geometry.valid) {
-                break;
-            }
-
             add_resource(resources, resource_count, record.type, record_state, &mesh);
             resource_count++;
             break;
@@ -269,7 +235,10 @@ model_t read_scenario(int num, map_state_t state)
 
     mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, state);
     if (alt_mesh != NULL) {
+        printf("Merging alt mesh\n");
         merge_meshes(&model.mesh, alt_mesh);
+    } else {
+        printf("No alt mesh\n");
     }
 
     // Some maps don't have a texture for the state so we use the default.
@@ -282,6 +251,7 @@ model_t read_scenario(int num, map_state_t state)
     model.mesh.texture = *texture;
     model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
     model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
+    model.records = records;
 
     free(resources);
 
@@ -770,9 +740,11 @@ static record_t read_record(file_t* f)
         .sector = sector,
         .length = length,
         .type = type,
-        .time = time,
-        .weather = weather,
-        .layout = layout,
+        .state = {
+            .time = time,
+            .weather = weather,
+            .layout = layout,
+        },
     };
     memcpy(record.data, bytes.data, GNS_RECORD_SIZE);
     return record;
@@ -799,7 +771,7 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
 
     if (src->geometry.valid) {
         for (int i = 0; i < src->geometry.count; i++) {
-            dst->geometry.vertices[dst->geometry.count++] = src->geometry.vertices[i];
+            dst->geometry = src->geometry;
         }
     }
 
@@ -872,6 +844,30 @@ void weather_str(weather_e value, char out[static 12])
         break;
     case WEATHER_VERY_STRONG:
         strcpy(out, "VeryStrong");
+        break;
+    default:
+        strcpy(out, "Unknown");
+        break;
+    }
+}
+
+void file_type_str(file_type_e value, char* out)
+{
+    switch (value) {
+    case FILE_TYPE_MESH_PRIMARY:
+        strcpy(out, "Primary");
+        break;
+    case FILE_TYPE_MESH_ALT:
+        strcpy(out, "Alt");
+        break;
+    case FILE_TYPE_MESH_OVERRIDE:
+        strcpy(out, "Override");
+        break;
+    case FILE_TYPE_TEXTURE:
+        strcpy(out, "Texture");
+        break;
+    case FILE_TYPE_END:
+        strcpy(out, "End");
         break;
     default:
         strcpy(out, "Unknown");

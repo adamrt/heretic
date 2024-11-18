@@ -9,6 +9,9 @@
 #define SCENARIO_TOTAL_COUNT  (488)
 #define SCENARIO_USABLE_COUNT (302)
 
+#define GNS_RECORD_MAX_NUM (100)
+#define GNS_RECORD_SIZE    (20)
+
 typedef enum {
     TIME_DAY = 0x0,
     TIME_NIGHT = 0x1,
@@ -21,6 +24,15 @@ typedef enum {
     WEATHER_STRONG = 0x3,
     WEATHER_VERY_STRONG = 0x4,
 } weather_e;
+
+typedef enum {
+    FILE_TYPE_NONE = 0x0000,
+    FILE_TYPE_TEXTURE = 0x1701,
+    FILE_TYPE_MESH_PRIMARY = 0x2E01,
+    FILE_TYPE_MESH_OVERRIDE = 0x2F01,
+    FILE_TYPE_MESH_ALT = 0x3001,
+    FILE_TYPE_END = 0x3101,
+} file_type_e;
 
 // Each resource is a file that contains a single type of data (mesh, texture).
 // Each resource is related to a specific time, weather, and layout.
@@ -49,6 +61,43 @@ typedef struct {
     bool valid;
 } event_t;
 
+typedef struct {
+    file_type_e type;
+    size_t sector;
+    size_t length;
+
+    map_state_t state;
+
+    uint8_t data[GNS_RECORD_SIZE];
+} record_t;
+
+typedef struct {
+    record_t records[GNS_RECORD_MAX_NUM];
+    int count;
+} records_t;
+
+typedef struct {
+    mesh_t mesh;
+
+    transform_t transform;
+    mat4s model_matrix;         // computed from transform
+    vec3s centered_translation; // computed from geometry
+    records_t records;
+
+    sg_image texture;
+    sg_image palette;
+    sg_buffer vbuffer;
+    sg_bindings bindings;
+} model_t;
+
+typedef struct {
+    model_t model;
+    bool center_model;
+    int current_scenario;
+    int current_map;
+    map_state_t map_state;
+} scene_t;
+
 // Scenario and map descriptors
 typedef struct {
     uint16_t id;
@@ -73,6 +122,7 @@ model_t read_scenario(int, map_state_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);
+void file_type_str(file_type_e, char[static 12]);
 
 //
 // Public variables

@@ -56,8 +56,10 @@ void gui_shutdown(void)
     snk_shutdown();
 }
 
-void render_dropdown(struct nk_context* ctx)
+void draw_scenario_dropdown(struct nk_context* ctx)
 {
+    nk_layout_row_dynamic(ctx, 25, 1);
+
     scenario_t selected_scenario = g.fft.scenarios[g.scene.current_scenario];
 
     char selected_buffer[64];
@@ -81,7 +83,77 @@ void render_dropdown(struct nk_context* ctx)
         // End the combo (dropdown) box
         nk_combo_end(ctx);
     }
+    scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
+    map_desc_t map = map_list[scenario.map_id];
+
+    char weather_name[12];
+    weather_str(scenario.weather, weather_name);
+    char time_name[8];
+    time_str(scenario.time, time_name);
+
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "Map %d: %s", map.id, map.name);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
+
+    snprintf(buffer, sizeof(buffer), "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, 0);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
 }
+
+void draw_map_dropdown(struct nk_context* ctx)
+{
+
+    nk_layout_row_dynamic(ctx, 25, 1);
+
+    map_desc_t selected_map = map_list[g.scene.current_map];
+    map_state_t map_state = g.scene.map_state;
+
+    char selected_buffer[64];
+    snprintf(selected_buffer, 64, "%d %s", selected_map.id, map_list[selected_map.id].name);
+    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
+        for (int i = 0; i < 128; ++i) {
+
+            map_desc_t map = map_list[i];
+            char item_buffer[64];
+            snprintf(item_buffer, 64, "%d %s", map_list[map.id].id, map_list[map.id].name);
+
+            if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
+                g.scene.current_map = i;
+                game_load_map(g.scene.current_map);
+            }
+        }
+
+        // End the combo (dropdown) box
+        nk_combo_end(ctx);
+    }
+
+    char weather_name[12];
+    weather_str(map_state.weather, weather_name);
+    char time_name[8];
+    time_str(map_state.time, time_name);
+    snprintf(selected_buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, map_state.layout);
+
+    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
+        nk_layout_row_dynamic(ctx, 25, 1);
+
+        for (int i = 0; i < g.scene.model.records.count; ++i) {
+            record_t record = g.scene.model.records.records[i];
+            weather_str(record.state.weather, weather_name);
+            time_str(record.state.time, time_name);
+
+            char file_type_name[12];
+            file_type_str(record.type, file_type_name);
+            snprintf(selected_buffer, 64, "Type: %s, Time: %s, Weather: %s, Layout: %d", file_type_name, time_name, weather_name, record.state.layout);
+
+            if (nk_combo_item_label(ctx, selected_buffer, NK_TEXT_LEFT)) {
+                game_load_map_state(g.scene.current_map, record.state);
+            }
+        }
+
+        // End the combo (dropdown) box
+        nk_combo_end(ctx);
+    }
+}
+
 static void draw_camera(struct nk_context* ctx)
 {
     nk_layout_row_dynamic(ctx, 25, 1);
@@ -211,43 +283,19 @@ static void gui_draw(void)
     nk_flags window_flags = NK_WINDOW_BORDER | NK_WINDOW_SCALABLE | NK_WINDOW_MOVABLE | NK_WINDOW_MINIMIZABLE;
 
     if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 400, 600), window_flags)) {
-        nk_layout_row_static(ctx, 20, 150, 1);
-        nk_label(ctx, "Scale Resolution", NK_TEXT_LEFT);
 
-        nk_layout_row_static(ctx, 30, 80, 4);
-        int prev_scale_divisor = gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "1", gfx.offscreen.scale_divisor == 1) ? 1 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "2", gfx.offscreen.scale_divisor == 2) ? 2 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "3", gfx.offscreen.scale_divisor == 3) ? 3 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "4", gfx.offscreen.scale_divisor == 4) ? 4 : gfx.offscreen.scale_divisor;
+        if (nk_tree_push(ctx, NK_TREE_TAB, "Scene", NK_MAXIMIZED)) {
+            nk_layout_row_static(ctx, 30, 100, 2);
+            g.mode = nk_option_label(ctx, "Scenarios", g.mode == MODE_SCENARIO) ? MODE_SCENARIO : g.mode;
+            g.mode = nk_option_label(ctx, "Maps", g.mode == MODE_MAP) ? MODE_MAP : g.mode;
 
-        if (prev_scale_divisor != gfx.offscreen.scale_divisor) {
-            gfx_scale_change();
+            if (g.mode == MODE_SCENARIO) {
+                draw_scenario_dropdown(ctx);
+            } else if (g.mode == MODE_MAP) {
+                draw_map_dropdown(ctx);
+            }
+            nk_tree_pop(ctx);
         }
-
-        nk_layout_row_dynamic(ctx, 25, 2);
-
-        nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
-        nk_checkbox_label(ctx, "Centered", &g.scene.center_model);
-
-        nk_layout_row_dynamic(ctx, 25, 1);
-
-        render_dropdown(ctx);
-
-        scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
-        map_desc_t map = map_list[scenario.map_id];
-
-        char weather_name[12];
-        weather_str(scenario.weather, weather_name);
-        char time_name[8];
-        time_str(scenario.time, time_name);
-
-        char buffer[64];
-        snprintf(buffer, sizeof(buffer), "Map %d: %s", map.id, map.name);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
-
-        snprintf(buffer, sizeof(buffer), "Weather: %s, Time: %s", weather_name, time_name);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
 
         if (nk_tree_push(ctx, NK_TREE_TAB, "Lighting", NK_MINIMIZED)) {
             draw_lights(ctx);
@@ -256,6 +304,25 @@ static void gui_draw(void)
 
         if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
             draw_camera(ctx);
+            nk_tree_pop(ctx);
+        }
+
+        if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
+            nk_layout_row_dynamic(ctx, 25, 2);
+            nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
+            nk_checkbox_label(ctx, "Centered", &g.scene.center_model);
+            nk_layout_row_static(ctx, 20, 40, 5);
+            nk_label(ctx, "Scale", NK_TEXT_LEFT);
+
+            int prev_scale_divisor = gfx.offscreen.scale_divisor;
+            gfx.offscreen.scale_divisor = nk_option_label(ctx, "1", gfx.offscreen.scale_divisor == 1) ? 1 : gfx.offscreen.scale_divisor;
+            gfx.offscreen.scale_divisor = nk_option_label(ctx, "2", gfx.offscreen.scale_divisor == 2) ? 2 : gfx.offscreen.scale_divisor;
+            gfx.offscreen.scale_divisor = nk_option_label(ctx, "3", gfx.offscreen.scale_divisor == 3) ? 3 : gfx.offscreen.scale_divisor;
+            gfx.offscreen.scale_divisor = nk_option_label(ctx, "4", gfx.offscreen.scale_divisor == 4) ? 4 : gfx.offscreen.scale_divisor;
+
+            if (prev_scale_divisor != gfx.offscreen.scale_divisor) {
+                gfx_scale_change();
+            }
             nk_tree_pop(ctx);
         }
     }

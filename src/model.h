@@ -76,25 +76,6 @@ typedef struct {
     vec3s scale;
 } transform_t;
 
-typedef struct {
-    mesh_t mesh;
-
-    transform_t transform;
-    mat4s model_matrix;         // computed from transform
-    vec3s centered_translation; // computed from geometry
-
-    sg_image texture;
-    sg_image palette;
-    sg_buffer vbuffer;
-    sg_bindings bindings;
-} model_t;
-
-typedef struct {
-    model_t model;
-    bool center_model;
-    int current_scenario;
-} scene_t;
-
 vec3s geometry_centered_translation(geometry_t* geometry);
 vec3s geometry_normalized_scale(geometry_t* geometry);
 

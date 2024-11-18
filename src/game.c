@@ -10,10 +10,17 @@
 #include "gui.h"
 
 game_t g = {
+    .mode = MODE_SCENARIO,
     .scene = {
         .center_model = true,
         .current_scenario = 52,
     },
+};
+
+map_state_t default_map_state = (map_state_t) {
+    .time = TIME_DAY,
+    .weather = WEATHER_NONE,
+    .layout = 0,
 };
 
 // Forward declarations
@@ -114,6 +121,16 @@ void game_load_scenario(int num)
     map_load(scenario.map_id, scenario_state);
 }
 
+void game_load_map(int num)
+{
+    map_load(num, default_map_state);
+}
+
+void game_load_map_state(int num, map_state_t map_state)
+{
+    map_load(num, map_state);
+}
+
 void game_shutdown(void)
 {
     fclose(g.bin);
@@ -146,19 +163,32 @@ static void state_update(void)
 
 static void scenario_next(void)
 {
-    g.scene.current_scenario++;
-    game_load_scenario(g.scene.current_scenario);
+    if (g.mode == MODE_SCENARIO) {
+        g.scene.current_scenario++;
+        game_load_scenario(g.scene.current_scenario);
+    } else if (g.mode == MODE_MAP) {
+        g.scene.current_map++;
+        game_load_map(g.scene.current_map);
+    }
 }
 
 static void scenario_prev(void)
 {
-    g.scene.current_scenario--;
-    game_load_scenario(g.scene.current_scenario);
+    if (g.mode == MODE_SCENARIO) {
+        g.scene.current_scenario--;
+        game_load_scenario(g.scene.current_scenario);
+    } else if (g.mode == MODE_MAP) {
+        g.scene.current_map--;
+        game_load_map(g.scene.current_map);
+    }
 }
 
 static void map_load(int num, map_state_t map_state)
 {
     map_unload();
+
+    g.scene.current_map = num;
+    g.scene.map_state = map_state;
 
     model_t model = read_scenario(num, map_state);
 
