@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "gfx.h"
 #include "model.h"
 
 #define EVENT_COUNT           (500)
@@ -78,16 +79,10 @@ typedef struct {
 
 typedef struct {
     mesh_t mesh;
-
-    transform_t transform;
-    mat4s model_matrix;         // computed from transform
-    vec3s centered_translation; // computed from geometry
     records_t records;
 
-    sg_image texture;
-    sg_image palette;
-    sg_buffer vbuffer;
-    sg_bindings bindings;
+    transform_t transform;
+    renderable_t renderable;
 } model_t;
 
 typedef struct {

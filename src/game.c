@@ -146,7 +146,7 @@ static void state_update(void)
 {
     model_t* model = &g.scene.model;
     if (g.scene.center_model) {
-        model->transform.translation = model->centered_translation;
+        model->transform.translation = model->transform.centered_translation;
     } else {
         model->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
@@ -158,7 +158,7 @@ static void state_update(void)
     model_matrix = glms_rotate_z(model_matrix, model->transform.rotation.z);
     model_matrix = glms_scale(model_matrix, model->transform.scale);
 
-    model->model_matrix = model_matrix;
+    model->transform.model_matrix = model_matrix;
 }
 
 static void scenario_next(void)
@@ -211,11 +211,11 @@ static void map_load(int num, map_state_t map_state)
         .data.subimage[0][0] = SG_RANGE(model.mesh.palette.data),
     });
 
-    model.texture = texture;
-    model.palette = palette;
-    model.vbuffer = vbuf;
+    model.renderable.texture = texture;
+    model.renderable.palette = palette;
+    model.renderable.vbuffer = vbuf;
 
-    model.bindings = (sg_bindings) {
+    model.renderable.bindings = (sg_bindings) {
         .vertex_buffers[0] = vbuf,
         .fs = {
             .images[SLOT_u_texture] = texture,
@@ -229,7 +229,7 @@ static void map_load(int num, map_state_t map_state)
 
 static void map_unload(void)
 {
-    sg_destroy_image(g.scene.model.texture);
-    sg_destroy_image(g.scene.model.palette);
-    sg_destroy_buffer(g.scene.model.vbuffer);
+    sg_destroy_image(g.scene.model.renderable.texture);
+    sg_destroy_image(g.scene.model.renderable.palette);
+    sg_destroy_buffer(g.scene.model.renderable.vbuffer);
 }

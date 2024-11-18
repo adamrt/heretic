@@ -255,7 +255,7 @@ model_t read_scenario(int num, map_state_t state)
 
     model.mesh.texture = *texture;
     model.transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
-    model.centered_translation = geometry_centered_translation(&model.mesh.geometry);
+    model.transform.centered_translation = geometry_centered_translation(&model.mesh.geometry);
     model.records = records;
 
     free(resources);

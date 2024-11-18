@@ -303,7 +303,7 @@ static void frame_offscreen(void)
     vs_standard_params_t vs_params = {
         .u_proj = g.cam.proj,
         .u_view = g.cam.view,
-        .u_model = g.scene.model.model_matrix,
+        .u_model = g.scene.model.transform.model_matrix,
     };
 
     fs_standard_params_t fs_params;
@@ -325,7 +325,7 @@ static void frame_offscreen(void)
     fs_params.u_light_count = light_count;
 
     sg_apply_pipeline(gfx.offscreen.pipeline);
-    sg_apply_bindings(&g.scene.model.bindings);
+    sg_apply_bindings(&g.scene.model.renderable.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
     sg_draw(0, g.scene.model.mesh.geometry.count, 1);

@@ -75,6 +75,9 @@ typedef struct {
     vec3s translation;
     vec3s rotation;
     vec3s scale;
+
+    mat4s model_matrix;         // computed from transform
+    vec3s centered_translation; // computed from geometry
 } transform_t;
 
 vec3s geometry_centered_translation(geometry_t* geometry);

@@ -39,6 +39,13 @@ typedef struct {
     } display;
 } gfx_t;
 
+typedef struct {
+    sg_image texture;
+    sg_image palette;
+    sg_buffer vbuffer;
+    sg_bindings bindings;
+} renderable_t;
+
 extern gfx_t gfx;
 
 #endif // GFX_H_
