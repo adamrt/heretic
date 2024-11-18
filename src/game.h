@@ -3,8 +3,8 @@
 
 #include "sokol_app.h"
 
-#include "bin.h"
 #include "camera.h"
+#include "fft.h"
 
 void game_init(void);
 void game_update(void);

@@ -1,5 +1,5 @@
-#ifndef BIN_H_
-#define BIN_H_
+#ifndef FFT_H_
+#define FFT_H_
 
 #include <stdint.h>
 
@@ -261,4 +261,4 @@ void file_type_str(file_type_e, char[static 12]);
 extern scenario_desc_t scenario_list[];
 extern map_desc_t map_list[];
 
-#endif // BIN_H_
+#endif // FFT_H_

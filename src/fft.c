@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "bin.h"
+#include "fft.h"
 #include "game.h"
 
 typedef struct {

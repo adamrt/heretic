@@ -3,8 +3,8 @@
 #include "cglm/struct.h"
 #include "shader.glsl.h"
 
-#include "bin.h"
 #include "camera.h"
+#include "fft.h"
 #include "game.h"
 #include "gfx.h"
 #include "gui.h"
