@@ -195,6 +195,9 @@ model_t read_scenario(int num, map_state_t state)
             break;
         }
         case FILE_TYPE_MESH_PRIMARY:
+            // There always only one primary mesh file and it uses default state.
+            assert(record_state.time == TIME_DAY && record_state.weather == WEATHER_NONE && record_state.layout == 0);
+
             model.mesh = read_mesh(&file);
             assert(model.mesh.valid);
             break;
@@ -207,7 +210,9 @@ model_t read_scenario(int num, map_state_t state)
         }
 
         case FILE_TYPE_MESH_OVERRIDE: {
+            // If there is an override file, there is only one and it uses default state.
             assert(record_state.time == TIME_DAY && record_state.weather == WEATHER_NONE && record_state.layout == 0);
+
             mesh_t mesh = read_mesh(&file);
             add_resource(resources, resource_count, record.type, record_state, &mesh);
             resource_count++;
@@ -449,6 +454,7 @@ static texture_t read_texture(file_t* f)
         texture.data[i + 7] = left;
     }
 
+    texture.valid = true;
     return texture;
 }
 

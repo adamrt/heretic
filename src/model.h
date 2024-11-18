@@ -38,6 +38,7 @@ typedef struct {
 
 typedef struct {
     uint8_t data[TEXTURE_BYTE_SIZE];
+    bool valid;
 } texture_t;
 
 typedef struct {
