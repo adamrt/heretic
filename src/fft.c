@@ -6,6 +6,41 @@
 #include "fft.h"
 #include "game.h"
 
+#define SECTOR_HEADER_SIZE (24)
+#define SECTOR_SIZE        (2048)
+#define SECTOR_SIZE_RAW    (2352)
+
+#define FILE_MAX_SIZE (131072)
+
+#define GNS_FILE_MAX_SIZE (2388)
+
+#define SCENARIO_DATA_OFFSET (0x10938)
+#define SCENARIO_SIZE        (24)
+#define SCENARIO_TOTAL_COUNT (488)
+
+#define EVENT_FILE_SECTOR (3707)
+#define EVENT_FILE_SIZE   (4096000)
+#define EVENT_SIZE        (8192)
+#define EVENT_COUNT       (500)
+
+#define ATTACK_FILE_SECTOR (2448)
+#define ATTACK_FILE_SIZE   (125956)
+
+typedef struct {
+    uint8_t data[FILE_MAX_SIZE];
+    size_t size;
+} bytes_t;
+
+typedef struct {
+    uint8_t data[SECTOR_SIZE];
+} sector_t;
+
+typedef struct {
+    uint8_t* data;
+    size_t offset;
+    size_t size;
+} file_t;
+
 typedef struct {
     map_state_t state;
     file_type_e type;
@@ -49,6 +84,8 @@ static mesh_t read_mesh(file_t*);
 // Utility functions
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
+static vec3s geometry_centered(geometry_t* geometry);
+static vec3s geometry_normalized(geometry_t* geometry);
 
 static void load_events(void);
 static void load_scenarios(void);
@@ -213,7 +250,7 @@ map_t* read_map(int num, map_state_t state)
 
     map->mesh.texture = *texture;
     map->transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
-    map->centered_translation = geometry_centered_translation(&map->mesh.geometry);
+    map->centered_translation = geometry_centered(&map->mesh.geometry);
     map->meta.records = records;
 
     free(resources);
@@ -839,7 +876,7 @@ void file_type_str(file_type_e value, char* out)
     }
 }
 
-vec3s geometry_centered_translation(geometry_t* geometry)
+vec3s geometry_centered(geometry_t* geometry)
 {
     float min_x = FLT_MAX;
     float max_x = -FLT_MAX;
@@ -867,7 +904,7 @@ vec3s geometry_centered_translation(geometry_t* geometry)
     return (vec3s) { { x, y, z } };
 }
 
-vec3s geometry_normalized_scale(geometry_t* geometry)
+vec3s geometry_normalized(geometry_t* geometry)
 {
     float min_x = FLT_MAX;
     float max_x = -FLT_MAX;

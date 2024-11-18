@@ -8,28 +8,10 @@
 
 #include "gfx.h"
 
-#define SECTOR_HEADER_SIZE (24)
-#define SECTOR_SIZE        (2048)
-#define SECTOR_SIZE_RAW    (2352)
-
-#define FILE_MAX_SIZE (131072)
-
-#define GNS_FILE_MAX_SIZE  (2388)
 #define GNS_RECORD_MAX_NUM (100)
 #define GNS_RECORD_SIZE    (20)
 
-#define EVENT_FILE_SECTOR (3707)
-#define EVENT_FILE_SIZE   (4096000)
-#define EVENT_SIZE        (8192)
-#define EVENT_COUNT       (500)
-
-#define SCENARIO_DATA_OFFSET  (0x10938)
-#define SCENARIO_SIZE         (24)
-#define SCENARIO_TOTAL_COUNT  (488)
 #define SCENARIO_USABLE_COUNT (302)
-
-#define ATTACK_FILE_SECTOR (2448)
-#define ATTACK_FILE_SIZE   (125956)
 
 #define MESH_MAX_VERTICES (7620)
 #define MESH_MAX_LIGHTS   (3)
@@ -46,21 +28,6 @@
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
-typedef struct {
-    uint8_t data[FILE_MAX_SIZE];
-    size_t size;
-} bytes_t;
-
-typedef struct {
-    uint8_t data[SECTOR_SIZE];
-} sector_t;
-
-typedef struct {
-    uint8_t* data;
-    size_t offset;
-    size_t size;
-} file_t;
 
 typedef enum {
     TIME_DAY = 0x0,
@@ -240,10 +207,6 @@ typedef struct {
 //
 // Public functions
 //
-
-// Make these private
-vec3s geometry_centered_translation(geometry_t* geometry);
-vec3s geometry_normalized_scale(geometry_t* geometry);
 
 void bin_load_global_data(void);
 void bin_free_global_data(void);
