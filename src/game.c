@@ -167,6 +167,12 @@ static void scenario_next(void)
         game_load_scenario(g.scene.current_scenario);
     } else if (g.mode == MODE_MAP) {
         g.scene.current_map++;
+        while (!map_list[g.scene.current_map].valid) {
+            g.scene.current_map++;
+            if (g.scene.current_map > 125) {
+                g.scene.current_map = 0;
+            }
+        }
         game_load_map(g.scene.current_map);
     }
 }
@@ -178,6 +184,12 @@ static void scenario_prev(void)
         game_load_scenario(g.scene.current_scenario);
     } else if (g.mode == MODE_MAP) {
         g.scene.current_map--;
+        while (!map_list[g.scene.current_map].valid) {
+            g.scene.current_map--;
+            if (g.scene.current_map < 0) {
+                g.scene.current_map = 125;
+            }
+        }
         game_load_map(g.scene.current_map);
     }
 }
