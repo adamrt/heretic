@@ -79,8 +79,6 @@ void draw_scenario_dropdown(struct nk_context* ctx)
                 game_load_scenario(g.scene.current_scenario);
             }
         }
-
-        // End the combo (dropdown) box
         nk_combo_end(ctx);
     }
     scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
@@ -107,49 +105,50 @@ void draw_map_dropdown(struct nk_context* ctx)
     map_desc_t selected_map = map_list[g.scene.current_map];
     map_state_t map_state = g.scene.map_state;
 
-    char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d %s", selected_map.id, map_list[selected_map.id].name);
-    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
+    char buffer[64];
+
+    snprintf(buffer, 64, "%d %s", selected_map.id, map_list[selected_map.id].name);
+    if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
+        nk_layout_row_dynamic(ctx, 25, 1);
+
         for (int i = 0; i < 128; ++i) {
+            if (!map_list[i].valid) {
+                continue;
+            }
 
-            map_desc_t map = map_list[i];
-            char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", map_list[map.id].id, map_list[map.id].name);
+            snprintf(buffer, 64, "%d %s", map_list[i].id, map_list[i].name);
 
-            if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
+            if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
                 g.scene.current_map = i;
                 game_load_map(g.scene.current_map);
             }
         }
-
-        // End the combo (dropdown) box
         nk_combo_end(ctx);
     }
 
-    char weather_name[12];
-    weather_str(map_state.weather, weather_name);
     char time_name[8];
-    time_str(map_state.time, time_name);
-    snprintf(selected_buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, map_state.layout);
+    char weather_name[12];
 
-    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
+    time_str(map_state.time, time_name);
+    weather_str(map_state.weather, weather_name);
+
+    snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, map_state.layout);
+
+    if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < g.scene.model.records.count; ++i) {
             record_t record = g.scene.model.records.records[i];
+
             weather_str(record.state.weather, weather_name);
             time_str(record.state.time, time_name);
 
-            char file_type_name[12];
-            file_type_str(record.type, file_type_name);
-            snprintf(selected_buffer, 64, "Type: %s, Time: %s, Weather: %s, Layout: %d", file_type_name, time_name, weather_name, record.state.layout);
+            snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, record.state.layout);
 
-            if (nk_combo_item_label(ctx, selected_buffer, NK_TEXT_LEFT)) {
+            if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
                 game_load_map_state(g.scene.current_map, record.state);
             }
         }
-
-        // End the combo (dropdown) box
         nk_combo_end(ctx);
     }
 }
