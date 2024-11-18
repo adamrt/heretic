@@ -17,12 +17,6 @@ game_t g = {
     },
 };
 
-map_state_t default_map_state = (map_state_t) {
-    .time = TIME_DAY,
-    .weather = WEATHER_NONE,
-    .layout = 0,
-};
-
 // Forward declarations
 static void state_update(void);
 static void scenario_prev(void);

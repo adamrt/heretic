@@ -44,7 +44,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 # Add Heretic executable
-add_executable(heretic src/main.c src/bin.c src/camera.c src/game.c src/gui.c src/gfx.c src/model.c)
+add_executable(heretic src/main.c src/bin.c src/camera.c src/game.c src/gui.c src/gfx.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)

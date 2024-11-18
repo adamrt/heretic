@@ -3,15 +3,64 @@
 
 #include <stdint.h>
 
-#include "gfx.h"
-#include "model.h"
+#include "cglm/struct.h"
+#include "sokol_gfx.h"
 
-#define EVENT_COUNT           (500)
+#include "gfx.h"
+
+#define SECTOR_HEADER_SIZE (24)
+#define SECTOR_SIZE        (2048)
+#define SECTOR_SIZE_RAW    (2352)
+
+#define FILE_MAX_SIZE (131072)
+
+#define GNS_FILE_MAX_SIZE  (2388)
+#define GNS_RECORD_MAX_NUM (100)
+#define GNS_RECORD_SIZE    (20)
+
+#define EVENT_FILE_SECTOR (3707)
+#define EVENT_FILE_SIZE   (4096000)
+#define EVENT_SIZE        (8192)
+#define EVENT_COUNT       (500)
+
+#define SCENARIO_DATA_OFFSET  (0x10938)
+#define SCENARIO_SIZE         (24)
 #define SCENARIO_TOTAL_COUNT  (488)
 #define SCENARIO_USABLE_COUNT (302)
 
-#define GNS_RECORD_MAX_NUM (100)
-#define GNS_RECORD_SIZE    (20)
+#define ATTACK_FILE_SECTOR (2448)
+#define ATTACK_FILE_SIZE   (125956)
+
+#define MESH_MAX_VERTICES (7620)
+#define MESH_MAX_LIGHTS   (3)
+
+#define TEXTURE_WIDTH     (256)
+#define TEXTURE_HEIGHT    (1024)
+#define TEXTURE_SIZE      (TEXTURE_WIDTH * TEXTURE_HEIGHT) // 262144
+#define TEXTURE_BYTE_SIZE (TEXTURE_SIZE * 4)
+
+#define PALETTE_WIDTH     (256)
+#define PALETTE_HEIGHT    (1)
+#define PALETTE_SIZE      (PALETTE_WIDTH * PALETTE_HEIGHT)
+#define PALETTE_BYTE_SIZE (PALETTE_SIZE * 4)
+
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+typedef struct {
+    uint8_t data[FILE_MAX_SIZE];
+    size_t size;
+} bytes_t;
+
+typedef struct {
+    uint8_t data[SECTOR_SIZE];
+} sector_t;
+
+typedef struct {
+    uint8_t* data;
+    size_t offset;
+    size_t size;
+} file_t;
 
 typedef enum {
     TIME_DAY = 0x0,
@@ -42,6 +91,81 @@ typedef struct {
     weather_e weather;
     int layout;
 } map_state_t;
+
+typedef struct {
+    vec3s position;
+    vec3s normal;
+    vec2s uv;
+    float palette_index;
+    float is_textured;
+} vertex_t;
+
+typedef struct {
+    vertex_t vertices[MESH_MAX_VERTICES];
+    int count;
+
+    struct {
+        vec3s vmin;
+        vec3s vmax;
+        float vcount;
+        float tri_count;
+        float quad_count;
+    } meta;
+
+    bool valid;
+} geometry_t;
+
+typedef struct {
+    uint8_t data[TEXTURE_BYTE_SIZE];
+    bool valid;
+} texture_t;
+
+typedef struct {
+    uint8_t data[PALETTE_BYTE_SIZE];
+    bool valid;
+} palette_t;
+
+typedef struct {
+    vec3s direction;
+    vec4s color;
+
+    bool valid;
+} light_t;
+
+// Lighting is a collection of lights, ambient color, and background colors.
+// This is because of hose the data is stored on the PSX bin.
+typedef struct {
+    light_t lights[MESH_MAX_LIGHTS];
+
+    vec4s ambient_color;
+    float ambient_strength;
+
+    vec4s bg_top;
+    vec4s bg_bottom;
+
+    bool valid;
+} lighting_t;
+
+static map_state_t default_map_state = (map_state_t) {
+    .time = TIME_DAY,
+    .weather = WEATHER_NONE,
+    .layout = 0,
+};
+
+typedef struct {
+    geometry_t geometry;
+    texture_t texture;
+    palette_t palette;
+    lighting_t lighting;
+
+    bool valid;
+} mesh_t;
+
+typedef struct {
+    vec3s translation;
+    vec3s rotation;
+    vec3s scale;
+} transform_t;
 
 typedef struct {
     int id;
@@ -116,6 +240,10 @@ typedef struct {
 //
 // Public functions
 //
+
+// Make these private
+vec3s geometry_centered_translation(geometry_t* geometry);
+vec3s geometry_normalized_scale(geometry_t* geometry);
 
 void bin_load_global_data(void);
 void bin_free_global_data(void);

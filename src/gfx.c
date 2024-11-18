@@ -10,7 +10,6 @@
 #include "game.h"
 #include "gfx.h"
 #include "gui.h"
-#include "model.h"
 
 // Global gfx state
 gfx_t gfx;

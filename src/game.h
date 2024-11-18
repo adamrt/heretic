@@ -5,7 +5,6 @@
 
 #include "bin.h"
 #include "camera.h"
-#include "model.h"
 
 void game_init(void);
 void game_update(void);
