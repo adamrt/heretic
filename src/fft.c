@@ -41,18 +41,6 @@ typedef struct {
     size_t size;
 } file_t;
 
-typedef struct {
-    map_state_t state;
-    file_type_e type;
-    texture_t texture;
-    mesh_t mesh;
-    bool valid;
-} resource_t;
-
-// Forward declarations
-static void add_resource(resource_t*, int, file_type_e, map_state_t, void*);
-static void* find_resource(resource_t*, int, file_type_e, map_state_t);
-
 static uint8_t read_u8(file_t*);
 static uint16_t read_u16(file_t*);
 static uint32_t read_u32(file_t*);
@@ -549,45 +537,6 @@ mesh_t read_mesh(file_t* f)
     mesh.valid = is_valid;
 
     return mesh;
-}
-
-void add_resource(resource_t* resources, int count, file_type_e type, map_state_t state, void* resource)
-{
-    assert(count < GNS_RECORD_MAX_NUM);
-    resources[count].state = state;
-    resources[count].valid = true;
-    resources[count].type = type;
-
-    if (type == FILE_TYPE_TEXTURE) {
-        resources[count].texture = *(texture_t*)resource;
-        return;
-    }
-
-    if (type == FILE_TYPE_MESH_PRIMARY || type == FILE_TYPE_MESH_OVERRIDE || type == FILE_TYPE_MESH_ALT) {
-        resources[count].mesh = *(mesh_t*)resource;
-        return;
-    }
-}
-
-void* find_resource(resource_t* resources, int count, file_type_e type, map_state_t req_state)
-{
-    for (int i = 0; i < count; i++) {
-        map_state_t resource_state = resources[i].state;
-        bool is_match = resources[i].type == type
-            && resource_state.time == req_state.time
-            && resource_state.weather == req_state.weather
-            && resource_state.layout == req_state.layout;
-
-        if (resources[i].valid && is_match) {
-            if (type == FILE_TYPE_TEXTURE) {
-                return &resources[i].texture;
-            }
-            if (type == FILE_TYPE_MESH_PRIMARY || type == FILE_TYPE_MESH_OVERRIDE || type == FILE_TYPE_MESH_ALT) {
-                return &resources[i].mesh;
-            }
-        }
-    }
-    return NULL;
 }
 
 static uint8_t read_u8(file_t* f)
