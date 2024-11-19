@@ -223,8 +223,12 @@ typedef struct {
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
+// Maybe just have read_map, and attach map_data to the map_t?
 map_data_t* read_map_data(int);
 map_t build_map(map_data_t* map_data, map_state_t map_state);
+
+bool map_state_eq(map_state_t, map_state_t);
+bool map_state_default(map_state_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);

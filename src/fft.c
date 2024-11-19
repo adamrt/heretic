@@ -186,7 +186,8 @@ map_data_t* read_map_data(int num)
         }
         case FILE_TYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
-            assert(record.state.time == TIME_DAY && record.state.weather == WEATHER_NONE && record.state.layout == 0);
+            assert(map_state_default(record.state));
+
             map_data->primary_mesh = read_mesh(&file);
             assert(map_data->primary_mesh.valid);
             break;
@@ -200,7 +201,8 @@ map_data_t* read_map_data(int num)
 
         case FILE_TYPE_MESH_OVERRIDE: {
             // If there is an override file, there is only one and it uses default state.
-            assert(record.state.time == TIME_DAY && record.state.weather == WEATHER_NONE && record.state.layout == 0);
+            assert(map_state_default(record.state));
+
             map_data->override_mesh = read_mesh(&file);
             break;
         }
@@ -230,7 +232,7 @@ map_t build_map(map_data_t* map_data, map_state_t map_state)
 
     for (int i = 0; i < map_data->alt_mesh_count; i++) {
         mesh_t alt_mesh = map_data->alt_meshes[i];
-        if (alt_mesh.valid && alt_mesh.map_state.time == map_state.time && alt_mesh.map_state.weather == map_state.weather && alt_mesh.map_state.layout == map_state.layout) {
+        if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
             merge_meshes(&map.mesh, &alt_mesh);
             break;
         }
@@ -238,11 +240,12 @@ map_t build_map(map_data_t* map_data, map_state_t map_state)
 
     for (int i = 0; i < map_data->texture_count; i++) {
         texture_t texture = map_data->textures[i];
-        if (texture.valid && texture.map_state.time == map_state.time && texture.map_state.weather == map_state.weather && texture.map_state.layout == map_state.layout) {
+
+        if (texture.valid && map_state_eq(texture.map_state, map_state)) {
             map.texture = texture;
             break;
         }
-        if (texture.valid && texture.map_state.time == TIME_DAY && texture.map_state.weather == WEATHER_NONE && texture.map_state.layout == 0) {
+        if (texture.valid && map_state_default(texture.map_state)) {
             if (!map.texture.valid) {
                 map.texture = texture;
             }
@@ -880,6 +883,16 @@ void file_type_str(file_type_e value, char* out)
         strcpy(out, "Unknown");
         break;
     }
+}
+
+bool map_state_eq(map_state_t a, map_state_t b)
+{
+    return a.time == b.time && a.weather == b.weather && a.layout == b.layout;
+}
+
+bool map_state_default(map_state_t a)
+{
+    return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
 }
 
 static vec3s geometry_centered(geometry_t* geometry)
