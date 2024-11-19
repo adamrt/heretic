@@ -242,6 +242,11 @@ map_t build_map(map_data_t* map_data, map_state_t map_state)
             map.texture = texture;
             break;
         }
+        if (texture.valid && texture.map_state.time == TIME_DAY && texture.map_state.weather == WEATHER_NONE && texture.map_state.layout == 0) {
+            if (!map.texture.valid) {
+                map.texture = texture;
+            }
+        }
     }
 
     map.centered_translation = geometry_centered(&map.mesh.geometry);
