@@ -165,7 +165,7 @@ static void load_scenarios(void)
     free(attack_out_file.data);
 }
 
-map_t* read_map(int num, map_state_t state)
+map_data_t* read_map(int num, map_state_t state)
 {
     resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
     int resource_count = 0;
@@ -174,7 +174,7 @@ map_t* read_map(int num, map_state_t state)
     records_t records = read_records(&gns_file);
     free(gns_file.data);
 
-    map_t* map = calloc(1, sizeof(map_t));
+    map_data_t* map = calloc(1, sizeof(map_data_t));
 
     for (int i = 0; i < records.count; i++) {
         record_t record = records.records[i];

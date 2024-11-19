@@ -195,7 +195,7 @@ static void map_load(int num, map_state_t map_state)
     g.scene.current_map = num;
     g.scene.map_state = map_state;
 
-    map_t* map = read_map(num, map_state);
+    map_data_t* map = read_map(num, map_state);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(map->mesh.geometry.vertices),

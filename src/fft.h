@@ -181,10 +181,10 @@ typedef struct {
     // computed properties
     mat4s model_matrix;
     vec3s centered_translation;
-} map_t;
+} map_data_t;
 
 typedef struct {
-    map_t* map;
+    map_data_t* map;
     bool center_model;
     int current_scenario;
     int current_map;
@@ -211,7 +211,7 @@ typedef struct {
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
-map_t* read_map(int, map_state_t);
+map_data_t* read_map(int, map_state_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);
