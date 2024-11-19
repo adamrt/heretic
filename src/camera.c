@@ -35,12 +35,12 @@ void camera_update(void)
     vec3s scaled_position = glms_vec3_scale(position, g.cam.distance);
 
     g.cam.eye = glms_vec3_add(g.cam.target, scaled_position);
-    g.cam.view = glms_lookat(g.cam.eye, g.cam.target, GLMS_YUP);
+    g.cam.view_mat = glms_lookat(g.cam.eye, g.cam.target, GLMS_YUP);
 
     if (g.cam.use_perspective) {
-        g.cam.proj = glms_perspective(glm_rad(60.0f), aspect, g.cam.znear, g.cam.zfar);
+        g.cam.proj_mat = glms_perspective(glm_rad(60.0f), aspect, g.cam.znear, g.cam.zfar);
     } else {
-        g.cam.proj = glms_ortho(-w, w, -h, h, g.cam.znear, g.cam.zfar);
+        g.cam.proj_mat = glms_ortho(-w, w, -h, h, g.cam.znear, g.cam.zfar);
     }
 }
 

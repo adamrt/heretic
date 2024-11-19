@@ -9,7 +9,7 @@
 #define CAM_MAX_ZFAR  (1000.0f)
 
 typedef struct {
-    mat4s proj, view;
+    mat4s proj_mat, view_mat;
     vec3s eye, target;
     float azimuth, elevation;
     float znear, zfar;

@@ -300,9 +300,9 @@ static void init_display(void)
 static void frame_offscreen(void)
 {
     vs_standard_params_t vs_params = {
-        .u_proj = g.cam.proj,
-        .u_view = g.cam.view,
         .u_model = g.scene.map->model_matrix,
+        .u_proj = g.cam.proj_mat,
+        .u_view = g.cam.view_mat,
     };
 
     fs_standard_params_t fs_params;
