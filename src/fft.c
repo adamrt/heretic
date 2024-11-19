@@ -277,15 +277,19 @@ static geometry_t read_geometry(file_t* f)
     int R = read_u16(f); // Untextured quads
 
     // Validate maximum values
-    assert(N < 512 && P < 768 && Q < 64 && R < 256);
+    assert(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS);
 
     // Textured triangle
     for (int i = 0; i < N; i++) {
-        geometry.vertices[geometry.count++].position = read_position(f);
+        vec3s a = read_position(f);
+        vec3s b = read_position(f);
+        vec3s c = read_position(f);
+
+        geometry.vertices[geometry.count++].position = a;
         geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count++].position = b;
         geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = read_position(f);
+        geometry.vertices[geometry.count++].position = c;
         geometry.vertices[geometry.count].is_textured = 1.0f;
     }
 
@@ -315,9 +319,13 @@ static geometry_t read_geometry(file_t* f)
 
     // Untextured triangle
     for (int i = 0; i < Q; i++) {
-        geometry.vertices[geometry.count++].position = read_position(f);
-        geometry.vertices[geometry.count++].position = read_position(f);
-        geometry.vertices[geometry.count++].position = read_position(f);
+        vec3s a = read_position(f);
+        vec3s b = read_position(f);
+        vec3s c = read_position(f);
+
+        geometry.vertices[geometry.count++].position = a;
+        geometry.vertices[geometry.count++].position = b;
+        geometry.vertices[geometry.count++].position = c;
     }
 
     // Untextured quads

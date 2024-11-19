@@ -13,8 +13,12 @@
 
 #define SCENARIO_USABLE_COUNT (302)
 
-#define MESH_MAX_VERTICES (7620)
-#define MESH_MAX_LIGHTS   (3)
+#define MESH_MAX_TEX_TRIS    (512)
+#define MESH_MAX_TEX_QUADS   (768)
+#define MESH_MAX_UNTEX_TRIS  (64)
+#define MESH_MAX_UNTEX_QUADS (256)
+#define MESH_MAX_VERTICES    (7620)
+#define MESH_MAX_LIGHTS      (3)
 
 #define TEXTURE_WIDTH     (256)
 #define TEXTURE_HEIGHT    (1024)
