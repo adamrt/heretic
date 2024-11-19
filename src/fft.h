@@ -87,6 +87,7 @@ typedef struct {
 } geometry_t;
 
 typedef struct {
+    map_state_t map_state;
     uint8_t data[TEXTURE_BYTE_SIZE];
     bool valid;
 } texture_t;
@@ -124,6 +125,8 @@ static map_state_t default_map_state = (map_state_t) {
 };
 
 typedef struct {
+    map_state_t map_state;
+
     geometry_t geometry;
     texture_t texture;
     palette_t palette;
@@ -131,12 +134,6 @@ typedef struct {
 
     bool valid;
 } mesh_t;
-
-typedef struct {
-    vec3s translation;
-    vec3s rotation;
-    vec3s scale;
-} transform_t;
 
 typedef struct {
     int id;
@@ -172,27 +169,38 @@ typedef struct {
     int count;
 } records_t;
 
+// map_t represents map data for a specific map state.
 typedef struct {
+    map_state_t map_state;
     mesh_t mesh;
-    transform_t transform;
-    renderable_t renderable;
+    texture_t texture;
 
-    struct {
-        records_t records;
-        texture_t textures[16];
-    } meta;
-
-    // computed properties
-    mat4s model_matrix;
     vec3s centered_translation;
+} map_t;
+
+// map_data_t represents all the data for a specific map.
+// This has all the different states a map can have.
+typedef struct {
+    records_t records;
+
+    mesh_t primary_mesh;
+    mesh_t override_mesh;
+    mesh_t alt_meshes[20];
+    texture_t textures[20];
+
+    int texture_count;
+    int alt_mesh_count;
 } map_data_t;
 
 typedef struct {
-    map_data_t* map;
+    map_data_t* map_data;
+    map_t map;
+
+    model_t model;
+
     bool center_model;
     int current_scenario;
     int current_map;
-    map_state_t map_state;
 } scene_t;
 
 // Scenario and map descriptors
@@ -215,7 +223,8 @@ typedef struct {
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
-map_data_t* read_map(int, map_state_t);
+map_data_t* read_map_data(int);
+map_t build_map(map_data_t* map_data, map_state_t map_state);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);

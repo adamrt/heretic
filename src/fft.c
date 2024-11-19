@@ -165,96 +165,89 @@ static void load_scenarios(void)
     free(attack_out_file.data);
 }
 
-map_data_t* read_map(int num, map_state_t state)
+map_data_t* read_map_data(int num)
 {
-    resource_t* resources = calloc(1, sizeof(resource_t) * GNS_RECORD_MAX_NUM);
-    int resource_count = 0;
+    map_data_t* map_data = calloc(1, sizeof(map_data_t));
 
     file_t gns_file = read_file(map_list[num].sector, GNS_FILE_MAX_SIZE);
-    records_t records = read_records(&gns_file);
+    map_data->records = read_records(&gns_file);
     free(gns_file.data);
 
-    map_data_t* map = calloc(1, sizeof(map_data_t));
-
-    for (int i = 0; i < records.count; i++) {
-        record_t record = records.records[i];
+    for (int i = 0; i < map_data->records.count; i++) {
+        record_t record = map_data->records.records[i];
         file_t file = read_file(record.sector, record.length);
-        map_state_t record_state = { record.state.time, record.state.weather, record.state.layout };
 
         switch (record.type) {
         case FILE_TYPE_TEXTURE: {
-            // There can be duplicate textures for the same time/weather. Use the first one.
-            void* found = find_resource(resources, resource_count, record.type, record_state);
-            if (found == NULL) {
-                texture_t texture = read_texture(&file);
-                add_resource(resources, resource_count, record.type, record_state, &texture);
-                resource_count++;
-            }
+            texture_t texture = read_texture(&file);
+            texture.map_state = record.state;
+            map_data->textures[map_data->texture_count++] = texture;
             break;
         }
         case FILE_TYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
-            assert(record_state.time == TIME_DAY && record_state.weather == WEATHER_NONE && record_state.layout == 0);
-
-            map->mesh = read_mesh(&file);
-            assert(map->mesh.valid);
+            assert(record.state.time == TIME_DAY && record.state.weather == WEATHER_NONE && record.state.layout == 0);
+            map_data->primary_mesh = read_mesh(&file);
+            assert(map_data->primary_mesh.valid);
             break;
 
         case FILE_TYPE_MESH_ALT: {
-            mesh_t mesh = read_mesh(&file);
-            add_resource(resources, resource_count, record.type, record_state, &mesh);
-            resource_count++;
+            mesh_t alt_mesh = read_mesh(&file);
+            alt_mesh.map_state = record.state;
+            map_data->alt_meshes[map_data->alt_mesh_count++] = alt_mesh;
             break;
         }
 
         case FILE_TYPE_MESH_OVERRIDE: {
             // If there is an override file, there is only one and it uses default state.
-            assert(record_state.time == TIME_DAY && record_state.weather == WEATHER_NONE && record_state.layout == 0);
-
-            mesh_t mesh = read_mesh(&file);
-            add_resource(resources, resource_count, record.type, record_state, &mesh);
-            resource_count++;
+            assert(record.state.time == TIME_DAY && record.state.weather == WEATHER_NONE && record.state.layout == 0);
+            map_data->override_mesh = read_mesh(&file);
             break;
         }
 
         default:
-            break;
+            free(file.data);
+            assert(false);
         }
 
         free(file.data);
     }
 
-    mesh_t* override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, state);
-    if (!map->mesh.valid) {
-        if (override_mesh == NULL) {
-            override_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_OVERRIDE, default_map_state);
-            assert(override_mesh != NULL);
+    return map_data;
+}
+
+map_t build_map(map_data_t* map_data, map_state_t map_state)
+{
+    map_t map = {
+        .map_state = map_state,
+    };
+
+    if (map_data->primary_mesh.valid) {
+        map.mesh = map_data->primary_mesh;
+    } else {
+        map.mesh = map_data->override_mesh;
+    }
+
+    for (int i = 0; i < map_data->alt_mesh_count; i++) {
+        mesh_t alt_mesh = map_data->alt_meshes[i];
+        if (alt_mesh.valid && alt_mesh.map_state.time == map_state.time && alt_mesh.map_state.weather == map_state.weather && alt_mesh.map_state.layout == map_state.layout) {
+            merge_meshes(&map.mesh, &alt_mesh);
+            break;
         }
     }
 
-    if (override_mesh != NULL) {
-        merge_meshes(&map->mesh, override_mesh);
+    for (int i = 0; i < map_data->texture_count; i++) {
+        texture_t texture = map_data->textures[i];
+        if (texture.valid && texture.map_state.time == map_state.time && texture.map_state.weather == map_state.weather && texture.map_state.layout == map_state.layout) {
+            map.texture = texture;
+            break;
+        }
     }
 
-    mesh_t* alt_mesh = find_resource(resources, resource_count, FILE_TYPE_MESH_ALT, state);
-    if (alt_mesh != NULL) {
-        merge_meshes(&map->mesh, alt_mesh);
-    }
+    map.centered_translation = geometry_centered(&map.mesh.geometry);
 
-    // Some maps don't have a texture for the state so we use the default.
-    texture_t* texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, state);
-    if (texture == NULL) {
-        texture = find_resource(resources, resource_count, FILE_TYPE_TEXTURE, default_map_state);
-    }
-    assert(texture != NULL);
-
-    map->mesh.texture = *texture;
-    map->transform = (transform_t) { .scale = (vec3s) { { 1.0f, 1.0f, 1.0f } } };
-    map->centered_translation = geometry_centered(&map->mesh.geometry);
-    map->meta.records = records;
-
-    free(resources);
-
+    assert(map.mesh.valid);
+    assert(map.texture.valid);
     return map;
 }
 
@@ -884,7 +877,7 @@ void file_type_str(file_type_e value, char* out)
     }
 }
 
-vec3s geometry_centered(geometry_t* geometry)
+static vec3s geometry_centered(geometry_t* geometry)
 {
     float min_x = FLT_MAX;
     float max_x = -FLT_MAX;

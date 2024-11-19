@@ -139,19 +139,10 @@ void game_shutdown(void)
 static void state_update(void)
 {
     if (g.scene.center_model) {
-        g.scene.map->transform.translation = g.scene.map->centered_translation;
+        g.scene.model.transform.translation = g.scene.map.centered_translation;
     } else {
-        g.scene.map->transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
-
-    mat4s model_matrix = glms_mat4_identity();
-    model_matrix = glms_translate(model_matrix, g.scene.map->transform.translation);
-    model_matrix = glms_rotate_x(model_matrix, g.scene.map->transform.rotation.x);
-    model_matrix = glms_rotate_y(model_matrix, g.scene.map->transform.rotation.y);
-    model_matrix = glms_rotate_z(model_matrix, g.scene.map->transform.rotation.z);
-    model_matrix = glms_scale(model_matrix, g.scene.map->transform.scale);
-
-    g.scene.map->model_matrix = model_matrix;
 }
 
 static void scenario_next(void)
@@ -192,13 +183,11 @@ static void map_load(int num, map_state_t map_state)
 {
     map_unload();
 
-    g.scene.current_map = num;
-    g.scene.map_state = map_state;
-
-    map_data_t* map = read_map(num, map_state);
+    map_data_t* map_data = read_map_data(num);
+    map_t map = build_map(map_data, map_state);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(map->mesh.geometry.vertices),
+        .data = SG_RANGE(map.mesh.geometry.vertices),
         .label = "mesh-vertices",
     });
 
@@ -206,39 +195,44 @@ static void map_load(int num, map_state_t map_state)
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map->mesh.texture.data),
+        .data.subimage[0][0] = SG_RANGE(map.texture.data),
     });
 
     sg_image palette = sg_make_image(&(sg_image_desc) {
         .width = PALETTE_WIDTH,
         .height = PALETTE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
+        .data.subimage[0][0] = SG_RANGE(map.mesh.palette.data),
     });
 
-    map->renderable.texture = texture;
-    map->renderable.palette = palette;
-    map->renderable.vbuffer = vbuf;
-
-    map->renderable.bindings = (sg_bindings) {
-        .vertex_buffers[0] = vbuf,
-        .fs = {
+    model_t model = {
+        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
+        .centered_translation = map.centered_translation,
+        .texture = texture,
+        .palette = palette,
+        .vbuffer = vbuf,
+        .bindings.vertex_buffers[0] = vbuf,
+        .bindings.fs = {
             .images[SLOT_u_texture] = texture,
             .images[SLOT_u_palette] = palette,
             .samplers[SLOT_u_sampler] = gfx.sampler,
         },
     };
 
+    g.scene.map_data = map_data;
     g.scene.map = map;
+    g.scene.model = model;
+
+    g.scene.current_map = num;
 }
 
 static void map_unload(void)
 {
-    if (g.scene.map != NULL) {
-        sg_destroy_image(g.scene.map->renderable.texture);
-        sg_destroy_image(g.scene.map->renderable.palette);
-        sg_destroy_buffer(g.scene.map->renderable.vbuffer);
+    if (g.scene.map_data != NULL) {
+        sg_destroy_image(g.scene.model.texture);
+        sg_destroy_image(g.scene.model.palette);
+        sg_destroy_buffer(g.scene.model.vbuffer);
 
-        free(g.scene.map);
+        free(g.scene.map_data);
     }
 }

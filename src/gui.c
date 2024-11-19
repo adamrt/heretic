@@ -103,7 +103,7 @@ void draw_map_dropdown(struct nk_context* ctx)
     nk_layout_row_dynamic(ctx, 25, 1);
 
     map_desc_t selected_map = map_list[g.scene.current_map];
-    map_state_t map_state = g.scene.map_state;
+    map_state_t map_state = g.scene.map.map_state;
 
     char buffer[64];
 
@@ -137,8 +137,8 @@ void draw_map_dropdown(struct nk_context* ctx)
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        for (int i = 0; i < g.scene.map->meta.records.count; ++i) {
-            record_t record = g.scene.map->meta.records.records[i];
+        for (int i = 0; i < g.scene.map_data->records.count; ++i) {
+            record_t record = g.scene.map_data->records.records[i];
 
             weather_str(record.state.weather, weather_name);
             time_str(record.state.time, time_name);
@@ -182,9 +182,9 @@ static void draw_lights(struct nk_context* ctx)
     nk_label(ctx, "Ambient Strenght and Color", NK_TEXT_LEFT);
 
     nk_layout_row_dynamic(ctx, 25, 2);
-    nk_slider_float(ctx, 0, &g.scene.map->mesh.lighting.ambient_strength, 3.0f, 0.1f);
+    nk_slider_float(ctx, 0, &g.scene.map.mesh.lighting.ambient_strength, 3.0f, 0.1f);
 
-    vec4s* ambient_color = &g.scene.map->mesh.lighting.ambient_color;
+    vec4s* ambient_color = &g.scene.map.mesh.lighting.ambient_color;
     struct nk_colorf ambient_color_nk = { ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a };
     if (nk_combo_begin_color(ctx, nk_rgba_f(ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a), nk_vec2(200, 400))) {
         nk_layout_row_dynamic(ctx, 120, 1);
@@ -205,7 +205,7 @@ static void draw_lights(struct nk_context* ctx)
     }
     for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
         nk_layout_row_dynamic(ctx, 25, 1);
-        light_t* light = &g.scene.map->mesh.lighting.lights[i];
+        light_t* light = &g.scene.map.mesh.lighting.lights[i];
         if (!light->valid) {
             continue;
         }

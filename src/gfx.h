@@ -1,6 +1,7 @@
 #ifndef GFX_H_
 #define GFX_H_
 
+#include "cglm/struct.h"
 #include "sokol_gfx.h"
 
 #define GFX_DISPLAY_WIDTH  (1440)
@@ -10,6 +11,24 @@ void gfx_init(void);
 void gfx_update(void);
 void gfx_scale_change(void);
 void gfx_shutdown(void);
+
+typedef struct {
+    vec3s translation;
+    vec3s rotation;
+    vec3s scale;
+} transform_t;
+
+// model_t represents a renderable model
+typedef struct {
+    sg_image texture;
+    sg_image palette;
+    sg_buffer vbuffer;
+    sg_bindings bindings;
+
+    transform_t transform;
+    mat4s model_matrix;
+    vec3s centered_translation;
+} model_t;
 
 typedef struct {
     sg_image color_image;
@@ -38,13 +57,6 @@ typedef struct {
         sg_bindings bindings;
     } display;
 } gfx_t;
-
-typedef struct {
-    sg_image texture;
-    sg_image palette;
-    sg_buffer vbuffer;
-    sg_bindings bindings;
-} renderable_t;
 
 extern gfx_t gfx;
 
