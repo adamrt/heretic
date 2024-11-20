@@ -26,8 +26,6 @@ typedef struct {
     sg_bindings bindings;
 
     transform_t transform;
-    mat4s model_matrix;
-    vec3s centered_translation;
 } model_t;
 
 typedef struct {

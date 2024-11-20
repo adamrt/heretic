@@ -310,13 +310,13 @@ static void frame_offscreen(void)
     };
 
     fs_standard_params_t fs_params;
-    fs_params.u_ambient_color = g.scene.map.mesh.lighting.ambient_color;
-    fs_params.u_ambient_strength = g.scene.map.mesh.lighting.ambient_strength;
+    fs_params.u_ambient_color = g.scene.map->mesh.lighting.ambient_color;
+    fs_params.u_ambient_strength = g.scene.map->mesh.lighting.ambient_strength;
 
     int light_count = 0;
     for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
 
-        light_t light = g.scene.map.mesh.lighting.lights[i];
+        light_t light = g.scene.map->mesh.lighting.lights[i];
         if (!light.valid) {
             continue;
         }
@@ -331,7 +331,7 @@ static void frame_offscreen(void)
     sg_apply_bindings(&g.scene.model.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
-    sg_draw(0, g.scene.map.mesh.geometry.count, 1);
+    sg_draw(0, g.scene.map->mesh.geometry.vertex_count, 1);
 }
 
 static void frame_background(void)
@@ -340,8 +340,8 @@ static void frame_background(void)
     sg_apply_pipeline(gfx.background.pipeline);
 
     fs_background_params_t fs_params;
-    fs_params.u_top_color = g.scene.map.mesh.lighting.bg_top;
-    fs_params.u_bottom_color = g.scene.map.mesh.lighting.bg_bottom;
+    fs_params.u_top_color = g.scene.map->mesh.lighting.bg_top;
+    fs_params.u_bottom_color = g.scene.map->mesh.lighting.bg_bottom;
 
     sg_apply_pipeline(gfx.background.pipeline);
     sg_apply_bindings(&gfx.background.bindings);

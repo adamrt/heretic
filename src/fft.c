@@ -72,7 +72,7 @@ static mesh_t read_mesh(file_t*);
 // Utility functions
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
-static vec3s geometry_centered(geometry_t* geometry);
+static vec3s vertices_centered(vertices_t* vertices);
 
 static void load_events(void);
 static void load_scenarios(void);
@@ -205,22 +205,24 @@ map_data_t* read_map_data(int num)
     return map_data;
 }
 
-map_t build_map(map_data_t* map_data, map_state_t map_state)
+map_t* read_map(int num, map_state_t map_state)
 {
-    map_t map = {
-        .map_state = map_state,
-    };
+    map_data_t* map_data = read_map_data(num);
+
+    map_t* map = calloc(1, sizeof(map_t));
+    map->map_state = map_state;
+    map->map_data = map_data;
 
     if (map_data->primary_mesh.valid) {
-        map.mesh = map_data->primary_mesh;
+        map->mesh = map_data->primary_mesh;
     } else {
-        map.mesh = map_data->override_mesh;
+        map->mesh = map_data->override_mesh;
     }
 
     for (int i = 0; i < map_data->alt_mesh_count; i++) {
         mesh_t alt_mesh = map_data->alt_meshes[i];
         if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
-            merge_meshes(&map.mesh, &alt_mesh);
+            merge_meshes(&map->mesh, &alt_mesh);
             break;
         }
     }
@@ -229,20 +231,21 @@ map_t build_map(map_data_t* map_data, map_state_t map_state)
         texture_t texture = map_data->textures[i];
 
         if (texture.valid && map_state_eq(texture.map_state, map_state)) {
-            map.texture = texture;
+            map->texture = texture;
             break;
         }
         if (texture.valid && map_state_default(texture.map_state)) {
-            if (!map.texture.valid) {
-                map.texture = texture;
+            if (!map->texture.valid) {
+                map->texture = texture;
             }
         }
     }
 
-    map.centered_translation = geometry_centered(&map.mesh.geometry);
+    map->vertices = geometry_to_vertices(&map->mesh.geometry);
+    map->centered_translation = vertices_centered(&map->vertices);
 
-    assert(map.mesh.valid);
-    assert(map.texture.valid);
+    assert(map->mesh.valid);
+    assert(map->texture.valid);
     return map;
 }
 
@@ -267,100 +270,59 @@ static geometry_t read_geometry(file_t* f)
     // Validate maximum values
     assert(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS);
 
+    geometry.tex_tri_count = N;
+    geometry.tex_quad_count = P;
+    geometry.untex_tri_count = Q;
+    geometry.untex_quad_count = R;
+    geometry.vertex_count = N * 3 + (P * 6) + Q * 3 + (R * 6);
+
     // Textured triangle
     for (int i = 0; i < N; i++) {
-        vec3s a = read_position(f);
-        vec3s b = read_position(f);
-        vec3s c = read_position(f);
-
-        geometry.vertices[geometry.count++].position = a;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = b;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = c;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
+        geometry.tex_tris[i].a.position = read_position(f);
+        geometry.tex_tris[i].b.position = read_position(f);
+        geometry.tex_tris[i].c.position = read_position(f);
     }
 
     // Textured quads
     for (int i = 0; i < P; i++) {
-        vec3s a = read_position(f);
-        vec3s b = read_position(f);
-        vec3s c = read_position(f);
-        vec3s d = read_position(f);
-
-        // Tri A
-        geometry.vertices[geometry.count++].position = a;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = b;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = c;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-
-        // Tri B
-        geometry.vertices[geometry.count++].position = b;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = d;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
-        geometry.vertices[geometry.count++].position = c;
-        geometry.vertices[geometry.count].is_textured = 1.0f;
+        geometry.tex_quads[i].a.position = read_position(f);
+        geometry.tex_quads[i].b.position = read_position(f);
+        geometry.tex_quads[i].c.position = read_position(f);
+        geometry.tex_quads[i].d.position = read_position(f);
     }
 
     // Untextured triangle
     for (int i = 0; i < Q; i++) {
-        vec3s a = read_position(f);
-        vec3s b = read_position(f);
-        vec3s c = read_position(f);
-
-        geometry.vertices[geometry.count++].position = a;
-        geometry.vertices[geometry.count++].position = b;
-        geometry.vertices[geometry.count++].position = c;
+        geometry.untex_tris[i].a.position = read_position(f);
+        geometry.untex_tris[i].b.position = read_position(f);
+        geometry.untex_tris[i].c.position = read_position(f);
     }
 
     // Untextured quads
     for (int i = 0; i < R; i++) {
-        vec3s a = read_position(f);
-        vec3s b = read_position(f);
-        vec3s c = read_position(f);
-        vec3s d = read_position(f);
-
-        // Tri A
-        geometry.vertices[geometry.count++].position = a;
-        geometry.vertices[geometry.count++].position = b;
-        geometry.vertices[geometry.count++].position = c;
-
-        // Tri B
-        geometry.vertices[geometry.count++].position = b;
-        geometry.vertices[geometry.count++].position = d;
-        geometry.vertices[geometry.count++].position = c;
+        geometry.untex_quads[i].a.position = read_position(f);
+        geometry.untex_quads[i].b.position = read_position(f);
+        geometry.untex_quads[i].c.position = read_position(f);
+        geometry.untex_quads[i].d.position = read_position(f);
     }
 
     // Triangle normals
-    for (int i = 0; i < N * 3; i = i + 3) {
-        geometry.vertices[i + 0].normal = read_normal(f);
-        geometry.vertices[i + 1].normal = read_normal(f);
-        geometry.vertices[i + 2].normal = read_normal(f);
+    for (int i = 0; i < N; i++) {
+        geometry.tex_tris[i].a.normal = read_normal(f);
+        geometry.tex_tris[i].b.normal = read_normal(f);
+        geometry.tex_tris[i].c.normal = read_normal(f);
     };
 
     // Quad normals
-    for (int i = N * 3; i < N * 3 + (P * 3 * 2); i = i + 6) {
-        vec3s a = read_normal(f);
-        vec3s b = read_normal(f);
-        vec3s c = read_normal(f);
-        vec3s d = read_normal(f);
-
-        // Tri A
-        geometry.vertices[i + 0].normal = a;
-        geometry.vertices[i + 1].normal = b;
-        geometry.vertices[i + 2].normal = c;
-
-        // Tri B
-        geometry.vertices[i + 3].normal = b;
-        geometry.vertices[i + 4].normal = d;
-        geometry.vertices[i + 5].normal = c;
+    for (int i = 0; i < P; i++) {
+        geometry.tex_quads[i].a.normal = read_normal(f);
+        geometry.tex_quads[i].b.normal = read_normal(f);
+        geometry.tex_quads[i].c.normal = read_normal(f);
+        geometry.tex_quads[i].d.normal = read_normal(f);
     };
 
     // Triangle UV
-    for (int i = 0; i < N * 3; i = i + 3) {
+    for (int i = 0; i < N; i++) {
         float au = read_u8(f);
         float av = read_u8(f);
         float palette = read_u8(f);
@@ -376,16 +338,19 @@ static geometry_t read_geometry(file_t* f)
         vec2s b = process_tex_coords(bu, bv, page);
         vec2s c = process_tex_coords(cu, cv, page);
 
-        geometry.vertices[i + 0].uv = a;
-        geometry.vertices[i + 0].palette_index = palette;
-        geometry.vertices[i + 1].uv = b;
-        geometry.vertices[i + 1].palette_index = palette;
-        geometry.vertices[i + 2].uv = c;
-        geometry.vertices[i + 2].palette_index = palette;
+        geometry.tex_tris[i].a.uv = a;
+        geometry.tex_tris[i].a.palette_index = palette;
+        geometry.tex_tris[i].a.is_textured = 1.0f;
+        geometry.tex_tris[i].b.uv = b;
+        geometry.tex_tris[i].b.palette_index = palette;
+        geometry.tex_tris[i].b.is_textured = 1.0f;
+        geometry.tex_tris[i].c.uv = c;
+        geometry.tex_tris[i].c.palette_index = palette;
+        geometry.tex_tris[i].c.is_textured = 1.0f;
     }
 
-    // Quad UV. Split into 2 triangles.
-    for (int i = N * 3; i < N * 3 + (P * 3 * 2); i = i + 6) {
+    // Quad UV
+    for (int i = 0; i < P; i++) {
         float au = read_u8(f);
         float av = read_u8(f);
         float palette = read_u8(f);
@@ -404,21 +369,18 @@ static geometry_t read_geometry(file_t* f)
         vec2s c = process_tex_coords(cu, cv, page);
         vec2s d = process_tex_coords(du, dv, page);
 
-        // Triangle A
-        geometry.vertices[i + 0].uv = a;
-        geometry.vertices[i + 0].palette_index = palette;
-        geometry.vertices[i + 1].uv = b;
-        geometry.vertices[i + 1].palette_index = palette;
-        geometry.vertices[i + 2].uv = c;
-        geometry.vertices[i + 2].palette_index = palette;
-
-        // Triangle B
-        geometry.vertices[i + 3].uv = b;
-        geometry.vertices[i + 3].palette_index = palette;
-        geometry.vertices[i + 4].uv = d;
-        geometry.vertices[i + 4].palette_index = palette;
-        geometry.vertices[i + 5].uv = c;
-        geometry.vertices[i + 5].palette_index = palette;
+        geometry.tex_quads[i].a.uv = a;
+        geometry.tex_quads[i].a.palette_index = palette;
+        geometry.tex_quads[i].a.is_textured = 1.0f;
+        geometry.tex_quads[i].b.uv = b;
+        geometry.tex_quads[i].b.palette_index = palette;
+        geometry.tex_quads[i].b.is_textured = 1.0f;
+        geometry.tex_quads[i].c.uv = c;
+        geometry.tex_quads[i].c.palette_index = palette;
+        geometry.tex_quads[i].c.is_textured = 1.0f;
+        geometry.tex_quads[i].d.uv = d;
+        geometry.tex_quads[i].d.palette_index = palette;
+        geometry.tex_quads[i].d.is_textured = 1.0f;
     }
 
     geometry.valid = true;
@@ -728,9 +690,7 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
     assert(src != NULL);
 
     if (src->geometry.valid) {
-        for (int i = 0; i < src->geometry.count; i++) {
-            dst->geometry = src->geometry;
-        }
+        dst->geometry = src->geometry;
     }
 
     if (src->palette.valid) {
@@ -752,6 +712,50 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
         dst->lighting.bg_top = src->lighting.bg_top;
         dst->lighting.bg_bottom = src->lighting.bg_bottom;
     }
+}
+
+vertices_t geometry_to_vertices(geometry_t* geometry)
+{
+    vertices_t vertices = { 0 };
+
+    // 10 triangles = 30 offset
+    int vcount = 0;
+
+    for (int i = 0; i < geometry->tex_tri_count; i++) {
+        vertices.vertices[vcount++] = geometry->tex_tris[i].a;
+        vertices.vertices[vcount++] = geometry->tex_tris[i].b;
+        vertices.vertices[vcount++] = geometry->tex_tris[i].c;
+    }
+
+    for (int i = 0; i < geometry->tex_quad_count; i++) {
+        vertices.vertices[vcount++] = geometry->tex_quads[i].a;
+        vertices.vertices[vcount++] = geometry->tex_quads[i].b;
+        vertices.vertices[vcount++] = geometry->tex_quads[i].c;
+
+        vertices.vertices[vcount++] = geometry->tex_quads[i].b;
+        vertices.vertices[vcount++] = geometry->tex_quads[i].d;
+        vertices.vertices[vcount++] = geometry->tex_quads[i].c;
+    }
+
+    for (int i = 0; i < geometry->untex_tri_count; i++) {
+        vertices.vertices[vcount++] = geometry->untex_tris[i].a;
+        vertices.vertices[vcount++] = geometry->untex_tris[i].b;
+        vertices.vertices[vcount++] = geometry->untex_tris[i].c;
+    }
+
+    for (int i = 0; i < geometry->untex_quad_count; i++) {
+        vertices.vertices[vcount++] = geometry->untex_quads[i].a;
+        vertices.vertices[vcount++] = geometry->untex_quads[i].b;
+        vertices.vertices[vcount++] = geometry->untex_quads[i].c;
+
+        vertices.vertices[vcount++] = geometry->untex_quads[i].b;
+        vertices.vertices[vcount++] = geometry->untex_quads[i].d;
+        vertices.vertices[vcount++] = geometry->untex_quads[i].c;
+    }
+
+    vertices.count = vcount;
+
+    return vertices;
 }
 
 // 16 palettes of 16 colors of 4 bytes
@@ -843,7 +847,7 @@ bool map_state_default(map_state_t a)
     return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
 }
 
-static vec3s geometry_centered(geometry_t* geometry)
+static vec3s vertices_centered(vertices_t* vertices)
 {
     float min_x = FLT_MAX;
     float max_x = -FLT_MAX;
@@ -852,8 +856,8 @@ static vec3s geometry_centered(geometry_t* geometry)
     float min_z = FLT_MAX;
     float max_z = -FLT_MAX;
 
-    for (int i = 0; i < geometry->count; i++) {
-        const vertex_t vertex = geometry->vertices[i];
+    for (int i = 0; i < vertices->count; i++) {
+        const vertex_t vertex = vertices->vertices[i];
 
         min_x = MIN(vertex.position.x, min_x);
         min_y = MIN(vertex.position.y, min_y);

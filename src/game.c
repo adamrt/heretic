@@ -139,7 +139,7 @@ void game_shutdown(void)
 static void state_update(void)
 {
     if (g.scene.center_model) {
-        g.scene.model.transform.translation = g.scene.map.centered_translation;
+        g.scene.model.transform.translation = g.scene.map->centered_translation;
     } else {
         g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
@@ -183,11 +183,10 @@ static void map_load(int num, map_state_t map_state)
 {
     map_unload();
 
-    map_data_t* map_data = read_map_data(num);
-    map_t map = build_map(map_data, map_state);
+    map_t* map = read_map(num, map_state);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(map.mesh.geometry.vertices),
+        .data = SG_RANGE(map->vertices),
         .label = "mesh-vertices",
     });
 
@@ -195,19 +194,18 @@ static void map_load(int num, map_state_t map_state)
         .width = TEXTURE_WIDTH,
         .height = TEXTURE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map.texture.data),
+        .data.subimage[0][0] = SG_RANGE(map->texture.data),
     });
 
     sg_image palette = sg_make_image(&(sg_image_desc) {
         .width = PALETTE_WIDTH,
         .height = PALETTE_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map.mesh.palette.data),
+        .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
     });
 
     model_t model = {
         .transform.scale = { { 1.0f, 1.0f, 1.0f } },
-        .centered_translation = map.centered_translation,
         .texture = texture,
         .palette = palette,
         .vbuffer = vbuf,
@@ -219,7 +217,6 @@ static void map_load(int num, map_state_t map_state)
         },
     };
 
-    g.scene.map_data = map_data;
     g.scene.map = map;
     g.scene.model = model;
 
@@ -228,11 +225,15 @@ static void map_load(int num, map_state_t map_state)
 
 static void map_unload(void)
 {
-    if (g.scene.map_data != NULL) {
+    if (g.scene.map != NULL) {
+
+        if (g.scene.map->map_data != NULL) {
+            free(g.scene.map->map_data);
+        }
+
         sg_destroy_image(g.scene.model.texture);
         sg_destroy_image(g.scene.model.palette);
         sg_destroy_buffer(g.scene.model.vbuffer);
-
-        free(g.scene.map_data);
+        free(g.scene.map);
     }
 }

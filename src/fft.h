@@ -74,6 +74,30 @@ typedef struct {
 typedef struct {
     vertex_t vertices[MESH_MAX_VERTICES];
     int count;
+} vertices_t;
+
+typedef struct {
+    vertex_t a, b, c;
+} triangle_t;
+
+typedef struct {
+    vertex_t a, b, c, d;
+} quad_t;
+
+typedef struct {
+    triangle_t tex_tris[MESH_MAX_TEX_TRIS];
+    int tex_tri_count;
+
+    quad_t tex_quads[MESH_MAX_TEX_QUADS];
+    int tex_quad_count;
+
+    triangle_t untex_tris[MESH_MAX_UNTEX_TRIS];
+    int untex_tri_count;
+
+    quad_t untex_quads[MESH_MAX_UNTEX_QUADS];
+    int untex_quad_count;
+
+    int vertex_count;
 
     struct {
         vec3s vmin;
@@ -169,15 +193,6 @@ typedef struct {
     int count;
 } records_t;
 
-// map_t represents map data for a specific map state.
-typedef struct {
-    map_state_t map_state;
-    mesh_t mesh;
-    texture_t texture;
-
-    vec3s centered_translation;
-} map_t;
-
 // map_data_t represents all the data for a specific map.
 // This has all the different states a map can have.
 typedef struct {
@@ -192,12 +207,20 @@ typedef struct {
     int alt_mesh_count;
 } map_data_t;
 
+// map_t represents map data for a specific map state.
 typedef struct {
+    map_state_t map_state;
     map_data_t* map_data;
-    map_t map;
 
+    mesh_t mesh;
+    texture_t texture;
+    vertices_t vertices;
+    vec3s centered_translation;
+} map_t;
+
+typedef struct {
+    map_t* map;
     model_t model;
-
     bool center_model;
     int current_scenario;
     int current_map;
@@ -223,9 +246,9 @@ typedef struct {
 void bin_load_global_data(void);
 void bin_free_global_data(void);
 
-// Maybe just have read_map, and attach map_data to the map_t?
-map_data_t* read_map_data(int);
-map_t build_map(map_data_t* map_data, map_state_t map_state);
+map_t* read_map(int num, map_state_t map_state);
+
+vertices_t geometry_to_vertices(geometry_t*);
 
 bool map_state_eq(map_state_t, map_state_t);
 bool map_state_default(map_state_t);
