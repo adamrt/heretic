@@ -21,6 +21,7 @@
 #include "gui.h"
 
 static void gui_draw(void);
+static bool map_state_unique(records_t* unique_records, record_t record);
 
 static struct {
     nk_bool show_scenarios;
@@ -126,6 +127,17 @@ void draw_map_dropdown(struct nk_context* ctx)
         nk_combo_end(ctx);
     }
 
+    // Find unique map_states for all records.
+    // This way we only show unique map_states in the dropdown.
+    // It doesn't matter if the map_state is from a different record type.
+    records_t records = g.scene.map->map_data->records;
+    records_t unique_records = { 0 };
+    for (int i = 0; i < records.count; i++) {
+        if (map_state_unique(&unique_records, records.records[i])) {
+            unique_records.records[unique_records.count++] = records.records[i];
+        }
+    }
+
     char time_name[8];
     char weather_name[12];
 
@@ -137,8 +149,8 @@ void draw_map_dropdown(struct nk_context* ctx)
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        for (int i = 0; i < g.scene.map->map_data->records.count; ++i) {
-            record_t record = g.scene.map->map_data->records.records[i];
+        for (int i = 0; i < unique_records.count; ++i) {
+            record_t record = unique_records.records[i];
 
             weather_str(record.state.weather, weather_name);
             time_str(record.state.time, time_name);
@@ -328,4 +340,14 @@ static void gui_draw(void)
     nk_end(ctx);
 
     return;
+}
+
+static bool map_state_unique(records_t* unique_records, record_t record)
+{
+    for (int i = 0; i < unique_records->count; i++) {
+        if (map_state_eq(unique_records->records[i].state, record.state)) {
+            return 0; // Not unique
+        }
+    }
+    return 1; // Unique
 }
