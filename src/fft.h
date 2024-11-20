@@ -208,6 +208,9 @@ typedef struct {
 } map_data_t;
 
 // map_t represents map data for a specific map state.
+// The map_data is all possible data for a map.
+// The mesh and texture are the data for the specific state.
+// The vertices are the mesh data converted to vertices for the shader.
 typedef struct {
     map_state_t map_state;
     map_data_t* map_data;
