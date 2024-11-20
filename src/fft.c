@@ -73,7 +73,6 @@ static mesh_t read_mesh(file_t*);
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
 static vec3s geometry_centered(geometry_t* geometry);
-static vec3s geometry_normalized(geometry_t* geometry);
 
 static void load_events(void);
 static void load_scenarios(void);
@@ -872,53 +871,6 @@ static vec3s geometry_centered(geometry_t* geometry)
     return (vec3s) { { x, y, z } };
 }
 
-vec3s geometry_normalized(geometry_t* geometry)
-{
-    float min_x = FLT_MAX;
-    float max_x = -FLT_MAX;
-    float min_y = FLT_MAX;
-    float max_y = -FLT_MAX;
-    float min_z = FLT_MAX;
-    float max_z = -FLT_MAX;
-
-    // Iterate through all vertices to find min and max for each axis
-    for (int i = 0; i < geometry->count; i++) {
-        const vertex_t vertex = geometry->vertices[i];
-
-        // Update min values
-        min_x = MIN(min_x, vertex.position.x);
-        min_y = MIN(min_y, vertex.position.y);
-        min_z = MIN(min_z, vertex.position.z);
-
-        // Update max values
-        max_x = MAX(max_x, vertex.position.x);
-        max_y = MAX(max_y, vertex.position.y);
-        max_z = MAX(max_z, vertex.position.z);
-    }
-
-    // Compute the size along each axis
-    float size_x = max_x - min_x;
-    float size_y = max_y - min_y;
-    float size_z = max_z - min_z;
-
-    // Find the largest dimension
-    float largest_dimension = MAX(MAX(size_x, size_y), size_z);
-
-    // Prevent division by zero
-    if (largest_dimension == 0.0f) {
-        // Mesh has zero size; return zero scaling
-        vec3s zero = { { 0.0f, 0.0f, 0.0f } };
-        return zero;
-    }
-
-    // Compute the scaling factor
-    float scaling_factor = 2.0f / largest_dimension;
-
-    // Create the normalized scaling vector
-    vec3s normalized_scale = { { scaling_factor, scaling_factor, scaling_factor } };
-
-    return normalized_scale;
-}
 // Thanks to FFTPAtcher for the scenario name list.
 // https://github.com/Glain/FFTPatcher/blob/master/EntryEdit/EntryData/PSX/ScenarioNames.xml
 scenario_desc_t scenario_list[500] = {
