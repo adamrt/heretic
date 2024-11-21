@@ -26,16 +26,14 @@ static void map_unload(void);
 
 void game_init(void)
 {
-    g.bin = fopen("/Users/adam/sync/emu/fft.bin", "rb");
-    assert(g.bin != NULL);
-
-    bin_load_global_data();
-
-    // Initialize sub systems
     gfx_init();
     camera_init();
     gui_init();
 
+    g.bin = fopen("../fft.bin", "rb");
+    assert(g.bin != NULL);
+
+    bin_load_global_data();
     game_load_scenario(g.scene.current_scenario);
 }
 

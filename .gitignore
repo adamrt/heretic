@@ -3,3 +3,4 @@
 /src/shader.glsl.h
 /build/
 /.cache/
+/fft.bin

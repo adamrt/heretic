@@ -4,6 +4,10 @@ This starter kit is to get you up and running with a cross platform sokol applic
 
 It uses c99, sokol, glm.
 
+# Build
+
+The file `fft.bin` (PSX BIN) must be placed in the project folder.
+
 - `./build.sh native` for Mac (Metal), Linux (OpenGL) 
 - `./build.sh wasm` for the browser (WebGPU)
 

@@ -59,9 +59,18 @@ target_link_libraries(heretic libs cglm_headers)
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     target_link_options(heretic PUBLIC --shell-file ../lib/shell.html)
-    target_link_options(heretic PUBLIC -sUSE_WEBGL2=1 -sNO_FILESYSTEM=1 -sASSERTIONS=0 -sMALLOC=emmalloc --closure=1)
+    target_link_options(heretic PUBLIC
+        -sUSE_WEBGL2=1
+        -sNO_FILESYSTEM=0
+        -sASSERTIONS=0
+        -sMALLOC=emmalloc
+        -sTOTAL_STACK=512mb
+        -sTOTAL_MEMORY=1024mb
+        --closure=1
+        --preload-file ../fft.bin@fft.bin)
 endif()
 
+if (NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
 target_compile_options(heretic PUBLIC
     -Wall
     -Wextra
@@ -77,6 +86,7 @@ target_compile_options(heretic PUBLIC
     -fsanitize=address
     -fsanitize=undefined
     -fno-omit-frame-pointer)
+endif()
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(heretic PRIVATE LINKER:-dead_strip -fsanitize=address)
