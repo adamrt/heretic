@@ -1,16 +1,16 @@
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "bin.h"
 #include "fft.h"
 #include "game.h"
 
 #define SECTOR_HEADER_SIZE (24)
 #define SECTOR_SIZE        (2048)
 #define SECTOR_SIZE_RAW    (2352)
-
-#define FILE_MAX_SIZE (131072)
 
 #define GNS_FILE_MAX_SIZE (2388)
 
@@ -26,33 +26,6 @@
 #define ATTACK_FILE_SECTOR (2448)
 #define ATTACK_FILE_SIZE   (125956)
 
-typedef struct {
-    uint8_t data[FILE_MAX_SIZE];
-    size_t size;
-} bytes_t;
-
-typedef struct {
-    uint8_t data[SECTOR_SIZE];
-} sector_t;
-
-typedef struct {
-    uint8_t* data;
-    size_t offset;
-    size_t size;
-} file_t;
-
-static uint8_t read_u8(file_t*);
-static uint16_t read_u16(file_t*);
-static uint32_t read_u32(file_t*);
-static int8_t read_i8(file_t*);
-static int16_t read_i16(file_t*);
-static int32_t read_i32(file_t*);
-
-static bytes_t read_bytes(file_t*, int);
-static sector_t read_sector(int32_t);
-static file_t read_file(int, int);
-
-static float read_f1x3x12(file_t*);
 static vec3s read_position(file_t*);
 static vec3s read_normal(file_t*);
 static vec4s read_rgb8(file_t*);
@@ -60,7 +33,7 @@ static vec4s read_rgb15(file_t*);
 static float read_light_color(file_t*);
 
 static record_t read_record(file_t*);
-static records_t read_records(file_t*);
+static int read_records(file_t* f, record_t* out_records);
 
 static geometry_t read_geometry(file_t*);
 static texture_t read_texture(file_t*);
@@ -91,16 +64,17 @@ void bin_free_global_data(void)
 
 static void load_events(void)
 {
-    file_t event_file = read_file(EVENT_FILE_SECTOR, EVENT_FILE_SIZE);
+    file_t event_file = read_file(g.bin, EVENT_FILE_SECTOR, EVENT_FILE_SIZE);
     event_t* events = calloc(EVENT_COUNT, sizeof(event_t));
 
     for (int i = 0; i < EVENT_COUNT; i++) {
-        bytes_t bytes = read_bytes(&event_file, EVENT_SIZE);
+        uint8_t bytes[EVENT_SIZE];
+        read_bytes(&event_file, EVENT_SIZE, bytes);
 
-        uint32_t text_offset = (uint32_t)((uint32_t)(bytes.data[0] & 0xFF)
-            | ((uint32_t)(bytes.data[1] & 0xFF) << 8)
-            | ((uint32_t)(bytes.data[2] & 0xFF) << 16)
-            | ((uint32_t)(bytes.data[3] & 0xFF) << 24));
+        uint32_t text_offset = (uint32_t)((uint32_t)(bytes[0] & 0xFF)
+            | ((uint32_t)(bytes[1] & 0xFF) << 8)
+            | ((uint32_t)(bytes[2] & 0xFF) << 16)
+            | ((uint32_t)(bytes[3] & 0xFF) << 24));
 
         events[i].valid = text_offset != 0xF2F2F2F2;
 
@@ -108,8 +82,8 @@ static void load_events(void)
             int text_size = 8192 - text_offset;
             int code_size = text_offset - 4;
 
-            memcpy(events[i].text, bytes.data + text_offset, text_size);
-            memcpy(events[i].code, bytes.data + 4, code_size);
+            memcpy(events[i].text, bytes + text_offset, text_size);
+            memcpy(events[i].code, bytes + 4, code_size);
         }
     }
 
@@ -120,7 +94,7 @@ static void load_events(void)
 
 static void load_scenarios(void)
 {
-    file_t attack_out_file = read_file(ATTACK_FILE_SECTOR, ATTACK_FILE_SIZE);
+    file_t attack_out_file = read_file(g.bin, ATTACK_FILE_SECTOR, ATTACK_FILE_SIZE);
     attack_out_file.offset = SCENARIO_DATA_OFFSET;
 
     int index = 0;
@@ -128,9 +102,10 @@ static void load_scenarios(void)
     scenario_t* scenarios = calloc(SCENARIO_USABLE_COUNT, sizeof(scenario_t));
 
     for (int i = 0; i < SCENARIO_TOTAL_COUNT; i++) {
-        bytes_t bytes = read_bytes(&attack_out_file, SCENARIO_SIZE);
+        uint8_t bytes[SCENARIO_SIZE];
+        read_bytes(&attack_out_file, SCENARIO_SIZE, bytes);
 
-        int event_id = bytes.data[0] | (bytes.data[1] << 8);
+        int event_id = bytes[0] | (bytes[1] << 8);
 
         event_t event = g.fft.events[event_id];
         if (!event.valid) {
@@ -139,11 +114,11 @@ static void load_scenarios(void)
 
         // Use a different index because some scenarios are skipped.
         scenarios[index].id = event_id;
-        scenarios[index].map_id = bytes.data[2];
-        scenarios[index].weather = bytes.data[3];
-        scenarios[index].time = bytes.data[4];
-        scenarios[index].entd_id = bytes.data[7] | (bytes.data[8] << 8);
-        scenarios[index].next_scenario_id = bytes.data[18] | (bytes.data[19] << 8);
+        scenarios[index].map_id = bytes[2];
+        scenarios[index].weather = bytes[3];
+        scenarios[index].time = bytes[4];
+        scenarios[index].entd_id = bytes[7] | (bytes[8] << 8);
+        scenarios[index].next_scenario_id = bytes[18] | (bytes[19] << 8);
         index++;
     }
 
@@ -156,13 +131,14 @@ map_data_t* read_map_data(int num)
 {
     map_data_t* map_data = calloc(1, sizeof(map_data_t));
 
-    file_t gns_file = read_file(map_list[num].sector, GNS_FILE_MAX_SIZE);
-    map_data->records = read_records(&gns_file);
+    file_t gns_file = read_file(g.bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
+    map_data->record_count = read_records(&gns_file, map_data->records);
+
     free(gns_file.data);
 
-    for (int i = 0; i < map_data->records.count; i++) {
-        record_t record = map_data->records.records[i];
-        file_t file = read_file(record.sector, record.length);
+    for (int i = 0; i < map_data->record_count; i++) {
+        record_t record = map_data->records[i];
+        file_t file = read_file(g.bin, record.sector, record.length);
 
         switch (record.type) {
         case FILE_TYPE_TEXTURE: {
@@ -500,104 +476,6 @@ mesh_t read_mesh(file_t* f)
     return mesh;
 }
 
-static uint8_t read_u8(file_t* f)
-{
-    uint8_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint8_t));
-    f->offset += sizeof(uint8_t);
-    return value;
-}
-
-static uint16_t read_u16(file_t* f)
-{
-    uint16_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint16_t));
-    f->offset += sizeof(uint16_t);
-    return value;
-}
-
-static uint32_t read_u32(file_t* f)
-{
-    uint32_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint32_t));
-    f->offset += sizeof(uint32_t);
-    return value;
-}
-
-static int8_t read_i8(file_t* f)
-{
-    int8_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int8_t));
-    f->offset += sizeof(int8_t);
-    return value;
-}
-
-static int16_t read_i16(file_t* f)
-{
-    int16_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int16_t));
-    f->offset += sizeof(int16_t);
-    return value;
-}
-
-static int32_t read_i32(file_t* f)
-{
-    int32_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int32_t));
-    f->offset += sizeof(int32_t);
-    return value;
-}
-
-static bytes_t read_bytes(file_t* f, int size)
-{
-    bytes_t bytes = { .size = size };
-    for (int i = 0; i < size; i++) {
-        bytes.data[i] = read_u8(f);
-    }
-    return bytes;
-}
-
-// read_read_sector reads a sector to `out_bytes`.
-static sector_t read_sector(int32_t sector_num)
-{
-    int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(g.bin, seek_to, SEEK_SET) != 0) {
-        assert(false);
-    }
-
-    sector_t sector;
-    size_t n = fread(sector.data, sizeof(uint8_t), SECTOR_SIZE, g.bin);
-    assert(n == SECTOR_SIZE);
-    return sector;
-}
-
-static file_t read_file(int sector_num, int size)
-{
-    file_t file = { .size = size };
-    file.data = calloc(1, size);
-
-    int offset = 0;
-    uint32_t occupied_sectors = ceil((double)size / (double)SECTOR_SIZE);
-
-    for (uint32_t i = 0; i < occupied_sectors; i++) {
-        sector_t sector_data = read_sector(sector_num + i);
-
-        int remaining_size = size - offset;
-        int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
-
-        memcpy(file.data + offset, sector_data.data, bytes_to_copy);
-        offset += bytes_to_copy;
-    }
-
-    return file;
-}
-
-static float read_f1x3x12(file_t* f)
-{
-    float value = read_i16(f);
-    return value / 4096.0f;
-}
-
 static vec3s read_position(file_t* f)
 {
     float x = read_i16(f);
@@ -648,13 +526,14 @@ static float read_light_color(file_t* f)
 
 static record_t read_record(file_t* f)
 {
-    bytes_t bytes = read_bytes(f, GNS_RECORD_SIZE);
-    int sector = bytes.data[8] | bytes.data[9] << 8;
-    uint64_t length = (uint32_t)(bytes.data[12]) | ((uint32_t)(bytes.data[13]) << 8) | ((uint32_t)(bytes.data[14]) << 16) | ((uint32_t)(bytes.data[15]) << 24);
-    file_type_e type = (bytes.data[4] | (bytes.data[5] << 8));
-    time_e time = (bytes.data[3] >> 7) & 0x1;
-    weather_e weather = (bytes.data[3] >> 4) & 0x7;
-    int layout = bytes.data[2];
+    uint8_t bytes[GNS_RECORD_SIZE];
+    read_bytes(f, GNS_RECORD_SIZE, bytes);
+    int sector = bytes[8] | bytes[9] << 8;
+    uint64_t length = (uint32_t)(bytes[12]) | ((uint32_t)(bytes[13]) << 8) | ((uint32_t)(bytes[14]) << 16) | ((uint32_t)(bytes[15]) << 24);
+    file_type_e type = (bytes[4] | (bytes[5] << 8));
+    time_e time = (bytes[3] >> 7) & 0x1;
+    weather_e weather = (bytes[3] >> 4) & 0x7;
+    int layout = bytes[2];
 
     record_t record = {
         .sector = sector,
@@ -666,22 +545,22 @@ static record_t read_record(file_t* f)
             .layout = layout,
         },
     };
-    memcpy(record.data, bytes.data, GNS_RECORD_SIZE);
+    memcpy(record.data, bytes, GNS_RECORD_SIZE);
     return record;
 }
 
-static records_t read_records(file_t* f)
+static int read_records(file_t* f, record_t* out_records)
 {
-    records_t records = { .count = 0 };
+    int count = 0;
     while (true) {
         record_t record = read_record(f);
         if (record.type == FILE_TYPE_END) {
             break;
         }
-        records.records[records.count] = record;
-        records.count++;
+        out_records[count] = record;
+        count++;
     }
-    return records;
+    return count;
 }
 
 void merge_meshes(mesh_t* dst, mesh_t* src)

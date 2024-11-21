@@ -188,21 +188,17 @@ typedef struct {
     uint8_t data[GNS_RECORD_SIZE];
 } record_t;
 
-typedef struct {
-    record_t records[GNS_RECORD_MAX_NUM];
-    int count;
-} records_t;
-
 // map_data_t represents all the data for a specific map.
 // This has all the different states a map can have.
 typedef struct {
-    records_t records;
+    record_t records[GNS_RECORD_MAX_NUM];
 
     mesh_t primary_mesh;
     mesh_t override_mesh;
     mesh_t alt_meshes[20];
     texture_t textures[20];
 
+    int record_count;
     int texture_count;
     int alt_mesh_count;
 } map_data_t;
