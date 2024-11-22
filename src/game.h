@@ -2,6 +2,7 @@
 #define GAME_H_
 
 #include "sokol_app.h"
+#include "sokol_time.h"
 
 #include "camera.h"
 #include "fft.h"
@@ -31,6 +32,12 @@ typedef struct {
         scenario_t* scenarios;
         event_t* events;
     } fft;
+
+    struct {
+        float fps;
+        int frame_count;
+        uint64_t last_time;
+    } time;
 } game_t;
 
 extern game_t g;

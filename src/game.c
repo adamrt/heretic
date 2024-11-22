@@ -23,6 +23,8 @@ game_t g = {
 
 // Forward declarations
 void data_init(void);
+static void time_init(void);
+static void time_update(void);
 static void state_update(void);
 static void scenario_prev(void);
 static void scenario_next(void);
@@ -31,6 +33,7 @@ static void map_unload(void);
 
 void game_init(void)
 {
+    time_init();
     gfx_init();
     camera_init();
     gui_init();
@@ -119,6 +122,8 @@ void game_input(const sapp_event* event)
 
 void game_update(void)
 {
+    time_update();
+
     if (!g.bin_loaded) {
         return;
     }
@@ -259,5 +264,25 @@ static void map_unload(void)
         sg_destroy_image(g.scene.model.palette);
         sg_destroy_buffer(g.scene.model.vbuffer);
         free(g.scene.map);
+    }
+}
+static void time_init(void)
+{
+
+    stm_setup();
+    g.time.last_time = stm_now();
+}
+
+static void time_update(void)
+{
+    g.time.frame_count++;
+    uint64_t current_time = stm_now();
+    uint64_t elapsed_ticks = stm_diff(current_time, g.time.last_time);
+    double elapsed_seconds = stm_sec(elapsed_ticks);
+
+    if (elapsed_seconds >= 1.0) {
+        g.time.fps = g.time.frame_count / (float)elapsed_seconds;
+        g.time.frame_count = 0;
+        g.time.last_time = current_time;
     }
 }

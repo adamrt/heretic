@@ -303,6 +303,11 @@ static void gui_draw(void)
 
     if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 400, 600), window_flags)) {
 
+        nk_layout_row_dynamic(ctx, 25, 1);
+        char buffer[64];
+        snprintf(buffer, 64, "FPS: %f", g.time.fps);
+        nk_label(ctx, buffer, NK_TEXT_LEFT);
+
         if (nk_tree_push(ctx, NK_TREE_TAB, "Scene", NK_MAXIMIZED)) {
             nk_layout_row_static(ctx, 30, 100, 2);
             g.mode = nk_option_label(ctx, "Scenarios", g.mode == MODE_SCENARIO) ? MODE_SCENARIO : g.mode;
