@@ -86,17 +86,12 @@ void game_input(const sapp_event* event)
         bool is_down = (event->type == SAPP_EVENTTYPE_MOUSE_DOWN);
         if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(is_down);
-            g.input.mouse_left = is_down;
-        }
-        if (event->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
-            sapp_lock_mouse(is_down);
-            g.input.mouse_right = is_down;
         }
         break;
     }
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
-        if (g.input.mouse_left) {
+        if (sapp_mouse_locked()) {
             camera_orbit(event->mouse_dx, event->mouse_dy);
         }
         break;

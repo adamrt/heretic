@@ -28,11 +28,6 @@ typedef struct {
     camera_t cam;
 
     struct {
-        bool mouse_left;
-        bool mouse_right;
-    } input;
-
-    struct {
         scenario_t* scenarios;
         event_t* events;
     } fft;
