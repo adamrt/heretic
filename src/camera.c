@@ -15,6 +15,27 @@
 #define CAM_NW 225.0f
 #define CAM_SW 315.0f
 
+typedef enum {
+    LEFT,
+    RIGHT,
+} movment_t;
+
+typedef struct {
+    movment_t movment;
+
+    float start_degrees;
+    float end_degrees;
+
+    float current_frame;
+    float total_frames;
+
+    bool valid;
+} transition_t;
+
+static transition_t transition;
+
+static void process_transitions(void);
+
 void camera_init(void)
 {
     g.cam.target = glms_vec3_zero();
@@ -34,13 +55,20 @@ void camera_update(void)
     float w = g.cam.distance;
     float h = w / aspect;
 
-    g.cam.pos_degrees = glm_deg(g.cam.azimuth);
-    if (g.cam.pos_degrees < 0.0f) {
-        g.cam.pos_degrees += 360.0f;
+    process_transitions();
+
+    // Transitions work with negative degrees sometimes so don't keep camera
+    // position degrees positive mid-transition.
+    if (!transition.valid) {
+        if (g.cam.pos_degrees >= 360.0f) {
+            g.cam.pos_degrees -= 360.0f;
+        }
+        if (g.cam.pos_degrees < 0.0f) {
+            g.cam.pos_degrees += 360.0f;
+        }
     }
-    if (g.cam.pos_degrees >= 360.0f) {
-        g.cam.pos_degrees -= 360.0f;
-    }
+
+    g.cam.azimuth = glm_rad(g.cam.pos_degrees);
 
     vec3s position = { {
         cosf(g.cam.elevation) * sinf(g.cam.azimuth),
@@ -68,6 +96,8 @@ void camera_orbit(float dx_deg, float dy_deg)
     g.cam.azimuth -= dx_rad;
     g.cam.elevation += dy_rad;
     g.cam.elevation = glm_clamp(g.cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
+
+    g.cam.pos_degrees = glm_deg(g.cam.azimuth);
 }
 
 void camera_zoom(float delta)
@@ -78,12 +108,81 @@ void camera_zoom(float delta)
 
 void camera_left(void)
 {
-    g.cam.pos_degrees -= 90.0f;
-    g.cam.azimuth = glm_rad(g.cam.pos_degrees);
+    if (transition.valid) {
+        return;
+    }
+
+    float pos = g.cam.pos_degrees;
+    float end_degrees = pos - 90.0f;
+
+    // Handle the camera when not in the intercardinal directions
+    if (pos > CAM_SE && pos < CAM_NE) {
+        end_degrees = CAM_SE;
+    } else if (pos > CAM_NE && pos < CAM_NW) {
+        end_degrees = CAM_NE;
+    } else if (pos > CAM_NW && pos < CAM_SW) {
+        end_degrees = CAM_NW;
+    } else if ((pos > CAM_SW && pos <= 360.0f) || (pos < CAM_SE && pos >= 0.0f)) {
+        // Handle 360 wrap around
+        end_degrees = CAM_SW - 360.0f;
+    }
+
+    transition = (transition_t) {
+        .movment = LEFT,
+        .start_degrees = g.cam.pos_degrees,
+        .end_degrees = end_degrees,
+        .total_frames = 60.0f,
+        .current_frame = 0.0f,
+        .valid = true,
+    };
 }
 
 void camera_right(void)
 {
-    g.cam.pos_degrees += 90.0f;
-    g.cam.azimuth = glm_rad(g.cam.pos_degrees);
+    if (transition.valid) {
+        return;
+    }
+
+    float pos = g.cam.pos_degrees;
+    float end_degrees = pos + 90.0f;
+
+    // Handle the camera when not in the intercardinal directions
+    if (pos > CAM_SE && pos < CAM_NE) {
+        end_degrees = CAM_NE;
+    } else if (pos > CAM_NE && pos < CAM_NW) {
+        end_degrees = CAM_NW;
+    } else if (pos > CAM_NW && pos < CAM_SW) {
+        end_degrees = CAM_SW;
+    } else if ((pos > CAM_SW && pos <= 360.0f) || (pos < CAM_SE && pos >= 0.0f)) {
+        // Handle 360 wrap around
+        end_degrees = CAM_SE + 360.0f;
+    }
+
+    transition = (transition_t) {
+        .movment = RIGHT,
+        .start_degrees = g.cam.pos_degrees,
+        .end_degrees = end_degrees,
+        .total_frames = 60.0f,
+        .current_frame = 0.0f,
+        .valid = true,
+    };
+}
+
+static void process_transitions(void)
+{
+    if (!transition.valid) {
+        return;
+    }
+
+    float t = transition.current_frame / transition.total_frames;
+    float new_pos = glm_lerp(transition.start_degrees, transition.end_degrees, t);
+
+    g.cam.pos_degrees = new_pos;
+
+    if (transition.current_frame >= transition.total_frames) {
+        g.cam.pos_degrees = transition.end_degrees;
+        transition.valid = false;
+    }
+
+    transition.current_frame++;
 }
