@@ -243,6 +243,7 @@ vertices_t geometry_to_vertices(geometry_t*);
 
 bool map_state_eq(map_state_t, map_state_t);
 bool map_state_default(map_state_t);
+bool map_state_unique(record_t* unique_records, int uniquie_count, record_t record);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);

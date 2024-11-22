@@ -721,14 +721,24 @@ void file_type_str(file_type_e value, char* out)
     }
 }
 
+bool map_state_default(map_state_t a)
+{
+    return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
+}
+
 bool map_state_eq(map_state_t a, map_state_t b)
 {
     return a.time == b.time && a.weather == b.weather && a.layout == b.layout;
 }
 
-bool map_state_default(map_state_t a)
+bool map_state_unique(record_t* unique_records, int unique_record_count, record_t record)
 {
-    return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
+    for (int i = 0; i < unique_record_count; i++) {
+        if (map_state_eq(unique_records[i].state, record.state)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 static vec3s vertices_centered(vertices_t* vertices)
