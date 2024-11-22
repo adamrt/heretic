@@ -62,12 +62,14 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     target_link_options(heretic PUBLIC
         -sUSE_WEBGL2=1
         -sNO_FILESYSTEM=0
-        -sASSERTIONS=0
+        -sASSERTIONS=1
         -sMALLOC=emmalloc
-        -sTOTAL_STACK=512mb
+        -sTOTAL_STACK=768mb
         -sTOTAL_MEMORY=1024mb
-        --closure=1
-        --preload-file ../fft.bin@fft.bin)
+        -sEXPORTED_FUNCTIONS=_main,_data_init
+        -sEXPORTED_RUNTIME_METHODS=ccall
+        --preload-file ../res/loading.jpg@loading.jpg
+        --closure=1)
 endif()
 
 if (NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)

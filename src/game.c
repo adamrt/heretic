@@ -1,4 +1,7 @@
 #include "sokol_gfx.h"
+#ifdef __EMSCRIPTEN__
+#    include <emscripten/emscripten.h>
+#endif
 
 #include "cglm/struct.h"
 #include "shader.glsl.h"
@@ -18,6 +21,7 @@ game_t g = {
 };
 
 // Forward declarations
+void data_init(void);
 static void state_update(void);
 static void scenario_prev(void);
 static void scenario_next(void);
@@ -30,8 +34,18 @@ void game_init(void)
     camera_init();
     gui_init();
 
+#ifndef __EMSCRIPTEN__
+    data_init();
+#endif
+}
+
+// data_init is called during game_init() for native builds, and after file
+// upload on a wasm build.
+void data_init(void)
+{
     g.bin = fopen("../fft.bin", "rb");
     assert(g.bin != NULL);
+    g.bin_loaded = true;
 
     bin_load_global_data();
     game_load_scenario(g.scene.current_scenario);
@@ -97,6 +111,10 @@ void game_input(const sapp_event* event)
 
 void game_update(void)
 {
+    if (!g.bin_loaded) {
+        return;
+    }
+
     state_update();
     camera_update();
     gfx_update();

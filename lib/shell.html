@@ -8,11 +8,27 @@
     />
     <title>Heretic</title>
     <style>
+      html,
       body {
+        height: 100%;
         margin: 0;
         background-color: black;
+        color: white;
       }
-      .game {
+      #loading {
+        font-family: arial;
+        padding-top: 20em;
+        padding-left: 10em;
+        height: 100%;
+        overflow: hidden;
+        background-size: cover;
+        background-attachment: fixed;
+
+        h1 {
+          margin-bottom: 0.5em;
+        }
+      }
+      #canvas {
         position: absolute;
         top: 0px;
         left: 0px;
@@ -21,7 +37,7 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        display: block;
+        display: none;
         image-rendering: optimizeSpeed;
         image-rendering: -moz-crisp-edges;
         image-rendering: -o-crisp-edges;
@@ -34,15 +50,23 @@
     </style>
   </head>
   <body>
-    <canvas
-      class="game"
-      id="canvas"
-      oncontextmenu="event.preventDefault()"
-    ></canvas>
+    <div id="loading">
+      <div>
+        <h1>Select your FFT BIN file</h1>
+        <p>Drag and drop or click to select</p>
+        <input type="file" id="fileInput" accept=".bin" />
+      </div>
+    </div>
+
+    <canvas id="canvas" oncontextmenu="event.preventDefault()" />
+
     <script type="text/javascript">
       var Module = {
         preRun: [],
         postRun: [],
+        onFFTBinLoaded: function () {
+          ccall("data_init", null, [], []);
+        },
         print: (function () {
           return function (text) {
             text = Array.prototype.slice.call(arguments).join(" ");
@@ -62,6 +86,34 @@
       };
       window.onerror = function () {
         console.log("onerror: " + event.message);
+      };
+
+      Module.onRuntimeInitialized = function () {
+        // Set loading background image
+        const blob = new Blob([FS.readFile("/loading.jpg")], {
+          type: "image/jpg",
+        });
+        const url = URL.createObjectURL(blob);
+        document.getElementById("loading").style.backgroundImage =
+          `url(${url})`;
+
+        // File upload
+        document
+          .getElementById("fileInput")
+          .addEventListener("change", function (event) {
+            var file = event.target.files[0];
+            if (file) {
+              var reader = new FileReader();
+              reader.onload = function (e) {
+                var data = new Uint8Array(e.target.result);
+                FS.writeFile("/fft.bin", data);
+                Module.onFFTBinLoaded();
+                document.getElementById("fileInput").style.display = "none";
+                document.getElementById("canvas").style.display = "block";
+              };
+              reader.readAsArrayBuffer(file);
+            }
+          });
       };
     </script>
     {{{ SCRIPT }}}
