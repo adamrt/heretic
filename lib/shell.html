@@ -11,13 +11,27 @@
       html,
       body {
         height: 100%;
+        width: 100%;
         margin: 0;
-        background-color: black;
+        background-color: white;
         color: white;
       }
+      #fileUpload::file-selector-button {
+        background-color: white;
+        color: black;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #fileUpload::file-selector-button:hover {
+        background-color: #0056b3;
+      }
+
       #loading {
         font-family: arial;
-        padding-top: 20em;
+        padding-top: 12em;
         padding-left: 10em;
         height: 100%;
         overflow: hidden;
@@ -25,7 +39,13 @@
         background-attachment: fixed;
 
         h1 {
-          margin-bottom: 0.5em;
+          font-size: 4em;
+          margin-bottom: 0em;
+        }
+        h3 {
+          font-size: 2em;
+          margin-top: 0em;
+          margin-bottom: 1.5em;
         }
       }
       #canvas {
@@ -52,9 +72,10 @@
   <body>
     <div id="loading">
       <div>
-        <h1>Select your FFT BIN file</h1>
-        <p>Drag and drop or click to select</p>
-        <input type="file" id="fileInput" accept=".bin" />
+        <h1>Heretic</h1>
+        <h3>A Final Fantasy Tactics Toolkit</h3>
+        <p>Select your BIN file (SCUS-94221)</p>
+        <input type="file" id="fileUpload" accept=".bin" />
       </div>
     </div>
 
@@ -99,7 +120,7 @@
 
         // File upload
         document
-          .getElementById("fileInput")
+          .getElementById("fileUpload")
           .addEventListener("change", function (event) {
             var file = event.target.files[0];
             if (file) {
@@ -108,7 +129,7 @@
                 var data = new Uint8Array(e.target.result);
                 FS.writeFile("/fft.bin", data);
                 Module.onFFTBinLoaded();
-                document.getElementById("fileInput").style.display = "none";
+                document.getElementById("loading").style.display = "none";
                 document.getElementById("canvas").style.display = "block";
               };
               reader.readAsArrayBuffer(file);
