@@ -6,14 +6,12 @@
 
 #include "camera.h"
 #include "fft.h"
+#include "scene.h"
 
 void game_init(void);
 void game_update(void);
 void game_input(const sapp_event* event);
 void game_shutdown(void);
-
-void game_map_load(int num, map_state_t state);
-void game_scenario_load(int num);
 
 typedef enum mode_e {
     MODE_MAP,

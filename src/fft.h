@@ -217,14 +217,6 @@ typedef struct {
     vec3s centered_translation;
 } map_t;
 
-typedef struct {
-    map_t* map;
-    model_t model;
-    bool center_model;
-    int current_scenario;
-    int current_map;
-} scene_t;
-
 // Scenario and map descriptors
 typedef struct {
     uint16_t id;
