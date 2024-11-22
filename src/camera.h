@@ -15,6 +15,8 @@ typedef struct {
     float znear, zfar;
     float distance;
 
+    float pos_degrees;
+
     bool use_perspective;
 } camera_t;
 
@@ -22,5 +24,8 @@ void camera_init(void);
 void camera_update(void);
 void camera_orbit(float, float);
 void camera_zoom(float);
+
+void camera_left(void);
+void camera_right(void);
 
 #endif // CAMERA_H_

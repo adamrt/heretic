@@ -175,6 +175,10 @@ static void draw_camera(struct nk_context* ctx)
     nk_layout_row_dynamic(ctx, 25, 2);
 
     char buffer[64];
+    snprintf(buffer, sizeof(buffer), "Degrees: %f", g.cam.pos_degrees);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
+    nk_slider_float(ctx, -360.0f, &g.cam.pos_degrees, 360.0f, 0.1f);
+
     snprintf(buffer, sizeof(buffer), "Distance: %f", g.cam.distance);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
     nk_slider_float(ctx, 0.001f, &g.cam.distance, CAM_MAX_DIST, 0.1f);
