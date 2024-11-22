@@ -82,6 +82,12 @@ void game_input(const sapp_event* event)
         case SAPP_KEYCODE_RIGHT:
             camera_right();
             break;
+        case SAPP_KEYCODE_UP:
+            camera_up();
+            break;
+        case SAPP_KEYCODE_DOWN:
+            camera_down();
+            break;
         default:
             break;
         }

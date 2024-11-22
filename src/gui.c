@@ -173,7 +173,10 @@ static void draw_camera(struct nk_context* ctx)
     nk_checkbox_label(ctx, "Perspective", &g.cam.use_perspective);
 
     char buffer[64];
-    snprintf(buffer, sizeof(buffer), "Degrees: %f", g.cam.pos_degrees);
+    snprintf(buffer, sizeof(buffer), "Azimuth Degrees: %f", g.cam.azimuth_degrees);
+    nk_label(ctx, buffer, NK_TEXT_LEFT);
+
+    snprintf(buffer, sizeof(buffer), "Elevation Degrees: %f", g.cam.elevation_degrees);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
 
     nk_layout_row_dynamic(ctx, 25, 2);
