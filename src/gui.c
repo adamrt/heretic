@@ -173,25 +173,25 @@ static void draw_camera(struct nk_context* ctx)
     nk_checkbox_label(ctx, "Perspective", &g.cam.use_perspective);
 
     char buffer[64];
-    snprintf(buffer, sizeof(buffer), "Azimuth Degrees: %f", g.cam.azimuth_degrees);
+    snprintf(buffer, sizeof(buffer), "Azimuth Degrees: %f", g.cam.azimuth);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
 
-    snprintf(buffer, sizeof(buffer), "Elevation Degrees: %f", g.cam.elevation_degrees);
+    snprintf(buffer, sizeof(buffer), "Elevation Degrees: %f", g.cam.elevation);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
 
     nk_layout_row_dynamic(ctx, 25, 2);
 
     snprintf(buffer, sizeof(buffer), "Distance: %f", g.cam.distance);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.001f, &g.cam.distance, CAM_MAX_DIST, 0.1f);
+    nk_slider_float(ctx, 0.001f, &g.cam.distance, CAM_DIST_MAX, 0.1f);
 
     snprintf(buffer, sizeof(buffer), "Near: %f", g.cam.znear);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &g.cam.znear, CAM_MAX_ZFAR, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.znear, CAM_ZFAR_MAX, 0.1f);
 
     snprintf(buffer, sizeof(buffer), "Far: %f", g.cam.zfar);
     nk_label(ctx, buffer, NK_TEXT_LEFT);
-    nk_slider_float(ctx, 0.01f, &g.cam.zfar, CAM_MAX_ZFAR, 0.1f);
+    nk_slider_float(ctx, 0.01f, &g.cam.zfar, CAM_ZFAR_MAX, 0.1f);
 }
 
 static void draw_lights(struct nk_context* ctx)

@@ -3,21 +3,17 @@
 
 #include "cglm/struct.h"
 
-#define CAM_MIN_DIST  (0.01f)
-#define CAM_MAX_DIST  (1000.0f)
-#define CAM_MIN_ZNEAR (0.01f)
-#define CAM_MAX_ZFAR  (1000.0f)
+#define CAM_DIST_MIN  (0.01f)
+#define CAM_DIST_MAX  (1000.0f)
+#define CAM_ZNEAR_MIN (0.01f)
+#define CAM_ZFAR_MAX  (1000.0f)
 
 typedef struct {
     mat4s proj_mat, view_mat;
     vec3s eye, target;
-    float azimuth, elevation;
+    float azimuth, elevation; // In degrees
     float znear, zfar;
     float distance;
-
-    float azimuth_degrees;
-    float elevation_degrees;
-
     bool use_perspective;
 } camera_t;
 

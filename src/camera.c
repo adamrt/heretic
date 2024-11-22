@@ -7,16 +7,16 @@
 
 #define SENSITIVITY (2.0f)
 
-#define MIN_ELEVATION (-1.56079632679489661923132169163975144) /* -M_PI_2 + 0.01 */
-#define MAX_ELEVATION (1.56079632679489661923132169163975144)  /*  M_PI_2 - 0.01 */
-
-#define CAM_ELV_LOW  (30.0f)
-#define CAM_ELV_HIGH (45.0f)
-
 #define CAM_AZM_SE (45.0f)
 #define CAM_AZM_NE (135.0f)
 #define CAM_AZM_NW (225.0f)
 #define CAM_AZM_SW (315.0f)
+
+#define CAM_ELV_MIN (-89.1)
+#define CAM_ELV_MAX (89.1)
+
+#define CAM_ELV_LOW  (30.0f)
+#define CAM_ELV_HIGH (45.0f)
 
 #define CAM_TRANS_FRAMES (45.0f)
 
@@ -51,11 +51,8 @@ void camera_init(void)
 {
     g.cam.target = glms_vec3_zero();
 
-    g.cam.azimuth_degrees = CAM_AZM_SE;
-    g.cam.elevation_degrees = CAM_ELV_LOW;
-
-    g.cam.azimuth = glm_rad(g.cam.azimuth_degrees);
-    g.cam.elevation = glm_rad(g.cam.elevation_degrees);
+    g.cam.azimuth = CAM_AZM_SE;
+    g.cam.elevation = CAM_ELV_LOW;
 
     g.cam.distance = 256.0f;
     g.cam.znear = 0.01f;
@@ -73,21 +70,21 @@ void camera_update(void)
     // Transitions work with negative degrees sometimes so don't keep camera
     // position degrees positive mid-transition.
     if (!transition.valid) {
-        if (g.cam.azimuth_degrees >= 360.0f) {
-            g.cam.azimuth_degrees -= 360.0f;
+        if (g.cam.azimuth >= 360.0f) {
+            g.cam.azimuth -= 360.0f;
         }
-        if (g.cam.azimuth_degrees < 0.0f) {
-            g.cam.azimuth_degrees += 360.0f;
+        if (g.cam.azimuth < 0.0f) {
+            g.cam.azimuth += 360.0f;
         }
     }
 
-    g.cam.azimuth = glm_rad(g.cam.azimuth_degrees);
-    g.cam.elevation = glm_rad(g.cam.elevation_degrees);
+    float azimuth_rad = glm_rad(g.cam.azimuth);
+    float elevation_rad = glm_rad(g.cam.elevation);
 
     vec3s position = { {
-        cosf(g.cam.elevation) * sinf(g.cam.azimuth),
-        sinf(g.cam.elevation),
-        cosf(g.cam.elevation) * cosf(g.cam.azimuth),
+        cosf(elevation_rad) * sinf(azimuth_rad),
+        sinf(elevation_rad),
+        cosf(elevation_rad) * cosf(azimuth_rad),
     } };
 
     vec3s scaled_position = glms_vec3_scale(position, g.cam.distance);
@@ -104,21 +101,15 @@ void camera_update(void)
 
 void camera_orbit(float dx_deg, float dy_deg)
 {
-    float dx_rad = glm_rad(dx_deg);
-    float dy_rad = glm_rad(dy_deg);
-
-    g.cam.azimuth -= dx_rad;
-    g.cam.azimuth_degrees = glm_deg(g.cam.azimuth);
-
-    g.cam.elevation += dy_rad;
-    g.cam.elevation = glm_clamp(g.cam.elevation, MIN_ELEVATION, MAX_ELEVATION);
-    g.cam.elevation_degrees = glm_deg(g.cam.elevation);
+    g.cam.azimuth -= dx_deg;
+    g.cam.elevation += dy_deg;
+    g.cam.elevation = glm_clamp(g.cam.elevation, CAM_ELV_MIN, CAM_ELV_MAX);
 }
 
 void camera_zoom(float delta)
 {
     g.cam.distance -= delta * SENSITIVITY;
-    g.cam.distance = glm_clamp(g.cam.distance, CAM_MIN_DIST, CAM_MAX_DIST);
+    g.cam.distance = glm_clamp(g.cam.distance, CAM_DIST_MIN, CAM_DIST_MAX);
 }
 
 void camera_left(void) { cam_azimuth(TRANS_DIR_LEFT); }
@@ -142,7 +133,7 @@ static void cam_azimuth(trans_dir_e dir)
 
     bool move_left = dir == TRANS_DIR_LEFT;
 
-    float degrees = g.cam.azimuth_degrees;
+    float degrees = g.cam.azimuth;
     float end_degrees = move_left ? degrees - 90.0f : degrees + 90.0f;
 
     if (degrees > CAM_AZM_SE && degrees < CAM_AZM_NE) {
@@ -164,7 +155,7 @@ static void cam_azimuth(trans_dir_e dir)
 
     transition = (transition_t) {
         .direction = dir,
-        .start_degrees = g.cam.azimuth_degrees,
+        .start_degrees = g.cam.azimuth,
         .end_degrees = end_degrees,
         .total_frames = CAM_TRANS_FRAMES,
         .current_frame = 0.0f,
@@ -179,26 +170,26 @@ static void cam_elevation(trans_dir_e dir)
     }
 
     if (dir == TRANS_DIR_DOWN) {
-        if (g.cam.elevation_degrees == CAM_ELV_LOW) {
+        if (g.cam.elevation == CAM_ELV_LOW) {
             return;
         }
 
         transition = (transition_t) {
             .direction = dir,
-            .start_degrees = g.cam.elevation_degrees,
+            .start_degrees = g.cam.elevation,
             .end_degrees = CAM_ELV_LOW,
             .total_frames = 30.0f,
             .current_frame = 0.0f,
             .valid = true,
         };
     } else {
-        if (g.cam.elevation_degrees == CAM_ELV_HIGH) {
+        if (g.cam.elevation == CAM_ELV_HIGH) {
             return;
         }
 
         transition = (transition_t) {
             .direction = dir,
-            .start_degrees = g.cam.elevation_degrees,
+            .start_degrees = g.cam.elevation,
             .end_degrees = CAM_ELV_HIGH,
             .total_frames = 30.0f,
             .current_frame = 0.0f,
@@ -217,16 +208,16 @@ static void cam_process_transitions(void)
     float new_pos = glm_lerp(transition.start_degrees, transition.end_degrees, t);
 
     if (transition.direction == TRANS_DIR_LEFT || transition.direction == TRANS_DIR_RIGHT) {
-        g.cam.azimuth_degrees = new_pos;
+        g.cam.azimuth = new_pos;
     } else if (transition.direction == TRANS_DIR_UP || transition.direction == TRANS_DIR_DOWN) {
-        g.cam.elevation_degrees = new_pos;
+        g.cam.elevation = new_pos;
     }
 
     if (transition.current_frame >= transition.total_frames) {
         if (transition.direction == TRANS_DIR_LEFT || transition.direction == TRANS_DIR_RIGHT) {
-            g.cam.azimuth_degrees = transition.end_degrees;
+            g.cam.azimuth = transition.end_degrees;
         } else if (transition.direction == TRANS_DIR_UP || transition.direction == TRANS_DIR_DOWN) {
-            g.cam.elevation_degrees = transition.end_degrees;
+            g.cam.elevation = transition.end_degrees;
         }
         transition.valid = false;
     }
