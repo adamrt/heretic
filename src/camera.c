@@ -127,8 +127,13 @@ void camera_up(void) { cam_elevation(TRANS_DIR_UP); }
 void camera_down(void) { cam_elevation(TRANS_DIR_DOWN); }
 
 // Move camera to the next intercardinal direction to the left.
-// Compensate for the orbital camera by moving the camera to the nearest
-// intercardinal direction.
+//
+// Compensate for the orbital camera free movement by moving the camera to the
+// nearest intercardinal direction.
+//
+// Camera transitions deal with values < 0.0f and > 360.0f to simplify
+// calculations. When a transition finishes, the camera_update() will bring the
+// values back within 0.0f-360.0f range.
 static void cam_azimuth(trans_dir_e dir)
 {
     if (transition.valid) {
@@ -137,18 +142,24 @@ static void cam_azimuth(trans_dir_e dir)
 
     bool move_left = dir == TRANS_DIR_LEFT;
 
-    float pos = g.cam.azimuth_degrees;
-    float end_degrees = move_left ? pos - 90.0f : pos + 90.0f;
+    float degrees = g.cam.azimuth_degrees;
+    float end_degrees = move_left ? degrees - 90.0f : degrees + 90.0f;
 
-    if (pos > CAM_AZM_SE && pos < CAM_AZM_NE) {
+    if (degrees > CAM_AZM_SE && degrees < CAM_AZM_NE) {
         end_degrees = move_left ? CAM_AZM_SE : CAM_AZM_NE;
-    } else if (pos > CAM_AZM_NE && pos < CAM_AZM_NW) {
+    } else if (degrees > CAM_AZM_NE && degrees < CAM_AZM_NW) {
         end_degrees = move_left ? CAM_AZM_NE : CAM_AZM_NW;
-    } else if (pos > CAM_AZM_NW && pos < CAM_AZM_SW) {
+    } else if (degrees > CAM_AZM_NW && degrees < CAM_AZM_SW) {
         end_degrees = move_left ? CAM_AZM_NW : CAM_AZM_SW;
-    } else if ((pos > CAM_AZM_SW && pos <= 360.0f) || (pos < CAM_AZM_SE && pos >= 0.0f)) {
+    } else if (degrees > CAM_AZM_SW || degrees < CAM_AZM_SE) {
+        end_degrees = move_left ? CAM_AZM_SW : CAM_AZM_SE;
+
         // Handle 360 wrap around
-        end_degrees = move_left ? CAM_AZM_SW - 360.0f : CAM_AZM_SE + 360.0f;
+        if (move_left && degrees < 180.0f) {
+            end_degrees -= 360.0f;
+        } else if (!move_left && degrees > 180.0f) {
+            end_degrees += 360.0f;
+        }
     }
 
     transition = (transition_t) {
