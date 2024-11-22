@@ -13,10 +13,17 @@ game_t g = {
 };
 
 // Forward declarations
-void game_data_init(void);
+static void state_update(void);
 static void time_init(void);
 static void time_update(void);
-static void state_update(void);
+
+// game_data_init is called during game_init() for native builds, and after file
+// upload on a wasm build.
+void game_data_init(void)
+{
+    fft_init();
+    scene_init();
+}
 
 void game_init(void)
 {
@@ -28,14 +35,6 @@ void game_init(void)
 #if !defined(__EMSCRIPTEN__)
     game_data_init();
 #endif
-}
-
-// game_data_init is called during game_init() for native builds, and after file
-// upload on a wasm build.
-void game_data_init(void)
-{
-    fft_init();
-    scene_init();
 }
 
 void game_input(const sapp_event* event)
@@ -124,6 +123,15 @@ void game_shutdown(void)
     gfx_shutdown();
 }
 
+static void state_update(void)
+{
+    if (g.scene.center_model) {
+        g.scene.model.transform.translation = g.scene.map->centered_translation;
+    } else {
+        g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+    }
+}
+
 static void time_init(void)
 {
     stm_setup();
@@ -141,14 +149,5 @@ static void time_update(void)
         g.time.fps = g.time.frame_count / (float)elapsed_seconds;
         g.time.frame_count = 0;
         g.time.last_time = current_time;
-    }
-}
-
-static void state_update(void)
-{
-    if (g.scene.center_model) {
-        g.scene.model.transform.translation = g.scene.map->centered_translation;
-    } else {
-        g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
 }
