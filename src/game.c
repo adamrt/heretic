@@ -1,7 +1,4 @@
 #include "sokol_gfx.h"
-#ifdef __EMSCRIPTEN__
-#    include <emscripten/emscripten.h>
-#endif
 
 #include "cglm/struct.h"
 #include "shader.glsl.h"
@@ -11,6 +8,10 @@
 #include "game.h"
 #include "gfx.h"
 #include "gui.h"
+
+#if defined(__EMSCRIPTEN__)
+#    include <emscripten/emscripten.h>
+#endif
 
 game_t g = {
     .mode = MODE_SCENARIO,
@@ -34,7 +35,7 @@ void game_init(void)
     camera_init();
     gui_init();
 
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__)
     data_init();
 #endif
 }
