@@ -13,6 +13,11 @@ fi
 TARGET="$1"
 COMPILE_SHADER_ONLY=${2:-} # Optional second argument to compile only the shader
 
+if [[ $TARGET == "native" &&  ! -f "fft.bin" ]]; then
+    echo "You need to place the PSX BIN file 'fft.bin' in the project root directory."
+    exit 1
+fi
+
 # Check if submodules are populated by looking for a key file in each submodule
 if [[ ! -f "lib/sokol/sokol_app.h" || ! -f "lib/cglm/cglm.h" || -f "lib/nuklear/nuklear.h" ]]; then
     echo "Submodules not initialized. Initializing and updating git submodules..."
