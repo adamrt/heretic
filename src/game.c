@@ -54,7 +54,7 @@ void game_data_init(void)
     g.bin_loaded = true;
 
     bin_load_global_data();
-    game_load_scenario(g.scene.current_scenario);
+    game_scenario_load(g.scene.current_scenario);
 }
 
 void game_input(const sapp_event* event)
@@ -146,17 +146,12 @@ void game_shutdown(void)
     gfx_shutdown();
 }
 
-void game_load_map(int num)
-{
-    map_load(num, default_map_state);
-}
-
-void game_load_map_state(int num, map_state_t map_state)
+void game_map_load(int num, map_state_t map_state)
 {
     map_load(num, map_state);
 }
 
-void game_load_scenario(int num)
+void game_scenario_load(int num)
 {
     scenario_t scenario = g.fft.scenarios[num];
     map_state_t scenario_state = {
@@ -164,7 +159,7 @@ void game_load_scenario(int num)
         .weather = scenario.weather,
         .layout = 0,
     };
-    map_load(scenario.map_id, scenario_state);
+    game_map_load(scenario.map_id, scenario_state);
 }
 
 static void time_init(void)
@@ -259,7 +254,7 @@ static void map_next(void)
 {
     if (g.mode == MODE_SCENARIO) {
         g.scene.current_scenario++;
-        game_load_scenario(g.scene.current_scenario);
+        game_scenario_load(g.scene.current_scenario);
     } else if (g.mode == MODE_MAP) {
         g.scene.current_map++;
         while (!map_list[g.scene.current_map].valid) {
@@ -268,7 +263,7 @@ static void map_next(void)
                 g.scene.current_map = 0;
             }
         }
-        game_load_map(g.scene.current_map);
+        game_map_load(g.scene.current_map, default_map_state);
     }
 }
 
@@ -276,7 +271,7 @@ static void map_prev(void)
 {
     if (g.mode == MODE_SCENARIO) {
         g.scene.current_scenario--;
-        game_load_scenario(g.scene.current_scenario);
+        game_scenario_load(g.scene.current_scenario);
     } else if (g.mode == MODE_MAP) {
         g.scene.current_map--;
         while (!map_list[g.scene.current_map].valid) {
@@ -285,6 +280,6 @@ static void map_prev(void)
                 g.scene.current_map = 125;
             }
         }
-        game_load_map(g.scene.current_map);
+        game_map_load(g.scene.current_map, default_map_state);
     }
 }
