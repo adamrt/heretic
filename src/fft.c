@@ -41,11 +41,13 @@ static palette_t read_palette(file_t*);
 static lighting_t read_lighting(file_t*);
 
 static mesh_t read_mesh(file_t*);
+static void read_map_data(int num, map_data_t* map_data_out);
 
 // Utility functions
 static void merge_meshes(mesh_t*, mesh_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
 static vec3s vertices_centered(vertices_t* vertices);
+vertices_t geometry_to_vertices(geometry_t*);
 
 static void load_events(void);
 static void load_scenarios(void);
@@ -132,78 +134,24 @@ static void load_scenarios(void)
     free(attack_out_file.data);
 }
 
-map_data_t* read_map_data(int num)
+void fft_read_map(int num, map_state_t map_state, map_t* map_out)
 {
     map_data_t* map_data = calloc(1, sizeof(map_data_t));
+    read_map_data(num, map_data);
 
-    file_t gns_file = read_file(g.bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
-    map_data->record_count = read_records(&gns_file, map_data->records);
-
-    free(gns_file.data);
-
-    for (int i = 0; i < map_data->record_count; i++) {
-        record_t record = map_data->records[i];
-        file_t file = read_file(g.bin, record.sector, record.length);
-
-        switch (record.type) {
-        case FILE_TYPE_TEXTURE: {
-            texture_t texture = read_texture(&file);
-            texture.map_state = record.state;
-            map_data->textures[map_data->texture_count++] = texture;
-            break;
-        }
-        case FILE_TYPE_MESH_PRIMARY:
-            // There always only one primary mesh file and it uses default state.
-            assert(map_state_default(record.state));
-
-            map_data->primary_mesh = read_mesh(&file);
-            assert(map_data->primary_mesh.valid);
-            break;
-
-        case FILE_TYPE_MESH_ALT: {
-            mesh_t alt_mesh = read_mesh(&file);
-            alt_mesh.map_state = record.state;
-            map_data->alt_meshes[map_data->alt_mesh_count++] = alt_mesh;
-            break;
-        }
-
-        case FILE_TYPE_MESH_OVERRIDE: {
-            // If there is an override file, there is only one and it uses default state.
-            assert(map_state_default(record.state));
-
-            map_data->override_mesh = read_mesh(&file);
-            break;
-        }
-
-        default:
-            free(file.data);
-            assert(false);
-        }
-
-        free(file.data);
-    }
-
-    return map_data;
-}
-
-map_t* read_map(int num, map_state_t map_state)
-{
-    map_data_t* map_data = read_map_data(num);
-
-    map_t* map = calloc(1, sizeof(map_t));
-    map->map_state = map_state;
-    map->map_data = map_data;
+    map_out->map_state = map_state;
+    map_out->map_data = map_data;
 
     if (map_data->primary_mesh.valid) {
-        map->mesh = map_data->primary_mesh;
+        map_out->mesh = map_data->primary_mesh;
     } else {
-        map->mesh = map_data->override_mesh;
+        map_out->mesh = map_data->override_mesh;
     }
 
     for (int i = 0; i < map_data->alt_mesh_count; i++) {
         mesh_t alt_mesh = map_data->alt_meshes[i];
-        if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
-            merge_meshes(&map->mesh, &alt_mesh);
+        if (alt_mesh.valid && fft_map_state_eq(alt_mesh.map_state, map_state)) {
+            merge_meshes(&map_out->mesh, &alt_mesh);
             break;
         }
     }
@@ -211,23 +159,22 @@ map_t* read_map(int num, map_state_t map_state)
     for (int i = 0; i < map_data->texture_count; i++) {
         texture_t texture = map_data->textures[i];
 
-        if (texture.valid && map_state_eq(texture.map_state, map_state)) {
-            map->texture = texture;
+        if (texture.valid && fft_map_state_eq(texture.map_state, map_state)) {
+            map_out->texture = texture;
             break;
         }
-        if (texture.valid && map_state_default(texture.map_state)) {
-            if (!map->texture.valid) {
-                map->texture = texture;
+        if (texture.valid && fft_map_state_default(texture.map_state)) {
+            if (!map_out->texture.valid) {
+                map_out->texture = texture;
             }
         }
     }
 
-    map->vertices = geometry_to_vertices(&map->mesh.geometry);
-    map->centered_translation = vertices_centered(&map->vertices);
+    map_out->vertices = geometry_to_vertices(&map_out->mesh.geometry);
+    map_out->centered_translation = vertices_centered(&map_out->vertices);
 
-    assert(map->mesh.valid);
-    assert(map->texture.valid);
-    return map;
+    assert(map_out->mesh.valid);
+    assert(map_out->texture.valid);
 }
 
 static geometry_t read_geometry(file_t* f)
@@ -535,7 +482,7 @@ static record_t read_record(file_t* f)
     read_bytes(f, GNS_RECORD_SIZE, bytes);
     int sector = bytes[8] | bytes[9] << 8;
     uint64_t length = (uint32_t)(bytes[12]) | ((uint32_t)(bytes[13]) << 8) | ((uint32_t)(bytes[14]) << 16) | ((uint32_t)(bytes[15]) << 24);
-    file_type_e type = (bytes[4] | (bytes[5] << 8));
+    filetype_e type = (bytes[4] | (bytes[5] << 8));
     time_e time = (bytes[3] >> 7) & 0x1;
     weather_e weather = (bytes[3] >> 4) & 0x7;
     int layout = bytes[2];
@@ -559,7 +506,7 @@ static int read_records(file_t* f, record_t* out_records)
     int count = 0;
     while (true) {
         record_t record = read_record(f);
-        if (record.type == FILE_TYPE_END) {
+        if (record.type == FILETYPE_END) {
             break;
         }
         out_records[count] = record;
@@ -658,7 +605,7 @@ static vec2s process_tex_coords(float u, float v, uint8_t page)
     return (vec2s) { { u, v } };
 }
 
-void time_str(time_e value, char out[static 8])
+void fft_time_str(time_e value, char out[static 8])
 {
     switch (value) {
     case TIME_DAY:
@@ -673,7 +620,7 @@ void time_str(time_e value, char out[static 8])
     }
 }
 
-void weather_str(weather_e value, char out[static 12])
+void fft_weather_str(weather_e value, char out[static 12])
 {
     switch (value) {
     case WEATHER_NONE:
@@ -697,22 +644,22 @@ void weather_str(weather_e value, char out[static 12])
     }
 }
 
-void file_type_str(file_type_e value, char* out)
+void fft_filetype_str(filetype_e value, char* out)
 {
     switch (value) {
-    case FILE_TYPE_MESH_PRIMARY:
+    case FILETYPE_MESH_PRIMARY:
         strcpy(out, "Primary");
         break;
-    case FILE_TYPE_MESH_ALT:
+    case FILETYPE_MESH_ALT:
         strcpy(out, "Alt");
         break;
-    case FILE_TYPE_MESH_OVERRIDE:
+    case FILETYPE_MESH_OVERRIDE:
         strcpy(out, "Override");
         break;
-    case FILE_TYPE_TEXTURE:
+    case FILETYPE_TEXTURE:
         strcpy(out, "Texture");
         break;
-    case FILE_TYPE_END:
+    case FILETYPE_END:
         strcpy(out, "End");
         break;
     default:
@@ -721,24 +668,74 @@ void file_type_str(file_type_e value, char* out)
     }
 }
 
-bool map_state_default(map_state_t a)
+bool fft_map_state_default(map_state_t a)
 {
     return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
 }
 
-bool map_state_eq(map_state_t a, map_state_t b)
+bool fft_map_state_eq(map_state_t a, map_state_t b)
 {
     return a.time == b.time && a.weather == b.weather && a.layout == b.layout;
 }
 
-bool map_state_unique(record_t* unique_records, int unique_record_count, record_t record)
+bool fft_map_state_unique(record_t* unique_records, int unique_record_count, record_t record)
 {
     for (int i = 0; i < unique_record_count; i++) {
-        if (map_state_eq(unique_records[i].state, record.state)) {
+        if (fft_map_state_eq(unique_records[i].state, record.state)) {
             return false;
         }
     }
     return true;
+}
+
+static void read_map_data(int num, map_data_t* map_data_out)
+{
+    file_t gns_file = read_file(g.bin, fft_map_list[num].sector, GNS_FILE_MAX_SIZE);
+    map_data_out->record_count = read_records(&gns_file, map_data_out->records);
+
+    free(gns_file.data);
+
+    for (int i = 0; i < map_data_out->record_count; i++) {
+        record_t record = map_data_out->records[i];
+        file_t file = read_file(g.bin, record.sector, record.length);
+
+        switch (record.type) {
+        case FILETYPE_TEXTURE: {
+            texture_t texture = read_texture(&file);
+            texture.map_state = record.state;
+            map_data_out->textures[map_data_out->texture_count++] = texture;
+            break;
+        }
+        case FILETYPE_MESH_PRIMARY:
+            // There always only one primary mesh file and it uses default state.
+            assert(fft_map_state_default(record.state));
+
+            map_data_out->primary_mesh = read_mesh(&file);
+            assert(map_data_out->primary_mesh.valid);
+            break;
+
+        case FILETYPE_MESH_ALT: {
+            mesh_t alt_mesh = read_mesh(&file);
+            alt_mesh.map_state = record.state;
+            map_data_out->alt_meshes[map_data_out->alt_mesh_count++] = alt_mesh;
+            break;
+        }
+
+        case FILETYPE_MESH_OVERRIDE: {
+            // If there is an override file, there is only one and it uses default state.
+            assert(fft_map_state_default(record.state));
+
+            map_data_out->override_mesh = read_mesh(&file);
+            break;
+        }
+
+        default:
+            free(file.data);
+            assert(false);
+        }
+
+        free(file.data);
+    }
 }
 
 static vec3s vertices_centered(vertices_t* vertices)
@@ -771,7 +768,7 @@ static vec3s vertices_centered(vertices_t* vertices)
 
 // Thanks to FFTPAtcher for the scenario name list.
 // https://github.com/Glain/FFTPatcher/blob/master/EntryEdit/EntryData/PSX/ScenarioNames.xml
-scenario_desc_t scenario_list[500] = {
+scenario_desc_t fft_scenario_list[500] = {
     { 0x0000, "Unusable" },
     { 0x0001, "Orbonne Prayer (Setup)" },
     { 0x0002, "Orbonne Prayer" },
@@ -1274,7 +1271,7 @@ scenario_desc_t scenario_list[500] = {
     { 0x01F3, "Empty" },
 };
 
-map_desc_t map_list[128] = {
+map_desc_t fft_map_list[128] = {
     { 0, 10026, false, "Unknown" }, // No texture
     { 1, 11304, true, "At Main Gate of Igros Castle" },
     { 2, 12656, true, "Back Gate of Lesalia Castle" },

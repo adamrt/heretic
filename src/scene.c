@@ -31,7 +31,8 @@ void scene_load_map(int num, map_state_t map_state)
 {
     scene_map_unload();
 
-    map_t* map = read_map(num, map_state);
+    map_t* map = calloc(1, sizeof(map_t));
+    fft_read_map(num, map_state, map);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
         .data = SG_RANGE(map->vertices),
@@ -103,7 +104,7 @@ static void scene_switch(switch_e dir)
 
     case MODE_MAP:
         g.scene.current_map = is_prev ? g.scene.current_map - 1 : g.scene.current_map + 1;
-        while (!map_list[g.scene.current_map].valid) {
+        while (!fft_map_list[g.scene.current_map].valid) {
             g.scene.current_map = is_prev ? g.scene.current_map - 1 : g.scene.current_map + 1;
             if (g.scene.current_map < 0) {
                 g.scene.current_map = 125;

@@ -47,13 +47,13 @@ typedef enum {
 } weather_e;
 
 typedef enum {
-    FILE_TYPE_NONE = 0x0000,
-    FILE_TYPE_TEXTURE = 0x1701,
-    FILE_TYPE_MESH_PRIMARY = 0x2E01,
-    FILE_TYPE_MESH_OVERRIDE = 0x2F01,
-    FILE_TYPE_MESH_ALT = 0x3001,
-    FILE_TYPE_END = 0x3101,
-} file_type_e;
+    FILETYPE_NONE = 0x0000,
+    FILETYPE_TEXTURE = 0x1701,
+    FILETYPE_MESH_PRIMARY = 0x2E01,
+    FILETYPE_MESH_OVERRIDE = 0x2F01,
+    FILETYPE_MESH_ALT = 0x3001,
+    FILETYPE_END = 0x3101,
+} filetype_e;
 
 // Each resource is a file that contains a single type of data (mesh, texture).
 // Each resource is related to a specific time, weather, and layout.
@@ -179,7 +179,7 @@ typedef struct {
 } event_t;
 
 typedef struct {
-    file_type_e type;
+    filetype_e type;
     size_t sector;
     size_t length;
 
@@ -237,23 +237,21 @@ typedef struct {
 void fft_init(void);
 void fft_shutdown(void);
 
-map_t* read_map(int num, map_state_t map_state);
+void fft_read_map(int, map_state_t, map_t*);
 
-vertices_t geometry_to_vertices(geometry_t*);
+bool fft_map_state_eq(map_state_t, map_state_t);
+bool fft_map_state_default(map_state_t);
+bool fft_map_state_unique(record_t*, int, record_t);
 
-bool map_state_eq(map_state_t, map_state_t);
-bool map_state_default(map_state_t);
-bool map_state_unique(record_t* unique_records, int uniquie_count, record_t record);
-
-void time_str(time_e, char[static 8]);
-void weather_str(weather_e, char[static 12]);
-void file_type_str(file_type_e, char[static 12]);
+void fft_time_str(time_e, char[static 8]);
+void fft_weather_str(weather_e, char[static 12]);
+void fft_filetype_str(filetype_e, char[static 12]);
 
 //
 // Public variables
 //
 
-extern scenario_desc_t scenario_list[];
-extern map_desc_t map_list[];
+extern scenario_desc_t fft_scenario_list[];
+extern map_desc_t fft_map_list[];
 
 #endif // FFT_H_

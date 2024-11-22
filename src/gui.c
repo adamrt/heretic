@@ -222,12 +222,12 @@ static void draw_window_scenarios(struct nk_context* ctx)
             scenario_t* scenario = &g.fft.scenarios[i];
 
             char buffer_id[64];
-            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, scenario_list[scenario->id].name);
+            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, fft_scenario_list[scenario->id].name);
 
             char weather_name[12];
-            weather_str(scenario->weather, weather_name);
+            fft_weather_str(scenario->weather, weather_name);
             char time_name[8];
-            time_str(scenario->time, time_name);
+            fft_time_str(scenario->time, time_name);
             char buffer_weather[40];
             snprintf(buffer_weather, 40, "Weather: %s, Time: %s, ENTD: %d", weather_name, time_name, scenario->entd_id);
 
@@ -265,21 +265,21 @@ static void draw_dropdown_map(struct nk_context* ctx)
 
     nk_layout_row_dynamic(ctx, 25, 1);
 
-    map_desc_t selected_map = map_list[g.scene.current_map];
+    map_desc_t selected_map = fft_map_list[g.scene.current_map];
     map_state_t map_state = g.scene.map->map_state;
 
     char buffer[64];
 
-    snprintf(buffer, 64, "%d %s", selected_map.id, map_list[selected_map.id].name);
+    snprintf(buffer, 64, "%d %s", selected_map.id, fft_map_list[selected_map.id].name);
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < 128; ++i) {
-            if (!map_list[i].valid) {
+            if (!fft_map_list[i].valid) {
                 continue;
             }
 
-            snprintf(buffer, 64, "%d %s", map_list[i].id, map_list[i].name);
+            snprintf(buffer, 64, "%d %s", fft_map_list[i].id, fft_map_list[i].name);
 
             if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
                 g.scene.current_map = i;
@@ -297,7 +297,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
     record_t unique_records[GNS_RECORD_MAX_NUM];
     int unique_record_count = 0;
     for (int i = 0; i < g.scene.map->map_data->record_count; i++) {
-        if (map_state_unique(unique_records, unique_record_count, records[i])) {
+        if (fft_map_state_unique(unique_records, unique_record_count, records[i])) {
             unique_records[unique_record_count++] = records[i];
         }
     }
@@ -305,8 +305,8 @@ static void draw_dropdown_map(struct nk_context* ctx)
     char time_name[8];
     char weather_name[12];
 
-    time_str(map_state.time, time_name);
-    weather_str(map_state.weather, weather_name);
+    fft_time_str(map_state.time, time_name);
+    fft_weather_str(map_state.weather, weather_name);
 
     snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, map_state.layout);
 
@@ -316,8 +316,8 @@ static void draw_dropdown_map(struct nk_context* ctx)
         for (int i = 0; i < unique_record_count; ++i) {
             record_t record = unique_records[i];
 
-            weather_str(record.state.weather, weather_name);
-            time_str(record.state.time, time_name);
+            fft_weather_str(record.state.weather, weather_name);
+            fft_time_str(record.state.time, time_name);
 
             snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, record.state.layout);
 
@@ -336,7 +336,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
     scenario_t selected_scenario = g.fft.scenarios[g.scene.current_scenario];
 
     char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, map_list[selected_scenario.map_id].name);
+    snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, fft_map_list[selected_scenario.map_id].name);
 
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
@@ -345,7 +345,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
 
             scenario_t scenario = g.fft.scenarios[i];
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario_list[scenario.id].id, scenario_list[scenario.id].name);
+            snprintf(item_buffer, 64, "%d %s", fft_scenario_list[scenario.id].id, fft_scenario_list[scenario.id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 g.scene.current_scenario = i;
@@ -355,12 +355,12 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         nk_combo_end(ctx);
     }
     scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
-    map_desc_t map = map_list[scenario.map_id];
+    map_desc_t map = fft_map_list[scenario.map_id];
 
     char weather_name[12];
-    weather_str(scenario.weather, weather_name);
+    fft_weather_str(scenario.weather, weather_name);
     char time_name[8];
-    time_str(scenario.time, time_name);
+    fft_time_str(scenario.time, time_name);
 
     char buffer[64];
     snprintf(buffer, sizeof(buffer), "Map %d: %s", map.id, map.name);
