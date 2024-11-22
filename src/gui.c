@@ -77,7 +77,7 @@ void draw_scenario_dropdown(struct nk_context* ctx)
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 g.scene.current_scenario = i;
-                game_scenario_load(g.scene.current_scenario);
+                scene_load_scenario(g.scene.current_scenario);
             }
         }
         nk_combo_end(ctx);
@@ -121,7 +121,7 @@ void draw_map_dropdown(struct nk_context* ctx)
 
             if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
                 g.scene.current_map = i;
-                game_map_load(g.scene.current_map, default_map_state);
+                scene_load_map(g.scene.current_map, default_map_state);
             }
         }
         nk_combo_end(ctx);
@@ -160,7 +160,7 @@ void draw_map_dropdown(struct nk_context* ctx)
             snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, record.state.layout);
 
             if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
-                game_map_load(g.scene.current_map, record.state);
+                scene_load_map(g.scene.current_map, record.state);
             }
         }
         nk_combo_end(ctx);

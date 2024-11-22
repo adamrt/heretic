@@ -14,10 +14,13 @@ typedef struct {
     int current_map;
 } scene_t;
 
-void game_map_load(int num, map_state_t state);
-void map_unload(void);
-void game_scenario_load(int num);
-void map_prev(void);
-void map_next(void);
+void scene_init(void);
+void scene_shutdown(void);
+
+void scene_load_map(int num, map_state_t state);
+void scene_load_scenario(int num);
+
+void scene_prev(void);
+void scene_next(void);
 
 #endif // SCENE_H_

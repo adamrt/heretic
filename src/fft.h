@@ -234,8 +234,8 @@ typedef struct {
 // Public functions
 //
 
-void bin_load_global_data(void);
-void bin_free_global_data(void);
+void fft_init(void);
+void fft_shutdown(void);
 
 map_t* read_map(int num, map_state_t map_state);
 

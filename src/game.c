@@ -1,5 +1,5 @@
-#include "camera.h"
 #include "game.h"
+#include "camera.h"
 #include "fft.h"
 #include "gfx.h"
 #include "gui.h"
@@ -10,10 +10,6 @@
 
 game_t g = {
     .mode = MODE_SCENARIO,
-    .scene = {
-        .center_model = true,
-        .current_scenario = 52,
-    },
 };
 
 // Forward declarations
@@ -38,12 +34,8 @@ void game_init(void)
 // upload on a wasm build.
 void game_data_init(void)
 {
-    g.bin = fopen("../fft.bin", "rb");
-    assert(g.bin != NULL);
-    g.bin_loaded = true;
-
-    bin_load_global_data();
-    game_scenario_load(g.scene.current_scenario);
+    fft_init();
+    scene_init();
 }
 
 void game_input(const sapp_event* event)
@@ -65,10 +57,10 @@ void game_input(const sapp_event* event)
             sapp_request_quit();
             break;
         case SAPP_KEYCODE_K:
-            map_next();
+            scene_next();
             break;
         case SAPP_KEYCODE_J:
-            map_prev();
+            scene_prev();
             break;
         case SAPP_KEYCODE_LEFT:
             camera_left();
@@ -126,11 +118,8 @@ void game_update(void)
 
 void game_shutdown(void)
 {
-    fclose(g.bin);
-    map_unload();
-
-    bin_free_global_data();
-
+    scene_shutdown();
+    fft_shutdown();
     gui_shutdown();
     gfx_shutdown();
 }

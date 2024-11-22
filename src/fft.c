@@ -50,16 +50,21 @@ static vec3s vertices_centered(vertices_t* vertices);
 static void load_events(void);
 static void load_scenarios(void);
 
-void bin_load_global_data(void)
+void fft_init(void)
 {
+    g.bin = fopen("../fft.bin", "rb");
+    assert(g.bin != NULL);
+    g.bin_loaded = true;
+
     load_events();
     load_scenarios();
 }
 
-void bin_free_global_data(void)
+void fft_shutdown(void)
 {
     free(g.fft.scenarios);
     free(g.fft.events);
+    fclose(g.bin);
 }
 
 static void load_events(void)
