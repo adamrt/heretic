@@ -22,30 +22,32 @@ game_t g = {
 };
 
 // Forward declarations
-void data_init(void);
+void game_data_init(void);
 static void time_init(void);
 static void time_update(void);
+
 static void state_update(void);
-static void scenario_prev(void);
-static void scenario_next(void);
+
 static void map_load(int num, map_state_t);
 static void map_unload(void);
+static void map_prev(void);
+static void map_next(void);
 
 void game_init(void)
 {
     time_init();
-    gfx_init();
     camera_init();
+    gfx_init();
     gui_init();
 
 #if !defined(__EMSCRIPTEN__)
-    data_init();
+    game_data_init();
 #endif
 }
 
-// data_init is called during game_init() for native builds, and after file
+// game_data_init is called during game_init() for native builds, and after file
 // upload on a wasm build.
-void data_init(void)
+void game_data_init(void)
 {
     g.bin = fopen("../fft.bin", "rb");
     assert(g.bin != NULL);
@@ -74,10 +76,10 @@ void game_input(const sapp_event* event)
             sapp_request_quit();
             break;
         case SAPP_KEYCODE_K:
-            scenario_next();
+            map_next();
             break;
         case SAPP_KEYCODE_J:
-            scenario_prev();
+            map_prev();
             break;
         case SAPP_KEYCODE_LEFT:
             camera_left();
@@ -133,15 +135,15 @@ void game_update(void)
     gfx_update();
 }
 
-void game_load_scenario(int num)
+void game_shutdown(void)
 {
-    scenario_t scenario = g.fft.scenarios[num];
-    map_state_t scenario_state = {
-        .time = scenario.time,
-        .weather = scenario.weather,
-        .layout = 0,
-    };
-    map_load(scenario.map_id, scenario_state);
+    fclose(g.bin);
+    map_unload();
+
+    bin_free_global_data();
+
+    gui_shutdown();
+    gfx_shutdown();
 }
 
 void game_load_map(int num)
@@ -154,15 +156,35 @@ void game_load_map_state(int num, map_state_t map_state)
     map_load(num, map_state);
 }
 
-void game_shutdown(void)
+void game_load_scenario(int num)
 {
-    fclose(g.bin);
-    map_unload();
+    scenario_t scenario = g.fft.scenarios[num];
+    map_state_t scenario_state = {
+        .time = scenario.time,
+        .weather = scenario.weather,
+        .layout = 0,
+    };
+    map_load(scenario.map_id, scenario_state);
+}
 
-    bin_free_global_data();
+static void time_init(void)
+{
+    stm_setup();
+    g.time.last_time = stm_now();
+}
 
-    gui_shutdown();
-    gfx_shutdown();
+static void time_update(void)
+{
+    g.time.frame_count++;
+    uint64_t current_time = stm_now();
+    uint64_t elapsed_ticks = stm_diff(current_time, g.time.last_time);
+    double elapsed_seconds = stm_sec(elapsed_ticks);
+
+    if (elapsed_seconds >= 1.0) {
+        g.time.fps = g.time.frame_count / (float)elapsed_seconds;
+        g.time.frame_count = 0;
+        g.time.last_time = current_time;
+    }
 }
 
 static void state_update(void)
@@ -171,40 +193,6 @@ static void state_update(void)
         g.scene.model.transform.translation = g.scene.map->centered_translation;
     } else {
         g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-    }
-}
-
-static void scenario_next(void)
-{
-    if (g.mode == MODE_SCENARIO) {
-        g.scene.current_scenario++;
-        game_load_scenario(g.scene.current_scenario);
-    } else if (g.mode == MODE_MAP) {
-        g.scene.current_map++;
-        while (!map_list[g.scene.current_map].valid) {
-            g.scene.current_map++;
-            if (g.scene.current_map > 125) {
-                g.scene.current_map = 0;
-            }
-        }
-        game_load_map(g.scene.current_map);
-    }
-}
-
-static void scenario_prev(void)
-{
-    if (g.mode == MODE_SCENARIO) {
-        g.scene.current_scenario--;
-        game_load_scenario(g.scene.current_scenario);
-    } else if (g.mode == MODE_MAP) {
-        g.scene.current_map--;
-        while (!map_list[g.scene.current_map].valid) {
-            g.scene.current_map--;
-            if (g.scene.current_map < 0) {
-                g.scene.current_map = 125;
-            }
-        }
-        game_load_map(g.scene.current_map);
     }
 }
 
@@ -266,23 +254,37 @@ static void map_unload(void)
         free(g.scene.map);
     }
 }
-static void time_init(void)
-{
 
-    stm_setup();
-    g.time.last_time = stm_now();
+static void map_next(void)
+{
+    if (g.mode == MODE_SCENARIO) {
+        g.scene.current_scenario++;
+        game_load_scenario(g.scene.current_scenario);
+    } else if (g.mode == MODE_MAP) {
+        g.scene.current_map++;
+        while (!map_list[g.scene.current_map].valid) {
+            g.scene.current_map++;
+            if (g.scene.current_map > 125) {
+                g.scene.current_map = 0;
+            }
+        }
+        game_load_map(g.scene.current_map);
+    }
 }
 
-static void time_update(void)
+static void map_prev(void)
 {
-    g.time.frame_count++;
-    uint64_t current_time = stm_now();
-    uint64_t elapsed_ticks = stm_diff(current_time, g.time.last_time);
-    double elapsed_seconds = stm_sec(elapsed_ticks);
-
-    if (elapsed_seconds >= 1.0) {
-        g.time.fps = g.time.frame_count / (float)elapsed_seconds;
-        g.time.frame_count = 0;
-        g.time.last_time = current_time;
+    if (g.mode == MODE_SCENARIO) {
+        g.scene.current_scenario--;
+        game_load_scenario(g.scene.current_scenario);
+    } else if (g.mode == MODE_MAP) {
+        g.scene.current_map--;
+        while (!map_list[g.scene.current_map].valid) {
+            g.scene.current_map--;
+            if (g.scene.current_map < 0) {
+                g.scene.current_map = 125;
+            }
+        }
+        game_load_map(g.scene.current_map);
     }
 }
