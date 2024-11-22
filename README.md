@@ -1,18 +1,22 @@
-# Starter Kit for Experiments
+# Heretic: A Final Fantasy Tactics Toolkit
 
-This starter kit is to get you up and running with a cross platform sokol application.
+Heretic is a set of tools for looking at the contents of the Final Fantasy
+Tactics PSX image.
 
-It uses c99, sokol, glm.
+It uses c99, sokol, nuklear, cglm.
 
 # Build
+
+**Required**: The PSX US Final Final Fantasy Tactics image
+    - serial: SCUS-94221 
+    - shasum: 2b5d4db3229cdc7bbd0358b95fcba33dddae8bba
 
 The file `fft.bin` (PSX BIN) must be placed in the project folder.
 
 - `./build.sh native` for Mac (Metal), Linux (OpenGL) 
 - `./build.sh wasm` for the browser (WebGPU)
 
-This will fetch `sokol-shdc` for your platform, compile the shader for your
-backend, build the app and run it.
+This will fetch dependencies, compile shaders and build for your platform and graphics API.
 
 ### Thanks
 
