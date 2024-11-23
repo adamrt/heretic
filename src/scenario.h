@@ -23,6 +23,6 @@ typedef struct {
 
 void load_scenarios(void);
 
-extern scenario_desc_t fft_scenario_list[];
+extern scenario_desc_t scenario_list[];
 
 #endif // SCENARIO_H_

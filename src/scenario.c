@@ -47,7 +47,7 @@ void load_scenarios(void)
 
 // Thanks to FFTPAtcher for the scenario name list.
 // https://github.com/Glain/FFTPatcher/blob/master/EntryEdit/EntryData/PSX/ScenarioNames.xml
-scenario_desc_t fft_scenario_list[500] = {
+scenario_desc_t scenario_list[500] = {
     { 0x0000, "Unusable" },
     { 0x0001, "Orbonne Prayer (Setup)" },
     { 0x0002, "Orbonne Prayer" },

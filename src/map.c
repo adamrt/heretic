@@ -2,7 +2,7 @@
 #include "game.h"
 #include "texture.h"
 
-void fft_read_map(int num, map_state_t map_state, map_t* map_out)
+void read_map(int num, map_state_t map_state, map_t* map_out)
 {
     map_data_t* map_data = calloc(1, sizeof(map_data_t));
     read_map_data(num, map_data);
@@ -18,7 +18,7 @@ void fft_read_map(int num, map_state_t map_state, map_t* map_out)
 
     for (int i = 0; i < map_data->alt_mesh_count; i++) {
         mesh_t alt_mesh = map_data->alt_meshes[i];
-        if (alt_mesh.valid && fft_map_state_eq(alt_mesh.map_state, map_state)) {
+        if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
             merge_meshes(&map_out->mesh, &alt_mesh);
             break;
         }
@@ -27,11 +27,11 @@ void fft_read_map(int num, map_state_t map_state, map_t* map_out)
     for (int i = 0; i < map_data->texture_count; i++) {
         texture_t texture = map_data->textures[i];
 
-        if (texture.valid && fft_map_state_eq(texture.map_state, map_state)) {
+        if (texture.valid && map_state_eq(texture.map_state, map_state)) {
             map_out->texture = texture;
             break;
         }
-        if (texture.valid && fft_map_state_default(texture.map_state)) {
+        if (texture.valid && map_state_default(texture.map_state)) {
             if (!map_out->texture.valid) {
                 map_out->texture = texture;
             }
@@ -47,7 +47,7 @@ void fft_read_map(int num, map_state_t map_state, map_t* map_out)
 
 void read_map_data(int num, map_data_t* map_data_out)
 {
-    file_t gns_file = read_file(g.bin, fft_map_list[num].sector, GNS_FILE_MAX_SIZE);
+    file_t gns_file = read_file(g.bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
     map_data_out->record_count = read_records(&gns_file, map_data_out->records);
 
     free(gns_file.data);
@@ -65,7 +65,7 @@ void read_map_data(int num, map_data_t* map_data_out)
         }
         case FILETYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
-            assert(fft_map_state_default(record.state));
+            assert(map_state_default(record.state));
 
             map_data_out->primary_mesh = read_mesh(&file);
             assert(map_data_out->primary_mesh.valid);
@@ -80,7 +80,7 @@ void read_map_data(int num, map_data_t* map_data_out)
 
         case FILETYPE_MESH_OVERRIDE: {
             // If there is an override file, there is only one and it uses default state.
-            assert(fft_map_state_default(record.state));
+            assert(map_state_default(record.state));
 
             map_data_out->override_mesh = read_mesh(&file);
             break;
@@ -95,7 +95,7 @@ void read_map_data(int num, map_data_t* map_data_out)
     }
 }
 
-map_desc_t fft_map_list[128] = {
+map_desc_t map_list[128] = {
     { 0, 10026, false, "Unknown" }, // No texture
     { 1, 11304, true, "At Main Gate of Igros Castle" },
     { 2, 12656, true, "Back Gate of Lesalia Castle" },

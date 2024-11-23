@@ -41,7 +41,7 @@ int read_records(file_t* f, record_t* out_records)
     return count;
 }
 
-void fft_time_str(time_e value, char out[static 8])
+void time_str(time_e value, char out[static 8])
 {
     switch (value) {
     case TIME_DAY:
@@ -56,7 +56,7 @@ void fft_time_str(time_e value, char out[static 8])
     }
 }
 
-void fft_weather_str(weather_e value, char out[static 12])
+void weather_str(weather_e value, char out[static 12])
 {
     switch (value) {
     case WEATHER_NONE:
@@ -80,7 +80,7 @@ void fft_weather_str(weather_e value, char out[static 12])
     }
 }
 
-void fft_filetype_str(filetype_e value, char* out)
+void filetype_str(filetype_e value, char* out)
 {
     switch (value) {
     case FILETYPE_MESH_PRIMARY:
@@ -104,12 +104,12 @@ void fft_filetype_str(filetype_e value, char* out)
     }
 }
 
-bool fft_map_state_default(map_state_t a)
+bool map_state_default(map_state_t a)
 {
     return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
 }
 
-bool fft_map_state_eq(map_state_t a, map_state_t b)
+bool map_state_eq(map_state_t a, map_state_t b)
 {
     return a.time == b.time && a.weather == b.weather && a.layout == b.layout;
 }
@@ -117,7 +117,7 @@ bool fft_map_state_eq(map_state_t a, map_state_t b)
 bool record_map_state_unique(record_t* unique_records, int unique_record_count, record_t record)
 {
     for (int i = 0; i < unique_record_count; i++) {
-        if (fft_map_state_eq(unique_records[i].state, record.state)) {
+        if (map_state_eq(unique_records[i].state, record.state)) {
             return false;
         }
     }

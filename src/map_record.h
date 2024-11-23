@@ -60,12 +60,12 @@ static map_state_t default_map_state = (map_state_t) {
 record_t read_record(file_t*);
 int read_records(file_t* f, record_t* out_records);
 
-bool fft_map_state_eq(map_state_t, map_state_t);
-bool fft_map_state_default(map_state_t);
+bool map_state_eq(map_state_t, map_state_t);
+bool map_state_default(map_state_t);
 bool record_map_state_unique(record_t*, int, record_t);
 
-void fft_time_str(time_e, char[static 8]);
-void fft_weather_str(weather_e, char[static 12]);
-void fft_filetype_str(filetype_e, char[static 12]);
+void time_str(time_e, char[static 8]);
+void weather_str(weather_e, char[static 12]);
+void filetype_str(filetype_e, char[static 12]);
 
 #endif // MAP_RECORD_H_
