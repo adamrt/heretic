@@ -217,6 +217,28 @@ static void draw_section_lights(struct nk_context* ctx)
     }
 }
 
+static void draw_section_misc(struct nk_context* ctx)
+{
+    if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
+        nk_layout_row_dynamic(ctx, 25, 2);
+        nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
+        nk_checkbox_label(ctx, "Centered", &g.scene.center_model);
+        nk_layout_row_static(ctx, 20, 40, 5);
+        nk_label(ctx, "Scale", NK_TEXT_LEFT);
+
+        int prev_scale_divisor = gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "1", gfx.offscreen.scale_divisor == 1) ? 1 : gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "2", gfx.offscreen.scale_divisor == 2) ? 2 : gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "3", gfx.offscreen.scale_divisor == 3) ? 3 : gfx.offscreen.scale_divisor;
+        gfx.offscreen.scale_divisor = nk_option_label(ctx, "4", gfx.offscreen.scale_divisor == 4) ? 4 : gfx.offscreen.scale_divisor;
+
+        if (prev_scale_divisor != gfx.offscreen.scale_divisor) {
+            gfx_scale_change();
+        }
+        nk_tree_pop(ctx);
+    }
+}
+
 static void draw_window_scenarios(struct nk_context* ctx)
 {
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
@@ -239,28 +261,6 @@ static void draw_window_scenarios(struct nk_context* ctx)
         }
     }
     nk_end(ctx);
-}
-
-static void draw_section_misc(struct nk_context* ctx)
-{
-    if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
-        nk_layout_row_dynamic(ctx, 25, 2);
-        nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
-        nk_checkbox_label(ctx, "Centered", &g.scene.center_model);
-        nk_layout_row_static(ctx, 20, 40, 5);
-        nk_label(ctx, "Scale", NK_TEXT_LEFT);
-
-        int prev_scale_divisor = gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "1", gfx.offscreen.scale_divisor == 1) ? 1 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "2", gfx.offscreen.scale_divisor == 2) ? 2 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "3", gfx.offscreen.scale_divisor == 3) ? 3 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "4", gfx.offscreen.scale_divisor == 4) ? 4 : gfx.offscreen.scale_divisor;
-
-        if (prev_scale_divisor != gfx.offscreen.scale_divisor) {
-            gfx_scale_change();
-        }
-        nk_tree_pop(ctx);
-    }
 }
 
 static void draw_dropdown_map(struct nk_context* ctx)
