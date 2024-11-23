@@ -104,15 +104,15 @@ void main() {
 @end
 
 @fs quad_fs
-layout(binding=0) uniform texture2D tex;
-layout(binding=0) uniform sampler smp;
+layout(binding=0) uniform texture2D u_texture;
+layout(binding=0) uniform sampler u_sampler;
 
 in vec2 v_uv;
 
 out vec4 frag_color;
 
 void main() {
-    frag_color = texture(sampler2D(tex, smp), v_uv);
+    frag_color = texture(sampler2D(u_texture, u_sampler), v_uv);
 }
 @end
 

@@ -100,8 +100,8 @@ void gfx_scale_change(void)
         .label = "offscreen-pass",
     };
 
-    gfx.display.bindings.images[IMG_tex] = gfx.color_image;
-    gfx.display.bindings.samplers[SMP_smp] = gfx.sampler;
+    gfx.display.bindings.images[IMG_u_texture] = gfx.color_image;
+    gfx.display.bindings.samplers[SMP_u_sampler] = gfx.sampler;
 }
 
 void gfx_shutdown(void)
@@ -292,8 +292,8 @@ static void init_display(void)
     gfx.display.bindings = (sg_bindings) {
         .vertex_buffers[0] = quad_vbuf,
         .index_buffer = quad_ibuf,
-        .images[IMG_tex] = gfx.color_image,
-        .samplers[SMP_smp] = gfx.sampler,
+        .images[IMG_u_texture] = gfx.color_image,
+        .samplers[SMP_u_sampler] = gfx.sampler,
     };
 }
 
