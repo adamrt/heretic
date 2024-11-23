@@ -55,9 +55,6 @@ void scene_load_map(int num, map_state_t map_state)
 
     model_t model = {
         .transform.scale = { { 1.0f, 1.0f, 1.0f } },
-        .texture = texture,
-        .palette = palette,
-        .vbuffer = vbuf,
         .bindings.vertex_buffers[0] = vbuf,
         .bindings.samplers[SMP_u_sampler] = gfx.sampler,
         .bindings.images = {
@@ -129,9 +126,9 @@ static void scene_map_unload(void)
             free(g.scene.map->map_data);
         }
 
-        sg_destroy_image(g.scene.model.texture);
-        sg_destroy_image(g.scene.model.palette);
-        sg_destroy_buffer(g.scene.model.vbuffer);
+        sg_destroy_image(g.scene.model.bindings.images[IMG_u_texture]);
+        sg_destroy_image(g.scene.model.bindings.images[IMG_u_palette]);
+        sg_destroy_buffer(g.scene.model.bindings.vertex_buffers[0]);
 
         free(g.scene.map);
     }

@@ -20,11 +20,7 @@ typedef struct {
 
 // model_t represents a renderable model
 typedef struct {
-    sg_image texture;
-    sg_image palette;
-    sg_buffer vbuffer;
     sg_bindings bindings;
-
     transform_t transform;
 } model_t;
 
