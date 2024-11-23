@@ -7,10 +7,22 @@
 
 #define SENSITIVITY (2.0f)
 
-#define CAM_AZM_SE (45.0f)
-#define CAM_AZM_NE (135.0f)
-#define CAM_AZM_NW (225.0f)
-#define CAM_AZM_SW (315.0f)
+#define DIR_S   (0.0f)
+#define DIR_W   (270.0f)
+#define DIR_N   (180.0f)
+#define DIR_E   (90.0f)
+#define DIR_SW  (315.0f)
+#define DIR_NW  (225.0f)
+#define DIR_NE  (135.0f)
+#define DIR_SE  (45.0f)
+#define DIR_SSW (337.5f)
+#define DIR_WSW (292.5f)
+#define DIR_WNW (247.5f)
+#define DIR_NNW (202.5f)
+#define DIR_NNE (157.5f)
+#define DIR_ENE (112.5f)
+#define DIR_ESE (67.5f)
+#define DIR_SSE (22.5f)
 
 #define CAM_ELV_MIN (-89.1)
 #define CAM_ELV_MAX (89.1)
@@ -51,7 +63,7 @@ void camera_init(void)
 {
     g.cam.target = glms_vec3_zero();
 
-    g.cam.azimuth = CAM_AZM_SE;
+    g.cam.azimuth = DIR_SE;
     g.cam.elevation = CAM_ELV_LOW;
 
     g.cam.distance = 256.0f;
@@ -117,6 +129,62 @@ void camera_right(void) { cam_azimuth(TRANS_DIR_RIGHT); }
 void camera_up(void) { cam_elevation(TRANS_DIR_UP); }
 void camera_down(void) { cam_elevation(TRANS_DIR_DOWN); }
 
+cardinal_e camera_cardinal(void)
+{
+    float azimuth = g.cam.azimuth;
+    int corner_width = 15;
+
+    if (azimuth > 345.0f || azimuth < 15.0f) {
+        return CARDINAL_S;
+    }
+    if (fabs(azimuth - DIR_W) < corner_width) {
+        return CARDINAL_W;
+    }
+    if (fabs(azimuth - DIR_N) < corner_width) {
+        return CARDINAL_N;
+    }
+    if (fabs(azimuth - DIR_E) < corner_width) {
+        return CARDINAL_E;
+    }
+    if (fabs(azimuth - DIR_SW) < corner_width) {
+        return CARDINAL_SW;
+    }
+    if (fabs(azimuth - DIR_NW) < corner_width) {
+        return CARDINAL_NW;
+    }
+    if (fabs(azimuth - DIR_NE) < corner_width) {
+        return CARDINAL_NE;
+    }
+    if (fabs(azimuth - DIR_SE) < corner_width) {
+        return CARDINAL_SE;
+    }
+    if (fabs(azimuth - DIR_SSW) < corner_width) {
+        return CARDINAL_SSW;
+    }
+    if (fabs(azimuth - DIR_WSW) < corner_width) {
+        return CARDINAL_WSW;
+    }
+    if (fabs(azimuth - DIR_WNW) < corner_width) {
+        return CARDINAL_WNW;
+    }
+    if (fabs(azimuth - DIR_NNW) < corner_width) {
+        return CARDINAL_NNW;
+    }
+    if (fabs(azimuth - DIR_NNE) < corner_width) {
+        return CARDINAL_NNE;
+    }
+    if (fabs(azimuth - DIR_ENE) < corner_width) {
+        return CARDINAL_ENE;
+    }
+    if (fabs(azimuth - DIR_ESE) < corner_width) {
+        return CARDINAL_ESE;
+    }
+    if (fabs(azimuth - DIR_SSE) < corner_width) {
+        return CARDINAL_SSE;
+    }
+    return CARDINAL_UNKNOWN;
+}
+
 // Move camera to the next intercardinal direction to the left.
 //
 // Compensate for the orbital camera free movement by moving the camera to the
@@ -136,14 +204,14 @@ static void cam_azimuth(trans_dir_e dir)
     float degrees = g.cam.azimuth;
     float end_degrees = move_left ? degrees - 90.0f : degrees + 90.0f;
 
-    if (degrees > CAM_AZM_SE && degrees < CAM_AZM_NE) {
-        end_degrees = move_left ? CAM_AZM_SE : CAM_AZM_NE;
-    } else if (degrees > CAM_AZM_NE && degrees < CAM_AZM_NW) {
-        end_degrees = move_left ? CAM_AZM_NE : CAM_AZM_NW;
-    } else if (degrees > CAM_AZM_NW && degrees < CAM_AZM_SW) {
-        end_degrees = move_left ? CAM_AZM_NW : CAM_AZM_SW;
-    } else if (degrees > CAM_AZM_SW || degrees < CAM_AZM_SE) {
-        end_degrees = move_left ? CAM_AZM_SW : CAM_AZM_SE;
+    if (degrees > DIR_SE && degrees < DIR_NE) {
+        end_degrees = move_left ? DIR_SE : DIR_NE;
+    } else if (degrees > DIR_NE && degrees < DIR_NW) {
+        end_degrees = move_left ? DIR_NE : DIR_NW;
+    } else if (degrees > DIR_NW && degrees < DIR_SW) {
+        end_degrees = move_left ? DIR_NW : DIR_SW;
+    } else if (degrees > DIR_SW || degrees < DIR_SE) {
+        end_degrees = move_left ? DIR_SW : DIR_SE;
 
         // Handle 360 wrap around
         if (move_left && degrees < 180.0f) {
@@ -223,4 +291,45 @@ static void cam_process_transitions(void)
     }
 
     transition.current_frame++;
+}
+
+const char* camera_cardinal_str(void)
+{
+    cardinal_e dir = camera_cardinal();
+    switch (dir) {
+    case CARDINAL_S:
+        return "South";
+    case CARDINAL_W:
+        return "West";
+    case CARDINAL_N:
+        return "North";
+    case CARDINAL_E:
+        return "East";
+    case CARDINAL_SW:
+        return "Southwest";
+    case CARDINAL_NW:
+        return "Northwest";
+    case CARDINAL_NE:
+        return "Northeast";
+    case CARDINAL_SE:
+        return "Southeast";
+    case CARDINAL_SSW:
+        return "South-Southwest";
+    case CARDINAL_WSW:
+        return "West-Southwest";
+    case CARDINAL_WNW:
+        return "West-Northwest";
+    case CARDINAL_NNW:
+        return "North-Northwest";
+    case CARDINAL_NNE:
+        return "North-Northeast";
+    case CARDINAL_ENE:
+        return "East-Northeast";
+    case CARDINAL_ESE:
+        return "East-Southeast";
+    case CARDINAL_SSE:
+        return "South-Southeast";
+    default:
+        return "Unknown";
+    }
 }

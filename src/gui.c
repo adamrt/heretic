@@ -114,6 +114,9 @@ static void draw_section_camera(struct nk_context* ctx)
         nk_checkbox_label(ctx, "Perspective", &g.cam.use_perspective);
 
         char buffer[64];
+        snprintf(buffer, sizeof(buffer), "Cardinal: %s", camera_cardinal_str());
+        nk_label(ctx, buffer, NK_TEXT_LEFT);
+
         snprintf(buffer, sizeof(buffer), "Azimuth Degrees: %f", g.cam.azimuth);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
 
