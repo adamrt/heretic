@@ -1,11 +1,4 @@
-// This file lets us compile sokol and nuklear as a shared obj
-//
-// sokol_nuklear.h is heavily tied to sokol, so these aren't split into separate
-// files.
-
-// Specify the backend (SOKOL_GLCORE, SOKOL_METAL, etc) in CMakeLists.txt.
-
-#define SOKOL_IMPL
+// This file lets us compile nuklear as a shared obj
 #if defined(_MSC_VER)
 #    define SOKOL_D3D11
 #elif defined(__EMSCRIPTEN__)
@@ -17,16 +10,6 @@
 #    define SOKOL_GLCORE
 #endif
 
-#define SOKOL_IMPL
-#include "sokol_app.h"
-#include "sokol_audio.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_log.h"
-#include "sokol_time.h"
-
-#define NK_IMPLEMENTATION
-
 // If these are changed, update the gui.c file as well.
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_DEFAULT_FONT
@@ -37,6 +20,11 @@
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 
-#include "nuklear/nuklear.h"
+#define NK_IMPLEMENTATION
+#include "nuklear.h"
+
 #define SOKOL_NUKLEAR_IMPL
+#include "sokol_app.h"
+#include "sokol_gfx.h"
+#include "sokol_log.h"
 #include "sokol_nuklear.h"

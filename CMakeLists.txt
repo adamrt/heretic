@@ -22,26 +22,26 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(Threads REQUIRED)
 endif()
 
-# Enable compile commands export for tools like clang-tidy
+set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/nuklear)
+set(SHARED_MAC_COMPILE_OPTIONS -x objective-c)
+set(SHARED_MAC_FRAMEWORKS "-framework QuartzCore" "-framework Cocoa" "-framework MetalKit" "-framework Metal" "-framework OpenGL" "-framework AudioToolbox")
+set(SHARED_LINUX_LIBS X11 Xi Xcursor GL asound dl m Threads::Threads)
 
-# Add Sokol and nuklear libraries
-add_library(libs STATIC lib/libs.c)
-target_include_directories(libs PUBLIC lib/sokol lib/sokol/util)
+function(add_shared_library lib_name source_file)
+    add_library(${lib_name} STATIC ${source_file})
+    target_include_directories(${lib_name} PUBLIC ${SHARED_INCLUDE_DIRS})
 
-if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    # Compile libs.c as Objective-C
-    target_compile_options(libs PRIVATE -x objective-c)
-    target_link_libraries(libs
-        "-framework QuartzCore"
-        "-framework Cocoa"
-        "-framework MetalKit"
-        "-framework Metal"
-        "-framework OpenGL"
-        "-framework AudioToolbox")
-elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
-    # Linux specific settings
-    target_link_libraries(libs INTERFACE X11 Xi Xcursor GL asound dl m Threads::Threads)
-endif()
+    if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+        target_compile_options(${lib_name} PRIVATE ${SHARED_MAC_COMPILE_OPTIONS})
+        target_link_libraries(${lib_name} ${SHARED_MAC_FRAMEWORKS})
+    elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
+        target_link_libraries(${lib_name} INTERFACE ${SHARED_LINUX_LIBS})
+    endif()
+endfunction()
+
+# Add libraries using the helper function
+add_shared_library(sokol lib/sokol.c)
+add_shared_library(nuklear lib/nuklear.c)
 
 # Add Heretic executable
 add_executable(heretic src/main.c src/bin.c src/camera.c src/fft.c src/game.c src/gui.c src/gfx.c src/scene.c)
@@ -53,7 +53,7 @@ add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
 target_include_directories(heretic PUBLIC lib/nuklear)
 
 # Link sokol, nuklear and cglm library
-target_link_libraries(heretic libs cglm_headers)
+target_link_libraries(heretic sokol nuklear cglm_headers)
 
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
