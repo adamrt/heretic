@@ -100,8 +100,8 @@ void gfx_scale_change(void)
         .label = "offscreen-pass",
     };
 
-    gfx.display.bindings.fs.images[SLOT_tex] = gfx.color_image;
-    gfx.display.bindings.fs.samplers[SLOT_smp] = gfx.sampler;
+    gfx.display.bindings.images[IMG_tex] = gfx.color_image;
+    gfx.display.bindings.samplers[SMP_smp] = gfx.sampler;
 }
 
 void gfx_shutdown(void)
@@ -173,11 +173,11 @@ static void init_offscreen(void)
     gfx.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .attrs = {
-                [ATTR_standard_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_standard_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_standard_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
-                [ATTR_standard_vs_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,
-                [ATTR_standard_vs_a_is_textured].format = SG_VERTEXFORMAT_FLOAT,
+                [ATTR_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_standard_a_normal].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_standard_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_standard_a_palette_index].format = SG_VERTEXFORMAT_FLOAT,
+                [ATTR_standard_a_is_textured].format = SG_VERTEXFORMAT_FLOAT,
             },
         },
         .shader = sg_make_shader(standard_shader_desc(sg_query_backend())),
@@ -200,7 +200,7 @@ static void init_background(void)
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
-                [ATTR_background_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_background_a_position].format = SG_VERTEXFORMAT_FLOAT3,
             },
         },
         .shader = sg_make_shader(background_shader_desc(sg_query_backend())),
@@ -250,10 +250,10 @@ static void init_display(void)
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
-                [ATTR_quad_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_quad_vs_a_position].offset = offsetof(vertex_t, position),
-                [ATTR_quad_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
-                [ATTR_quad_vs_a_uv].offset = offsetof(vertex_t, uv),
+                [ATTR_quad_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_quad_a_position].offset = offsetof(vertex_t, position),
+                [ATTR_quad_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_quad_a_uv].offset = offsetof(vertex_t, uv),
             },
         },
         .shader = sg_make_shader(quad_shader_desc(sg_query_backend())),
@@ -292,10 +292,8 @@ static void init_display(void)
     gfx.display.bindings = (sg_bindings) {
         .vertex_buffers[0] = quad_vbuf,
         .index_buffer = quad_ibuf,
-        .fs = {
-            .images[SLOT_tex] = gfx.color_image,
-            .samplers[SLOT_smp] = gfx.sampler,
-        }
+        .images[IMG_tex] = gfx.color_image,
+        .samplers[SMP_smp] = gfx.sampler,
     };
 }
 
@@ -329,8 +327,8 @@ static void frame_offscreen(void)
 
     sg_apply_pipeline(gfx.offscreen.pipeline);
     sg_apply_bindings(&g.scene.model.bindings);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &SG_RANGE(vs_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &SG_RANGE(fs_params));
+    sg_apply_uniforms(0, &SG_RANGE(vs_params));
+    sg_apply_uniforms(1, &SG_RANGE(fs_params));
     sg_draw(0, g.scene.map->mesh.geometry.vertex_count, 1);
 }
 
@@ -345,7 +343,7 @@ static void frame_background(void)
 
     sg_apply_pipeline(gfx.background.pipeline);
     sg_apply_bindings(&gfx.background.bindings);
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_background_params, &SG_RANGE(fs_params));
+    sg_apply_uniforms(0, &SG_RANGE(fs_params));
     sg_draw(0, 6, 1);
 }
 

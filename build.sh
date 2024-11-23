@@ -44,7 +44,7 @@ if [[ ! -f "sokol-shdc" ]]; then
         Darwin) OSPATH="osx_arm64" ;;
         *) echo "Unsupported OS: $OS" && exit 1 ;;
     esac
-    wget -q https://github.com/floooh/sokol-tools-bin/raw/f1af4529746b804d6c79d5a36c333aec489fab27/bin/${OSPATH}/sokol-shdc
+    wget -q https://github.com/floooh/sokol-tools-bin/raw/8582d2a57ebd10ef629d269e98ef7e97ab0ecf98/bin/${OSPATH}/sokol-shdc
     chmod +x sokol-shdc
     echo "sokol-shdc downloaded and made executable."
 fi

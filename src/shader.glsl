@@ -10,7 +10,7 @@
 // This is necessary because the clip space is different in Metal.
 @msl_options fixup_clipspace
 
-uniform vs_standard_params {
+layout(binding=0) uniform vs_standard_params {
     mat4 u_proj;
     mat4 u_view;
     mat4 u_model;
@@ -42,7 +42,7 @@ void main() {
 @end
 
 @fs standard_fs
-uniform fs_standard_params {
+layout(binding=1) uniform fs_standard_params {
     vec4  u_ambient_color;
     float u_ambient_strength;
     vec4  u_light_directions[10];
@@ -50,9 +50,9 @@ uniform fs_standard_params {
     int   u_light_count;
 };
 
-uniform texture2D u_texture;
-uniform texture2D u_palette;
-uniform sampler u_sampler;
+layout(binding=0) uniform texture2D u_texture;
+layout(binding=1) uniform texture2D u_palette;
+layout(binding=0) uniform sampler u_sampler;
 
 in vec4 v_position;
 in vec3 v_normal;
@@ -104,8 +104,8 @@ void main() {
 @end
 
 @fs quad_fs
-uniform texture2D tex;
-uniform sampler smp;
+layout(binding=0) uniform texture2D tex;
+layout(binding=0) uniform sampler smp;
 
 in vec2 v_uv;
 
@@ -128,7 +128,7 @@ void main() {
 @end
 
 @fs background_fs
-uniform fs_background_params {
+layout(binding=0) uniform fs_background_params {
     vec4 u_top_color;
     vec4 u_bottom_color;
 };

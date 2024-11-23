@@ -59,10 +59,10 @@ void scene_load_map(int num, map_state_t map_state)
         .palette = palette,
         .vbuffer = vbuf,
         .bindings.vertex_buffers[0] = vbuf,
-        .bindings.fs = {
-            .images[SLOT_u_texture] = texture,
-            .images[SLOT_u_palette] = palette,
-            .samplers[SLOT_u_sampler] = gfx.sampler,
+        .bindings.samplers[SMP_u_sampler] = gfx.sampler,
+        .bindings.images = {
+            [IMG_u_texture] = texture,
+            [IMG_u_palette] = palette,
         },
     };
 
