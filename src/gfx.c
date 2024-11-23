@@ -312,7 +312,7 @@ static void frame_offscreen(void)
     fs_params.u_ambient_strength = g.scene.map->mesh.lighting.ambient_strength;
 
     int light_count = 0;
-    for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
+    for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
 
         light_t light = g.scene.map->mesh.lighting.lights[i];
         if (!light.valid) {

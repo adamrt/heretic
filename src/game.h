@@ -5,7 +5,8 @@
 #include "sokol_time.h"
 
 #include "camera.h"
-#include "fft.h"
+#include "event.h"
+#include "scenario.h"
 #include "scene.h"
 
 void game_init(void);

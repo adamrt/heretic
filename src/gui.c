@@ -15,10 +15,10 @@
 #include "util/sokol_nuklear.h"
 
 #include "camera.h"
-#include "fft.h"
 #include "game.h"
 #include "gfx.h"
 #include "gui.h"
+#include "scenario.h"
 
 static struct {
     nk_bool show_scenarios;
@@ -171,7 +171,7 @@ static void draw_section_lights(struct nk_context* ctx)
             *ambient_color = (vec4s) { { ambient_color_nk.r, ambient_color_nk.g, ambient_color_nk.b, ambient_color_nk.a } };
             nk_combo_end(ctx);
         }
-        for (int i = 0; i < MESH_MAX_LIGHTS; i++) {
+        for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
             nk_layout_row_dynamic(ctx, 25, 1);
             light_t* light = &g.scene.map->mesh.lighting.lights[i];
             if (!light->valid) {
@@ -300,7 +300,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
     record_t unique_records[GNS_RECORD_MAX_NUM];
     int unique_record_count = 0;
     for (int i = 0; i < g.scene.map->map_data->record_count; i++) {
-        if (fft_map_state_unique(unique_records, unique_record_count, records[i])) {
+        if (record_map_state_unique(unique_records, unique_record_count, records[i])) {
             unique_records[unique_record_count++] = records[i];
         }
     }

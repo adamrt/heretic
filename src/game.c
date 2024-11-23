@@ -1,8 +1,9 @@
 #include "game.h"
 #include "camera.h"
-#include "fft.h"
+#include "event.h"
 #include "gfx.h"
 #include "gui.h"
+#include "scenario.h"
 
 #if defined(__EMSCRIPTEN__)
 #    include <emscripten/emscripten.h>
@@ -21,8 +22,21 @@ static void time_update(void);
 // upload on a wasm build.
 void game_data_init(void)
 {
-    fft_init();
+    g.bin = fopen("../fft.bin", "rb");
+    assert(g.bin != NULL);
+    g.bin_loaded = true;
+
+    load_events();
+    load_scenarios();
+
     scene_init();
+}
+
+void data_shutdown(void)
+{
+    free(g.fft.scenarios);
+    free(g.fft.events);
+    fclose(g.bin);
 }
 
 void game_init(void)
@@ -118,7 +132,7 @@ void game_update(void)
 void game_shutdown(void)
 {
     scene_shutdown();
-    fft_shutdown();
+    data_shutdown();
     gui_shutdown();
     gfx_shutdown();
 }

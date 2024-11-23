@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 
-#include "fft.h"
 #include "gfx.h"
+#include "map.h"
 
 typedef struct {
     map_t* map;

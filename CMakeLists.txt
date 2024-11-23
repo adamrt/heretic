@@ -44,7 +44,21 @@ add_shared_library(sokol lib/sokol.c)
 add_shared_library(nuklear lib/nuklear.c)
 
 # Add Heretic executable
-add_executable(heretic src/main.c src/bin.c src/camera.c src/fft.c src/game.c src/gui.c src/gfx.c src/scene.c)
+add_executable(heretic
+    src/main.c
+    src/bin.c
+    src/camera.c
+    src/event.c
+    src/game.c
+    src/gfx.c
+    src/gui.c
+    src/lighting.c
+    src/map.c
+    src/map_record.c
+    src/mesh.c
+    src/scenario.c
+    src/scene.c
+    src/texture.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)
