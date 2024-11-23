@@ -80,7 +80,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
         -sMALLOC=emmalloc
         -sTOTAL_STACK=768mb
         -sTOTAL_MEMORY=1024mb
-        -sEXPORTED_FUNCTIONS=_main,_game_data_init
+        -sEXPORTED_FUNCTIONS=_main,_data_init
         -sEXPORTED_RUNTIME_METHODS=ccall
         --preload-file ../res/loading.jpg@loading.jpg
         --closure=1)

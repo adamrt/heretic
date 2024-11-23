@@ -86,7 +86,7 @@
         preRun: [],
         postRun: [],
         onFFTBinLoaded: function () {
-          ccall("game_data_init", null, [], []);
+          ccall("data_init", null, [], []);
         },
         print: (function () {
           return function (text) {

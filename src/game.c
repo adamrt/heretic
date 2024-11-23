@@ -18,9 +18,9 @@ static void state_update(void);
 static void time_init(void);
 static void time_update(void);
 
-// game_data_init is called during game_init() for native builds, and after file
+// data_init is called during game_init() for native builds, and after file
 // upload on a wasm build.
-void game_data_init(void)
+void data_init(void)
 {
     g.bin = fopen("../fft.bin", "rb");
     assert(g.bin != NULL);
@@ -32,7 +32,7 @@ void game_data_init(void)
     scene_init();
 }
 
-void data_shutdown(void)
+static void data_shutdown(void)
 {
     free(g.fft.scenarios);
     free(g.fft.events);
@@ -47,8 +47,16 @@ void game_init(void)
     gui_init();
 
 #if !defined(__EMSCRIPTEN__)
-    game_data_init();
+    data_init();
 #endif
+}
+
+void game_shutdown(void)
+{
+    scene_shutdown();
+    data_shutdown();
+    gui_shutdown();
+    gfx_shutdown();
 }
 
 void game_input(const sapp_event* event)
@@ -118,23 +126,14 @@ void game_input(const sapp_event* event)
 
 void game_update(void)
 {
-    time_update();
-
     if (!g.bin_loaded) {
         return;
     }
 
+    time_update();
     state_update();
     camera_update();
     gfx_update();
-}
-
-void game_shutdown(void)
-{
-    scene_shutdown();
-    data_shutdown();
-    gui_shutdown();
-    gfx_shutdown();
 }
 
 static void state_update(void)
