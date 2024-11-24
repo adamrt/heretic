@@ -95,7 +95,7 @@ void read_map_data(int num, map_data_t* map_data_out)
     }
 }
 
-map_desc_t map_list[128] = {
+map_desc_t map_list[MAP_COUNT] = {
     { 0, 10026, false, "Unknown" }, // No texture
     { 1, 11304, true, "At Main Gate of Igros Castle" },
     { 2, 12656, true, "Back Gate of Lesalia Castle" },

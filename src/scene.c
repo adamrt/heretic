@@ -1,3 +1,4 @@
+#include "scenario.h"
 #include "sokol_gfx.h"
 
 #include "cglm/struct.h"
@@ -18,7 +19,7 @@ static void scene_map_unload(void);
 void scene_init(void)
 {
     g.scene.center_model = true;
-    g.scene.current_scenario = 52;
+    g.scene.current_scenario = 10;
     scene_load_scenario(g.scene.current_scenario);
 }
 
@@ -96,7 +97,22 @@ static void scene_switch(switch_e dir)
     switch (g.mode) {
     case MODE_SCENARIO:
         g.scene.current_scenario = is_prev ? g.scene.current_scenario - 1 : g.scene.current_scenario + 1;
-        scene_load_scenario(g.scene.current_scenario);
+        while (true) {
+            if (g.scene.current_scenario < 0) {
+                g.scene.current_scenario = SCENARIO_COUNT - 1;
+            }
+            if (g.scene.current_scenario > SCENARIO_COUNT - 1) {
+                g.scene.current_scenario = 0;
+            }
+            scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
+            event_t event = g.fft.events[scenario.id];
+            if (!event.valid) {
+                g.scene.current_scenario = is_prev ? g.scene.current_scenario - 1 : g.scene.current_scenario + 1;
+                continue;
+            }
+            scene_load_scenario(g.scene.current_scenario);
+            break;
+        }
         break;
 
     case MODE_MAP:
@@ -104,9 +120,9 @@ static void scene_switch(switch_e dir)
         while (!map_list[g.scene.current_map].valid) {
             g.scene.current_map = is_prev ? g.scene.current_map - 1 : g.scene.current_map + 1;
             if (g.scene.current_map < 0) {
-                g.scene.current_map = 125;
+                g.scene.current_map = MAP_COUNT - 1;
             }
-            if (g.scene.current_map > 125) {
+            if (g.scene.current_map > MAP_COUNT - 1) {
                 g.scene.current_map = 0;
             }
         }

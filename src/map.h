@@ -7,6 +7,8 @@
 #include "mesh.h"
 #include "texture.h"
 
+#define MAP_COUNT 128
+
 // map_data_t represents all the data for a specific map.
 // This has all the different states a map can have.
 typedef struct {

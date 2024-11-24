@@ -8,19 +8,16 @@
 
 #define SCENARIO_DATA_OFFSET (0x10938)
 #define SCENARIO_SIZE        (24)
-#define SCENARIO_TOTAL_COUNT (488)
 
 void load_scenarios(void)
 {
     file_t attack_out_file = read_file(g.bin, ATTACK_FILE_SECTOR, ATTACK_FILE_SIZE);
     attack_out_file.offset = SCENARIO_DATA_OFFSET;
 
-    int index = 0;
+    scenario_t* scenarios = calloc(SCENARIO_COUNT, sizeof(scenario_t));
 
-    scenario_t* scenarios = calloc(SCENARIO_USABLE_COUNT, sizeof(scenario_t));
-
-    for (int i = 0; i < SCENARIO_TOTAL_COUNT; i++) {
-        uint8_t bytes[SCENARIO_SIZE];
+    uint8_t bytes[SCENARIO_SIZE];
+    for (int i = 0; i < SCENARIO_COUNT; i++) {
         read_bytes(&attack_out_file, SCENARIO_SIZE, bytes);
 
         int event_id = bytes[0] | (bytes[1] << 8);
@@ -30,14 +27,12 @@ void load_scenarios(void)
             continue;
         }
 
-        // Use a different index because some scenarios are skipped.
-        scenarios[index].id = event_id;
-        scenarios[index].map_id = bytes[2];
-        scenarios[index].weather = bytes[3];
-        scenarios[index].time = bytes[4];
-        scenarios[index].entd_id = bytes[7] | (bytes[8] << 8);
-        scenarios[index].next_scenario_id = bytes[18] | (bytes[19] << 8);
-        index++;
+        scenarios[i].id = event_id;
+        scenarios[i].map_id = bytes[2];
+        scenarios[i].weather = bytes[3];
+        scenarios[i].time = bytes[4];
+        scenarios[i].entd_id = bytes[7] | (bytes[8] << 8);
+        scenarios[i].next_scenario_id = bytes[18] | (bytes[19] << 8);
     }
 
     g.fft.scenarios = scenarios;

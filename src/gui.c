@@ -243,7 +243,7 @@ static void draw_window_scenarios(struct nk_context* ctx)
 {
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
-        for (int i = 0; i < SCENARIO_USABLE_COUNT; i++) {
+        for (int i = 0; i < SCENARIO_COUNT; i++) {
             scenario_t* scenario = &g.fft.scenarios[i];
 
             char buffer_id[64];
@@ -277,7 +277,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        for (int i = 0; i < 128; ++i) {
+        for (int i = 0; i < MAP_COUNT; ++i) {
             if (!map_list[i].valid) {
                 continue;
             }
@@ -344,9 +344,13 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        for (int i = 0; i < SCENARIO_USABLE_COUNT; ++i) {
-
+        for (int i = 0; i < SCENARIO_COUNT; ++i) {
+            // FIXME: This should be cached as it is looping this per frame.
             scenario_t scenario = g.fft.scenarios[i];
+            event_t event = g.fft.events[scenario.id];
+            if (!event.valid) {
+                continue;
+            }
             char item_buffer[64];
             snprintf(item_buffer, 64, "%d %s", scenario_list[scenario.id].id, scenario_list[scenario.id].name);
 
@@ -357,6 +361,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         }
         nk_combo_end(ctx);
     }
+
     scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
     map_desc_t map = map_list[scenario.map_id];
 

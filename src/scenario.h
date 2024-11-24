@@ -3,7 +3,7 @@
 
 #include "map_record.h"
 
-#define SCENARIO_USABLE_COUNT (302)
+#define SCENARIO_COUNT (490)
 
 typedef struct {
     int id;
