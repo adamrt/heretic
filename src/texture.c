@@ -53,9 +53,11 @@ palette_t read_palette(file_t* f)
 static vec4s read_rgb15(file_t* f)
 {
     uint16_t val = read_u16(f);
-    uint8_t a = val == 0 ? 0x00 : 0xFF;
-    uint8_t blue = (val & 0x7C00) >> 7;  // 0b0111110000000000
-    uint8_t green = (val & 0x03E0) >> 2; // 0b0000001111100000
-    uint8_t red = (val & 0x001F) << 3;   // 0b0000000000011111
-    return (vec4s) { { red, green, blue, a } };
+
+    vec4s color = { 0 };
+    color.r = (val & 0x001F) << 3; // 0b0000000000011111
+    color.g = (val & 0x03E0) >> 2; // 0b0000001111100000
+    color.b = (val & 0x7C00) >> 7; // 0b0111110000000000
+    color.a = val == 0 ? 0x00 : 0xFF;
+    return color;
 }

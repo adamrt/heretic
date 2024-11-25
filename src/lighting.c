@@ -1,5 +1,6 @@
 #include "lighting.h"
 
+#include "cglm/struct/vec4.h"
 #include "mesh.h"
 
 static float read_light_color(file_t*);
@@ -58,10 +59,12 @@ lighting_t read_lighting(file_t* f)
 
 static vec4s read_rgb8(file_t* f)
 {
-    float red = read_u8(f) / 255.0f;
-    float green = read_u8(f) / 255.0f;
-    float blue = read_u8(f) / 255.0f;
-    return (vec4s) { { red, green, blue, 1.0f } };
+    vec4s color = { 0 };
+    color.r = read_u8(f) / 255.0f;
+    color.g = read_u8(f) / 255.0f;
+    color.b = read_u8(f) / 255.0f;
+    color.a = 1.0f;
+    return color;
 }
 
 static float read_light_color(file_t* f)
