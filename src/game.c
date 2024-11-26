@@ -4,6 +4,7 @@
 #include "gfx.h"
 #include "gui.h"
 #include "scenario.h"
+#include "scene.h"
 
 #if defined(__EMSCRIPTEN__)
 #    include <emscripten/emscripten.h>
@@ -14,7 +15,6 @@ game_t g = {
 };
 
 // Forward declarations
-static void state_update(void);
 static void time_init(void);
 static void time_update(void);
 
@@ -131,18 +131,9 @@ void game_update(void)
     }
 
     time_update();
-    state_update();
+    scene_update();
     camera_update();
     gfx_update();
-}
-
-static void state_update(void)
-{
-    if (g.scene.center_model) {
-        g.scene.model.transform.translation = g.scene.map->centered_translation;
-    } else {
-        g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-    }
 }
 
 static void time_init(void)

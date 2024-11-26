@@ -15,6 +15,7 @@ typedef struct {
 } scene_t;
 
 void scene_init(void);
+void scene_update(void);
 void scene_shutdown(void);
 
 void scene_load_map(int num, map_state_t state);

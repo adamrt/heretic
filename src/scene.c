@@ -28,6 +28,15 @@ void scene_shutdown(void)
     scene_map_unload();
 }
 
+void scene_update(void)
+{
+    if (g.scene.center_model) {
+        g.scene.model.transform.translation = g.scene.map->centered_translation;
+    } else {
+        g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+    }
+}
+
 void scene_load_map(int num, map_state_t map_state)
 {
     scene_map_unload();
