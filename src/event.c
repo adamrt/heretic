@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -42,8 +43,11 @@ static void _load_events(void)
         _state.events[i].valid = text_offset != 0xF2F2F2F2;
 
         if (_state.events[i].valid) {
-            int text_size = 8192 - text_offset;
-            int code_size = text_offset - 4;
+            uint32_t text_size = 8192 - text_offset;
+            uint32_t code_size = text_offset - 4;
+
+            _state.events[i].text_size = text_size;
+            _state.events[i].code_size = code_size;
 
             memcpy(_state.events[i].text, bytes + text_offset, text_size);
             memcpy(_state.events[i].code, bytes + 4, code_size);
