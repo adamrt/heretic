@@ -4,11 +4,9 @@
 #include "sokol_app.h"
 #include "sokol_time.h"
 
-#include "camera.h"
 #include "event.h"
 #include "scenario.h"
 #include "scene.h"
-#include "time.h"
 
 void game_init(void);
 void game_update(void);
@@ -23,7 +21,6 @@ typedef enum mode_e {
 typedef struct {
     mode_e mode;
     scene_t scene;
-    camera_t cam;
 
     struct {
         scenario_t* scenarios;

@@ -32,6 +32,8 @@
 
 #define CAM_TRANS_FRAMES (45.0f)
 
+static camera_t state;
+
 typedef enum {
     TRANS_DIR_LEFT,
     TRANS_DIR_RIGHT,
@@ -61,20 +63,20 @@ static void cam_process_transitions(void);
 
 void camera_init(void)
 {
-    g.cam.target = glms_vec3_zero();
+    state.target = glms_vec3_zero();
 
-    g.cam.azimuth = DIR_SE;
-    g.cam.elevation = CAM_ELV_LOW;
+    state.azimuth = DIR_SE;
+    state.elevation = CAM_ELV_LOW;
 
-    g.cam.distance = 256.0f;
-    g.cam.znear = 0.01f;
-    g.cam.zfar = 1000.0f;
+    state.distance = 256.0f;
+    state.znear = 0.01f;
+    state.zfar = 1000.0f;
 }
 
 void camera_update(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = g.cam.distance;
+    float w = state.distance;
     float h = w / aspect;
 
     cam_process_transitions();
@@ -82,16 +84,16 @@ void camera_update(void)
     // Transitions work with negative degrees sometimes so don't keep camera
     // position degrees positive mid-transition.
     if (!transition.valid) {
-        if (g.cam.azimuth >= 360.0f) {
-            g.cam.azimuth -= 360.0f;
+        if (state.azimuth >= 360.0f) {
+            state.azimuth -= 360.0f;
         }
-        if (g.cam.azimuth < 0.0f) {
-            g.cam.azimuth += 360.0f;
+        if (state.azimuth < 0.0f) {
+            state.azimuth += 360.0f;
         }
     }
 
-    float azimuth_rad = glm_rad(g.cam.azimuth);
-    float elevation_rad = glm_rad(g.cam.elevation);
+    float azimuth_rad = glm_rad(state.azimuth);
+    float elevation_rad = glm_rad(state.elevation);
 
     vec3s position = { {
         cosf(elevation_rad) * sinf(azimuth_rad),
@@ -99,29 +101,33 @@ void camera_update(void)
         cosf(elevation_rad) * cosf(azimuth_rad),
     } };
 
-    vec3s scaled_position = glms_vec3_scale(position, g.cam.distance);
+    vec3s scaled_position = glms_vec3_scale(position, state.distance);
 
-    g.cam.eye = glms_vec3_add(g.cam.target, scaled_position);
-    g.cam.view_mat = glms_lookat(g.cam.eye, g.cam.target, GLMS_YUP);
+    state.eye = glms_vec3_add(state.target, scaled_position);
+    state.view_mat = glms_lookat(state.eye, state.target, GLMS_YUP);
 
-    if (g.cam.use_perspective) {
-        g.cam.proj_mat = glms_perspective(glm_rad(60.0f), aspect, g.cam.znear, g.cam.zfar);
+    if (state.use_perspective) {
+        state.proj_mat = glms_perspective(glm_rad(60.0f), aspect, state.znear, state.zfar);
     } else {
-        g.cam.proj_mat = glms_ortho(-w, w, -h, h, g.cam.znear, g.cam.zfar);
+        state.proj_mat = glms_ortho(-w, w, -h, h, state.znear, state.zfar);
     }
 }
 
+camera_t* camera_get_internals(void) { return &state; }
+mat4s camera_get_view(void) { return state.view_mat; }
+mat4s camera_get_proj(void) { return state.proj_mat; }
+
 void camera_orbit(float dx_deg, float dy_deg)
 {
-    g.cam.azimuth -= dx_deg;
-    g.cam.elevation += dy_deg;
-    g.cam.elevation = glm_clamp(g.cam.elevation, CAM_ELV_MIN, CAM_ELV_MAX);
+    state.azimuth -= dx_deg;
+    state.elevation += dy_deg;
+    state.elevation = glm_clamp(state.elevation, CAM_ELV_MIN, CAM_ELV_MAX);
 }
 
 void camera_zoom(float delta)
 {
-    g.cam.distance -= delta * SENSITIVITY;
-    g.cam.distance = glm_clamp(g.cam.distance, CAM_DIST_MIN, CAM_DIST_MAX);
+    state.distance -= delta * SENSITIVITY;
+    state.distance = glm_clamp(state.distance, CAM_DIST_MIN, CAM_DIST_MAX);
 }
 
 void camera_left(void) { cam_azimuth(TRANS_DIR_LEFT); }
@@ -131,7 +137,7 @@ void camera_down(void) { cam_elevation(TRANS_DIR_DOWN); }
 
 cardinal_e camera_cardinal(void)
 {
-    float azimuth = g.cam.azimuth;
+    float azimuth = state.azimuth;
     int corner_width = 15;
 
     if (azimuth > 345.0f || azimuth < 15.0f) {
@@ -201,7 +207,7 @@ static void cam_azimuth(trans_dir_e dir)
 
     bool move_left = dir == TRANS_DIR_LEFT;
 
-    float degrees = g.cam.azimuth;
+    float degrees = state.azimuth;
     float end_degrees = move_left ? degrees - 90.0f : degrees + 90.0f;
 
     if (degrees > DIR_SE && degrees < DIR_NE) {
@@ -223,7 +229,7 @@ static void cam_azimuth(trans_dir_e dir)
 
     transition = (transition_t) {
         .direction = dir,
-        .start_degrees = g.cam.azimuth,
+        .start_degrees = state.azimuth,
         .end_degrees = end_degrees,
         .total_frames = CAM_TRANS_FRAMES,
         .current_frame = 0.0f,
@@ -238,26 +244,26 @@ static void cam_elevation(trans_dir_e dir)
     }
 
     if (dir == TRANS_DIR_DOWN) {
-        if (g.cam.elevation == CAM_ELV_LOW) {
+        if (state.elevation == CAM_ELV_LOW) {
             return;
         }
 
         transition = (transition_t) {
             .direction = dir,
-            .start_degrees = g.cam.elevation,
+            .start_degrees = state.elevation,
             .end_degrees = CAM_ELV_LOW,
             .total_frames = 30.0f,
             .current_frame = 0.0f,
             .valid = true,
         };
     } else {
-        if (g.cam.elevation == CAM_ELV_HIGH) {
+        if (state.elevation == CAM_ELV_HIGH) {
             return;
         }
 
         transition = (transition_t) {
             .direction = dir,
-            .start_degrees = g.cam.elevation,
+            .start_degrees = state.elevation,
             .end_degrees = CAM_ELV_HIGH,
             .total_frames = 30.0f,
             .current_frame = 0.0f,
@@ -276,16 +282,16 @@ static void cam_process_transitions(void)
     float new_pos = glm_lerp(transition.start_degrees, transition.end_degrees, t);
 
     if (transition.direction == TRANS_DIR_LEFT || transition.direction == TRANS_DIR_RIGHT) {
-        g.cam.azimuth = new_pos;
+        state.azimuth = new_pos;
     } else if (transition.direction == TRANS_DIR_UP || transition.direction == TRANS_DIR_DOWN) {
-        g.cam.elevation = new_pos;
+        state.elevation = new_pos;
     }
 
     if (transition.current_frame >= transition.total_frames) {
         if (transition.direction == TRANS_DIR_LEFT || transition.direction == TRANS_DIR_RIGHT) {
-            g.cam.azimuth = transition.end_degrees;
+            state.azimuth = transition.end_degrees;
         } else if (transition.direction == TRANS_DIR_UP || transition.direction == TRANS_DIR_DOWN) {
-            g.cam.elevation = transition.end_degrees;
+            state.elevation = transition.end_degrees;
         }
         transition.valid = false;
     }

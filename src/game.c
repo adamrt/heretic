@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "scenario.h"
 #include "scene.h"
+#include "time.h"
 
 #if defined(__EMSCRIPTEN__)
 #    include <emscripten/emscripten.h>

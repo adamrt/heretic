@@ -302,8 +302,8 @@ static void frame_offscreen(void)
     mat4s model_mat = model_matrix(g.scene.model.transform);
 
     vs_standard_params_t vs_params = {
-        .u_proj = g.cam.proj_mat,
-        .u_view = g.cam.view_mat,
+        .u_proj = camera_get_proj(),
+        .u_view = camera_get_view(),
         .u_model = model_mat,
     };
 

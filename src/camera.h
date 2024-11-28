@@ -44,13 +44,20 @@ typedef enum {
 
 void camera_init(void);
 void camera_update(void);
+
 void camera_orbit(float, float);
 void camera_zoom(float);
-
 void camera_left(void);
 void camera_right(void);
 void camera_up(void);
 void camera_down(void);
+
+mat4s camera_get_view(void);
+mat4s camera_get_proj(void);
+
+// This is a helper function to get the internal camera struct. This is strictly
+// used for the GUI.
+camera_t* camera_get_internals(void);
 
 cardinal_e camera_cardinal(void);
 const char* camera_cardinal_str(void);
