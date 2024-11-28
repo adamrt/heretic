@@ -49,6 +49,7 @@ add_executable(heretic
     src/bin.c
     src/camera.c
     src/event.c
+    src/font.c
     src/game.c
     src/gfx.c
     src/gui.c
