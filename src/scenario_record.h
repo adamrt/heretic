@@ -5,13 +5,14 @@
 
 #define SCENARIO_COUNT (490)
 
+// This may be better named event_record_t, but not 100% yet.
 typedef struct {
-    int id;
+    int event_id;
     int map_id;
-    weather_e weather;
-    time_e time;
     int entd_id;
     int next_scenario_id;
+    weather_e weather;
+    time_e time;
 } scenario_record_t;
 
 // Scenario descriptors

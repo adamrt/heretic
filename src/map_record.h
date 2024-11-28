@@ -68,8 +68,8 @@ bool map_state_eq(map_state_t, map_state_t);
 bool map_state_default(map_state_t);
 bool map_record_state_unique(map_record_t*, int, map_record_t);
 
-void time_str(time_e, char[static 8]);
-void weather_str(weather_e, char[static 12]);
-void filetype_str(filetype_e, char[static 12]);
+const char* time_str(time_e);
+const char* weather_str(weather_e);
+const char* filetype_str(filetype_e);
 
 #endif // MAP_RECORD_H_

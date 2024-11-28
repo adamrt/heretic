@@ -97,9 +97,7 @@ static void draw(void)
 static void draw_section_fps(struct nk_context* ctx)
 {
     nk_layout_row_dynamic(ctx, 25, 1);
-    char buffer[64];
-    snprintf(buffer, sizeof(buffer), "FPS: %f", time_get_fps());
-    nk_label(ctx, buffer, NK_TEXT_LEFT);
+    nk_labelf(ctx, NK_TEXT_LEFT, "FPS: %f", time_get_fps());
 }
 
 static void draw_section_scene(struct nk_context* ctx)
@@ -127,28 +125,19 @@ static void draw_section_camera(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
 
-        char buffer[64];
-        snprintf(buffer, sizeof(buffer), "Cardinal: %s", camera_cardinal_str());
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
-
-        snprintf(buffer, sizeof(buffer), "Azimuth Degrees: %f", cam->azimuth);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
-
-        snprintf(buffer, sizeof(buffer), "Elevation Degrees: %f", cam->elevation);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
+        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", cam->azimuth);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", cam->elevation);
 
         nk_layout_row_dynamic(ctx, 25, 2);
 
-        snprintf(buffer, sizeof(buffer), "Distance: %f", cam->distance);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", cam->distance);
         nk_slider_float(ctx, 0.001f, &cam->distance, CAMERA_DIST_MAX, 0.1f);
 
-        snprintf(buffer, sizeof(buffer), "Near: %f", cam->znear);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", cam->znear);
         nk_slider_float(ctx, 0.01f, &cam->znear, CAMERA_ZFAR_MAX, 0.1f);
 
-        snprintf(buffer, sizeof(buffer), "Far: %f", cam->zfar);
-        nk_label(ctx, buffer, NK_TEXT_LEFT);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", cam->zfar);
         nk_slider_float(ctx, 0.01f, &cam->zfar, CAMERA_ZFAR_MAX, 0.1f);
 
         nk_tree_pop(ctx);
@@ -192,9 +181,7 @@ static void draw_section_lights(struct nk_context* ctx)
                 continue;
             }
 
-            char buffer[64];
-            snprintf(buffer, 64, "Light %d", i);
-            nk_label(ctx, buffer, NK_TEXT_LEFT);
+            nk_labelf(ctx, NK_TEXT_LEFT, "Light %d", i);
 
             nk_layout_row_dynamic(ctx, 25, 2);
             char posbuffer[64];
@@ -263,18 +250,8 @@ static void draw_window_scenarios(struct nk_context* ctx)
         for (int i = 0; i < SCENARIO_COUNT; i++) {
             scenario_record_t scenario = scenario_get_record(i);
 
-            char buffer_id[64];
-            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario.id, scenario_record_list[scenario.id].name);
-
-            char weather_name[12];
-            weather_str(scenario.weather, weather_name);
-            char time_name[8];
-            time_str(scenario.time, time_name);
-            char buffer_weather[40];
-            snprintf(buffer_weather, 40, "Weather: %s, Time: %s, ENTD: %d", weather_name, time_name, scenario.entd_id);
-
-            nk_label(ctx, buffer_id, NK_TEXT_LEFT);
-            nk_label(ctx, buffer_weather, NK_TEXT_LEFT);
+            nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_record_list[scenario.event_id].name);
+            nk_labelf(ctx, NK_TEXT_LEFT, "Weather: %s, Time: %s, ENTD: %d", weather_str(scenario.weather), time_str(scenario.time), scenario.entd_id);
         }
     }
     nk_end(ctx);
@@ -291,9 +268,7 @@ static void draw_window_messages(struct nk_context* ctx)
                 break; // maybe continue?
             }
 
-            char buffer[64];
-            snprintf(buffer, 64, "%s", message);
-            nk_label(ctx, buffer, NK_TEXT_LEFT);
+            nk_labelf(ctx, NK_TEXT_LEFT, "%s", message);
         }
     }
     nk_end(ctx);
@@ -342,13 +317,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
         }
     }
 
-    char time_name[8];
-    char weather_name[12];
-
-    time_str(map_state.time, time_name);
-    weather_str(map_state.weather, weather_name);
-
-    snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, map_state.layout);
+    snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_str(map_state.time), weather_str(map_state.weather), map_state.layout);
 
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
@@ -356,10 +325,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
         for (int i = 0; i < unique_record_count; ++i) {
             map_record_t record = unique_records[i];
 
-            weather_str(record.state.weather, weather_name);
-            time_str(record.state.time, time_name);
-
-            snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, record.state.layout);
+            snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_str(record.state.time), weather_str(record.state.weather), record.state.layout);
 
             if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
                 scene_load_map(scene->current_map, record.state);
@@ -377,7 +343,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
     scenario_record_t selected_scenario = scenario_get_record(scene->current_scenario);
 
     char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, map_list[selected_scenario.map_id].name);
+    snprintf(selected_buffer, 64, "%d %s", selected_scenario.event_id, map_list[selected_scenario.map_id].name);
 
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
@@ -385,12 +351,12 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
             // FIXME: This should be cached as it is looping this per frame.
             scenario_record_t scenario = scenario_get_record(i);
-            event_t event = event_get(scenario.id);
+            event_t event = event_get(scenario.event_id);
             if (!event.valid) {
                 continue;
             }
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario_record_list[scenario.id].id, scenario_record_list[scenario.id].name);
+            snprintf(item_buffer, 64, "%d %s", scenario_record_list[scenario.event_id].id, scenario_record_list[scenario.event_id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 scene->current_scenario = i;
@@ -403,15 +369,6 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
     scenario_record_t scenario = scenario_get_record(scene->current_scenario);
     map_desc_t map = map_list[scenario.map_id];
 
-    char weather_name[12];
-    weather_str(scenario.weather, weather_name);
-    char time_name[8];
-    time_str(scenario.time, time_name);
-
-    char buffer[64];
-    snprintf(buffer, sizeof(buffer), "Map %d: %s", map.id, map.name);
-    nk_label(ctx, buffer, NK_TEXT_LEFT);
-
-    snprintf(buffer, sizeof(buffer), "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, 0);
-    nk_label(ctx, buffer, NK_TEXT_LEFT);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Map %d: %s", map.id, map.name);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Time: %s, Weather: %s, Layout: %d", time_str(scenario.time), weather_str(scenario.weather), 0);
 }

@@ -41,66 +41,51 @@ int read_map_records(file_t* f, map_record_t* out_records)
     return count;
 }
 
-void time_str(time_e value, char out[static 8])
+const char* time_str(time_e value)
 {
     switch (value) {
     case TIME_DAY:
-        strcpy(out, "Day");
-        break;
+        return "Day";
     case TIME_NIGHT:
-        strcpy(out, "Night");
-        break;
+        return "Night";
     default:
-        strcpy(out, "Unknown");
-        break;
+        return "Unknown";
     }
 }
 
-void weather_str(weather_e value, char out[static 12])
+const char* weather_str(weather_e value)
 {
     switch (value) {
     case WEATHER_NONE:
-        strcpy(out, "None");
-        break;
+        return "None";
     case WEATHER_NONE_ALT:
-        strcpy(out, "NoneAlt");
-        break;
+        return "NoneAlt";
     case WEATHER_NORMAL:
-        strcpy(out, "Normal");
-        break;
+        return "Normal";
     case WEATHER_STRONG:
-        strcpy(out, "Strong");
-        break;
+        return "Strong";
     case WEATHER_VERY_STRONG:
-        strcpy(out, "VeryStrong");
-        break;
+        return "VeryStrong";
     default:
-        strcpy(out, "Unknown");
-        break;
+        return "Unknown";
     }
 }
 
-void filetype_str(filetype_e value, char* out)
+const char* filetype_str(filetype_e value)
 {
     switch (value) {
     case FILETYPE_MESH_PRIMARY:
-        strcpy(out, "Primary");
-        break;
+        return "Primary";
     case FILETYPE_MESH_ALT:
-        strcpy(out, "Alt");
-        break;
+        return "Alt";
     case FILETYPE_MESH_OVERRIDE:
-        strcpy(out, "Override");
-        break;
+        return "Override";
     case FILETYPE_TEXTURE:
-        strcpy(out, "Texture");
-        break;
+        return "Texture";
     case FILETYPE_END:
-        strcpy(out, "End");
-        break;
+        return "End";
     default:
-        strcpy(out, "Unknown");
-        break;
+        return "Unknown";
     }
 }
 

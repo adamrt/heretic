@@ -43,7 +43,7 @@ static void _load_scenarios(void)
         }
 
         _state.scenarios[i] = (scenario_record_t) {
-            .id = event_id,
+            .event_id = event_id,
             .map_id = bytes[2],
             .weather = bytes[3],
             .time = bytes[4],

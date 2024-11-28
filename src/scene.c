@@ -130,7 +130,7 @@ static void _scene_switch(switch_e dir)
                 _state.current_scenario = 0;
             }
             scenario_record_t scenario = scenario_get_record(_state.current_scenario);
-            event_t event = event_get(scenario.id);
+            event_t event = event_get(scenario.event_id);
             if (!event.valid) {
                 _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
                 continue;
