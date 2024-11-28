@@ -19,6 +19,8 @@ typedef struct {
     bool center_model;
     int current_scenario;
     int current_map;
+
+    char** messages;
 } scene_t;
 
 void scene_init(void);

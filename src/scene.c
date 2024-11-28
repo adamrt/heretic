@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "cglm/types-struct.h"
 #include "sokol_gfx.h"
@@ -21,6 +22,7 @@ typedef enum {
 
 static void _scene_switch(switch_e dir);
 static void _scene_map_unload(void);
+static void _scene_scenario_unload(void);
 
 void scene_init(void)
 {
@@ -32,6 +34,7 @@ void scene_init(void)
 void scene_shutdown(void)
 {
     _scene_map_unload();
+    _scene_scenario_unload();
 }
 
 void scene_update(void)
@@ -92,6 +95,8 @@ void scene_load_scenario(int num)
         .weather = scenario.weather,
         .layout = 0,
     };
+    event_t event = event_get(num);
+    _state.messages = event_get_messages(&event);
     scene_load_map(scenario.map_id, scenario_state);
 }
 
@@ -162,5 +167,15 @@ static void _scene_map_unload(void)
         sg_destroy_buffer(_state.model.bindings.vertex_buffers[0]);
 
         free(_state.map);
+    }
+}
+static void _scene_scenario_unload(void)
+{
+    if (_state.messages != NULL) {
+        for (int i = 0; i < EVENT_MESSAGE_MAX; i++) {
+            if (_state.messages[i] != NULL) {
+                free((void*)_state.messages[i]);
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,7 +15,7 @@ const char* font_get_char(uint16_t id)
     font_char_t key = { id, NULL };
     const font_char_t* result = bsearch(&key, _font, FONT_CHAR_COUNT, sizeof(font_char_t), _compare_font_chars);
     if (result == NULL) {
-        assert(false);
+        return NULL;
     }
     return result->data;
 }
