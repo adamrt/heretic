@@ -7,8 +7,6 @@
 #include "event.h"
 #include "scene.h"
 
-#include "game.h"
-
 static scene_t _state;
 
 // Temporary
@@ -19,8 +17,8 @@ typedef enum {
     SWITCH_NEXT,
 } switch_e;
 
-static void scene_switch(switch_e dir);
-static void scene_map_unload(void);
+static void _scene_switch(switch_e dir);
+static void _scene_map_unload(void);
 
 void scene_init(void)
 {
@@ -31,7 +29,7 @@ void scene_init(void)
 
 void scene_shutdown(void)
 {
-    scene_map_unload();
+    _scene_map_unload();
 }
 
 void scene_update(void)
@@ -45,7 +43,7 @@ void scene_update(void)
 
 void scene_load_map(int num, map_state_t map_state)
 {
-    scene_map_unload();
+    _scene_map_unload();
 
     map_t* map = calloc(1, sizeof(map_t));
     read_map(num, map_state, map);
@@ -72,7 +70,7 @@ void scene_load_map(int num, map_state_t map_state)
     model_t model = {
         .transform.scale = { { 1.0f, 1.0f, 1.0f } },
         .bindings.vertex_buffers[0] = vbuf,
-        .bindings.samplers[SMP_u_sampler] = gfx.sampler,
+        .bindings.samplers[SMP_u_sampler] = gfx_get_sampler(),
         .bindings.images = {
             [IMG_u_texture] = texture,
             [IMG_u_palette] = palette,
@@ -97,15 +95,15 @@ void scene_load_scenario(int num)
 
 void scene_prev(void)
 {
-    scene_switch(SWITCH_PREV);
+    _scene_switch(SWITCH_PREV);
 }
 
 void scene_next(void)
 {
-    scene_switch(SWITCH_NEXT);
+    _scene_switch(SWITCH_NEXT);
 }
 
-static void scene_switch(switch_e dir)
+static void _scene_switch(switch_e dir)
 {
     bool is_prev = dir == SWITCH_PREV;
 
@@ -149,7 +147,7 @@ static void scene_switch(switch_e dir)
     }
 }
 
-static void scene_map_unload(void)
+static void _scene_map_unload(void)
 {
     if (_state.map != NULL) {
 

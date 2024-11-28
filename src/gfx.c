@@ -4,23 +4,18 @@
 #include "sokol_glue.h"
 #include "sokol_log.h"
 
-#include "cglm/struct.h"
 #include "shader.glsl.h"
 
 #include "camera.h"
-#include "game.h"
 #include "gfx.h"
 #include "gui.h"
 
 // Global gfx state
-gfx_t gfx;
+static gfx_t _state;
 
 // Forward declarations
-static void init_images(void);
-static void init_shared(void);
-static void init_offscreen(void);
-static void init_background(void);
-static void init_display(void);
+static void _init_images(void);
+static void _init_shared(void);
 
 static void frame_offscreen(void);
 static void frame_background(void);
@@ -47,21 +42,18 @@ void gfx_init(void)
         face_winding = SG_FACEWINDING_CCW;
     }
 
-    gfx.display.width = GFX_DISPLAY_WIDTH;
-    gfx.display.height = GFX_DISPLAY_HEIGHT;
-    gfx.offscreen.scale_divisor = 2;
+    _state.display.width = GFX_DISPLAY_WIDTH;
+    _state.display.height = GFX_DISPLAY_HEIGHT;
+    _state.offscreen.scale_divisor = 2;
 
-    init_images();
-    init_shared();
-    init_offscreen();
-    init_background();
-    init_display();
+    _init_images();
+    _init_shared();
 }
 
 void gfx_update(void)
 {
     // Render the scene and background to an offscreen image
-    sg_begin_pass(&gfx.offscreen.pass);
+    sg_begin_pass(&_state.offscreen.pass);
     {
         frame_offscreen();
         frame_background();
@@ -70,7 +62,7 @@ void gfx_update(void)
 
     // Display the offscreen image to a fullscreen quad and render the UI
     sg_begin_pass(&(sg_pass) {
-        .action = gfx.pass_action,
+        .action = _state.pass_action,
         .swapchain = sglue_swapchain(),
         .label = "swapchain-pass",
     });
@@ -85,47 +77,63 @@ void gfx_update(void)
 
 void gfx_scale_change(void)
 {
-    sg_destroy_image(gfx.color_image);
-    sg_destroy_image(gfx.depth_image);
-    sg_destroy_attachments(gfx.offscreen.pass.attachments);
+    sg_destroy_image(_state.color_image);
+    sg_destroy_image(_state.depth_image);
+    sg_destroy_attachments(_state.offscreen.pass.attachments);
 
-    init_images();
+    _init_images();
 
-    gfx.offscreen.pass = (sg_pass) {
+    _state.offscreen.pass = (sg_pass) {
         .attachments = sg_make_attachments(&(sg_attachments_desc) {
-            .colors[0].image = gfx.color_image,
-            .depth_stencil.image = gfx.depth_image,
+            .colors[0].image = _state.color_image,
+            .depth_stencil.image = _state.depth_image,
             .label = "offscreen-attachments",
         }),
-        .action = gfx.pass_action,
+        .action = _state.pass_action,
         .label = "offscreen-pass",
     };
 
-    gfx.display.bindings.images[IMG_u_texture] = gfx.color_image;
-    gfx.display.bindings.samplers[SMP_u_sampler] = gfx.sampler;
+    _state.display.bindings.images[IMG_u_texture] = _state.color_image;
+    _state.display.bindings.samplers[SMP_u_sampler] = _state.sampler;
 }
 
 void gfx_shutdown(void)
 {
-    sg_destroy_pipeline(gfx.offscreen.pipeline);
-    sg_destroy_pipeline(gfx.background.pipeline);
-    sg_destroy_pipeline(gfx.display.pipeline);
+    sg_destroy_pipeline(_state.offscreen.pipeline);
+    sg_destroy_pipeline(_state.background.pipeline);
+    sg_destroy_pipeline(_state.display.pipeline);
 
-    sg_destroy_image(gfx.color_image);
-    sg_destroy_image(gfx.depth_image);
+    sg_destroy_image(_state.color_image);
+    sg_destroy_image(_state.depth_image);
 
-    sg_destroy_sampler(gfx.sampler);
+    sg_destroy_sampler(_state.sampler);
 
     sg_shutdown();
 }
 
-static void init_images(void)
+int gfx_get_scale_divisor(void)
+{
+    return _state.offscreen.scale_divisor;
+}
+
+void gfx_set_scale_divisor(int divisor)
+{
+    _state.offscreen.scale_divisor = divisor;
+    gfx_scale_change();
+}
+
+sg_sampler gfx_get_sampler(void)
+{
+    return _state.sampler;
+}
+
+static void _init_images(void)
 {
 
-    int scaled_width = gfx.display.width / gfx.offscreen.scale_divisor;
-    int scaled_height = gfx.display.height / gfx.offscreen.scale_divisor;
+    int scaled_width = _state.display.width / _state.offscreen.scale_divisor;
+    int scaled_height = _state.display.height / _state.offscreen.scale_divisor;
 
-    gfx.color_image = sg_make_image(&(sg_image_desc) {
+    _state.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = scaled_width,
         .height = scaled_height,
@@ -133,7 +141,7 @@ static void init_images(void)
         .label = "color-image",
     });
 
-    gfx.depth_image = sg_make_image(&(sg_image_desc) {
+    _state.depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = scaled_width,
         .height = scaled_height,
@@ -142,36 +150,37 @@ static void init_images(void)
     });
 }
 
-static void init_shared(void)
+static void _init_shared(void)
 {
-    gfx.sampler = sg_make_sampler(&(sg_sampler_desc) {
+    _state.sampler = sg_make_sampler(&(sg_sampler_desc) {
         .min_filter = SG_FILTER_NEAREST,
         .mag_filter = SG_FILTER_NEAREST,
         .wrap_u = SG_WRAP_REPEAT,
         .wrap_v = SG_WRAP_REPEAT,
     });
 
-    gfx.pass_action = (sg_pass_action) {
+    _state.pass_action = (sg_pass_action) {
         .colors[0] = (sg_color_attachment_action) {
             .load_action = SG_LOADACTION_CLEAR,
             .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
         },
     };
-}
 
-static void init_offscreen(void)
-{
-    gfx.offscreen.pass = (sg_pass) {
+    //
+    // Offscreen
+    //
+
+    _state.offscreen.pass = (sg_pass) {
         .attachments = sg_make_attachments(&(sg_attachments_desc) {
-            .colors[0].image = gfx.color_image,
-            .depth_stencil.image = gfx.depth_image,
+            .colors[0].image = _state.color_image,
+            .depth_stencil.image = _state.depth_image,
             .label = "offscreen-attachments",
         }),
-        .action = gfx.pass_action,
+        .action = _state.pass_action,
         .label = "offscreen-pass",
     };
 
-    gfx.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+    _state.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .attrs = {
                 [ATTR_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3,
@@ -192,12 +201,12 @@ static void init_offscreen(void)
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "standard-pipeline",
     });
-}
 
-static void init_background(void)
-{
-    gfx.background.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+    //
+    // Background
+    //
 
+    _state.background.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
@@ -239,15 +248,16 @@ static void init_background(void)
         .label = "background-indices",
     });
 
-    gfx.background.bindings = (sg_bindings) {
+    _state.background.bindings = (sg_bindings) {
         .vertex_buffers[0] = quad_vbuf,
         .index_buffer = quad_ibuf,
     };
-}
 
-static void init_display(void)
-{
-    gfx.display.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+    //
+    // Display
+    //
+
+    _state.display.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
@@ -269,32 +279,11 @@ static void init_display(void)
 
     // Fullscreen quad vertices
     // clang-format off
-    vertex_t quad_vertices[] = {
-        { .position = {{ -1.0f, -1.0f, 0.0f }}, .uv = {{ 0.0f, 1.0f }} }, // bottom-left
-        { .position = {{  1.0f, -1.0f, 0.0f }}, .uv = {{ 1.0f, 1.0f }} }, // bottom-right
-        { .position = {{ -1.0f,  1.0f, 0.0f }}, .uv = {{ 0.0f, 0.0f }} }, // top-left
-        { .position = {{  1.0f,  1.0f, 0.0f }}, .uv = {{ 1.0f, 0.0f }} }  // top-right
-    };
-
-    uint16_t quad_indices[] = { 0, 1, 2, 1, 3, 2 };
-    // clang-format on
-
-    sg_buffer quad_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(quad_vertices),
-        .label = "quad-vertices",
-    });
-
-    sg_buffer quad_ibuf = sg_make_buffer(&(sg_buffer_desc) {
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(quad_indices),
-        .label = "quad-indices",
-    });
-
-    gfx.display.bindings = (sg_bindings) {
+    _state.display.bindings = (sg_bindings) {
         .vertex_buffers[0] = quad_vbuf,
         .index_buffer = quad_ibuf,
-        .images[IMG_u_texture] = gfx.color_image,
-        .samplers[SMP_u_sampler] = gfx.sampler,
+        .images[IMG_u_texture] = _state.color_image,
+        .samplers[SMP_u_sampler] = _state.sampler,
     };
 }
 
@@ -328,7 +317,7 @@ static void frame_offscreen(void)
     }
     fs_params.u_light_count = light_count;
 
-    sg_apply_pipeline(gfx.offscreen.pipeline);
+    sg_apply_pipeline(_state.offscreen.pipeline);
     sg_apply_bindings(&scene->model.bindings);
     sg_apply_uniforms(0, &SG_RANGE(vs_params));
     sg_apply_uniforms(1, &SG_RANGE(fs_params));
@@ -339,22 +328,22 @@ static void frame_background(void)
 {
     scene_t* scene = scene_get_internals();
 
-    sg_apply_pipeline(gfx.background.pipeline);
+    sg_apply_pipeline(_state.background.pipeline);
 
     fs_background_params_t fs_params;
     fs_params.u_top_color = scene->map->mesh.lighting.bg_top;
     fs_params.u_bottom_color = scene->map->mesh.lighting.bg_bottom;
 
-    sg_apply_pipeline(gfx.background.pipeline);
-    sg_apply_bindings(&gfx.background.bindings);
+    sg_apply_pipeline(_state.background.pipeline);
+    sg_apply_bindings(&_state.background.bindings);
     sg_apply_uniforms(0, &SG_RANGE(fs_params));
     sg_draw(0, 6, 1);
 }
 
 static void frame_display(void)
 {
-    sg_apply_pipeline(gfx.display.pipeline);
-    sg_apply_bindings(&gfx.display.bindings);
+    sg_apply_pipeline(_state.display.pipeline);
+    sg_apply_bindings(&_state.display.bindings);
     sg_draw(0, 6, 1);
 }
 

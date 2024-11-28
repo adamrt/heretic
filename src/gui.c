@@ -24,6 +24,7 @@
 
 static struct {
     nk_bool show_scenarios;
+    int scale_divisor;
 } state;
 
 static void draw(void);
@@ -131,15 +132,15 @@ static void draw_section_camera(struct nk_context* ctx)
 
         snprintf(buffer, sizeof(buffer), "Distance: %f", cam->distance);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.001f, &cam->distance, CAM_DIST_MAX, 0.1f);
+        nk_slider_float(ctx, 0.001f, &cam->distance, CAMERA_DIST_MAX, 0.1f);
 
         snprintf(buffer, sizeof(buffer), "Near: %f", cam->znear);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.01f, &cam->znear, CAM_ZFAR_MAX, 0.1f);
+        nk_slider_float(ctx, 0.01f, &cam->znear, CAMERA_ZFAR_MAX, 0.1f);
 
         snprintf(buffer, sizeof(buffer), "Far: %f", cam->zfar);
         nk_label(ctx, buffer, NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.01f, &cam->zfar, CAM_ZFAR_MAX, 0.1f);
+        nk_slider_float(ctx, 0.01f, &cam->zfar, CAMERA_ZFAR_MAX, 0.1f);
 
         nk_tree_pop(ctx);
     }
@@ -231,15 +232,16 @@ static void draw_section_misc(struct nk_context* ctx)
         nk_layout_row_static(ctx, 20, 40, 5);
         nk_label(ctx, "Scale", NK_TEXT_LEFT);
 
-        int prev_scale_divisor = gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "1", gfx.offscreen.scale_divisor == 1) ? 1 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "2", gfx.offscreen.scale_divisor == 2) ? 2 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "3", gfx.offscreen.scale_divisor == 3) ? 3 : gfx.offscreen.scale_divisor;
-        gfx.offscreen.scale_divisor = nk_option_label(ctx, "4", gfx.offscreen.scale_divisor == 4) ? 4 : gfx.offscreen.scale_divisor;
-
-        if (prev_scale_divisor != gfx.offscreen.scale_divisor) {
-            gfx_scale_change();
+        int current = gfx_get_scale_divisor();
+        int new_value = current;
+        new_value = nk_option_label(ctx, "1", new_value == 1) ? 1 : new_value;
+        new_value = nk_option_label(ctx, "2", new_value == 2) ? 2 : new_value;
+        new_value = nk_option_label(ctx, "3", new_value == 3) ? 3 : new_value;
+        new_value = nk_option_label(ctx, "4", new_value == 4) ? 4 : new_value;
+        if (new_value != current) {
+            gfx_set_scale_divisor(new_value);
         }
+
         nk_tree_pop(ctx);
     }
 }

@@ -8,9 +8,13 @@
 #define GFX_DISPLAY_HEIGHT (960)
 
 void gfx_init(void);
+void gfx_shutdown(void);
 void gfx_update(void);
 void gfx_scale_change(void);
-void gfx_shutdown(void);
+
+sg_sampler gfx_get_sampler(void);
+int gfx_get_scale_divisor(void);
+void gfx_set_scale_divisor(int);
 
 typedef struct {
     vec3s translation;
@@ -51,7 +55,5 @@ typedef struct {
         sg_bindings bindings;
     } display;
 } gfx_t;
-
-extern gfx_t gfx;
 
 #endif // GFX_H_

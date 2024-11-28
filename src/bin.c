@@ -12,27 +12,27 @@
 
 #define FILE_SIZE_MAX (131072)
 
-static FILE* _bin = NULL;
+static FILE* _bin_file = NULL;
 
 void bin_init(void)
 {
-    _bin = fopen("../fft.bin", "rb");
-    assert(_bin != NULL);
+    _bin_file = fopen("../fft.bin", "rb");
+    assert(_bin_file != NULL);
 }
 
 bool bin_is_loaded(void)
 {
-    return _bin != NULL;
+    return _bin_file != NULL;
 }
 
 void bin_shutdown(void)
 {
-    fclose(_bin);
-    _bin = NULL;
+    fclose(_bin_file);
+    _bin_file = NULL;
 }
 
 // Forward declarations
-static void read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE]);
+static void _read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE]);
 
 file_t read_file(int sector_num, int size)
 {
@@ -44,7 +44,7 @@ file_t read_file(int sector_num, int size)
 
     for (uint32_t i = 0; i < occupied_sectors; i++) {
         uint8_t sector[SECTOR_SIZE];
-        read_sector(sector_num + i, sector);
+        _read_sector(sector_num + i, sector);
 
         int remaining_size = size - offset;
         int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
@@ -119,14 +119,14 @@ float read_f1x3x12(file_t* f)
     return value / 4096.0f;
 }
 
-static void read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
+static void _read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(_bin, seek_to, SEEK_SET) != 0) {
+    if (fseek(_bin_file, seek_to, SEEK_SET) != 0) {
         assert(false);
     }
 
-    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _bin);
+    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _bin_file);
     assert(n == SECTOR_SIZE);
     return;
 }

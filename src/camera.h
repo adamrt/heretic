@@ -5,10 +5,29 @@
 
 #include "cglm/types-struct.h"
 
-#define CAM_DIST_MIN  (0.01f)
-#define CAM_DIST_MAX  (1000.0f)
-#define CAM_ZNEAR_MIN (0.01f)
-#define CAM_ZFAR_MAX  (1000.0f)
+#define CAMERA_DIST_MIN  (0.01f)
+#define CAMERA_DIST_MAX  (1000.0f)
+#define CAMERA_ZNEAR_MIN (0.01f)
+#define CAMERA_ZFAR_MAX  (1000.0f)
+
+typedef enum {
+    TRANS_DIR_LEFT,
+    TRANS_DIR_RIGHT,
+    TRANS_DIR_UP,
+    TRANS_DIR_DOWN,
+} transition_dir_e;
+
+typedef struct {
+    transition_dir_e direction;
+
+    float start_degrees;
+    float end_degrees;
+
+    float current_frame;
+    float total_frames;
+
+    bool valid;
+} transition_t;
 
 typedef struct {
     mat4s proj_mat, view_mat;
@@ -17,6 +36,7 @@ typedef struct {
     float znear, zfar;
     float distance;
     bool use_perspective;
+    transition_t transition;
 } camera_t;
 
 // These are listed clockwise to match the FFT data storage. We might change

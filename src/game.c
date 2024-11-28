@@ -10,8 +10,8 @@
 #    include <emscripten/emscripten.h>
 #endif
 
-// data_init is called during game_init() for native builds, and after file
-// upload on a wasm build.
+// data_init opens the FFT bin file and loads the default scene. It is called
+// during game_init() for native builds, and after file upload on a wasm build.
 void data_init(void)
 {
     bin_init();
