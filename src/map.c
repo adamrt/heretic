@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "map.h"
 #include "texture.h"
 

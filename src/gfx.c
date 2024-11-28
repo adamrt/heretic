@@ -1,4 +1,8 @@
-#include "scene.h"
+#include "cglm/struct/affine-pre.h"
+#include "cglm/struct/affine.h"
+#include "cglm/struct/mat4.h"
+#include "cglm/struct/vec4.h"
+
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -9,6 +13,7 @@
 #include "camera.h"
 #include "gfx.h"
 #include "gui.h"
+#include "scene.h"
 
 // Global gfx state
 static gfx_t _state;

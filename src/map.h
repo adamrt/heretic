@@ -1,7 +1,7 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-#include "cglm/struct.h"
+#include "cglm/types-struct.h"
 
 #include "map_record.h"
 #include "mesh.h"

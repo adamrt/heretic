@@ -1,10 +1,12 @@
-#include "scenario.h"
-#include "sokol_gfx.h"
+#include <assert.h>
 
 #include "cglm/types-struct.h"
+#include "sokol_gfx.h"
+
 #include "shader.glsl.h"
 
 #include "event.h"
+#include "scenario.h"
 #include "scene.h"
 
 static scene_t _state;

@@ -1,5 +1,5 @@
-#include "assert.h"
-#include "float.h"
+#include <assert.h>
+#include <float.h>
 
 #include "cglm/types-struct.h"
 #include "cglm/util.h"
