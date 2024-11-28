@@ -6,7 +6,6 @@
 
 #include "event.h"
 #include "scenario.h"
-#include "scene.h"
 
 void game_init(void);
 void game_update(void);
@@ -20,7 +19,6 @@ typedef enum mode_e {
 
 typedef struct {
     mode_e mode;
-    scene_t scene;
 
     struct {
         scenario_t* scenarios;

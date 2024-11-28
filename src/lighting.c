@@ -1,6 +1,6 @@
-#include "lighting.h"
+#include "cglm/cglm.h"
 
-#include "cglm/struct/vec4.h"
+#include "lighting.h"
 #include "mesh.h"
 
 static float read_light_color(file_t*);

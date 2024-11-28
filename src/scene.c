@@ -8,6 +8,11 @@
 
 #include "game.h"
 
+static scene_t state;
+
+// Temporary
+scene_t* scene_get_internals(void) { return &state; }
+
 typedef enum {
     SWITCH_PREV,
     SWITCH_NEXT,
@@ -18,9 +23,9 @@ static void scene_map_unload(void);
 
 void scene_init(void)
 {
-    g.scene.center_model = true;
-    g.scene.current_scenario = 10;
-    scene_load_scenario(g.scene.current_scenario);
+    state.center_model = true;
+    state.current_scenario = 10;
+    scene_load_scenario(state.current_scenario);
 }
 
 void scene_shutdown(void)
@@ -30,10 +35,10 @@ void scene_shutdown(void)
 
 void scene_update(void)
 {
-    if (g.scene.center_model) {
-        g.scene.model.transform.translation = g.scene.map->centered_translation;
+    if (state.center_model) {
+        state.model.transform.translation = state.map->centered_translation;
     } else {
-        g.scene.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        state.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
 }
 
@@ -73,9 +78,9 @@ void scene_load_map(int num, map_state_t map_state)
         },
     };
 
-    g.scene.map = map;
-    g.scene.model = model;
-    g.scene.current_map = num;
+    state.map = map;
+    state.model = model;
+    state.current_map = num;
 }
 
 void scene_load_scenario(int num)
@@ -105,37 +110,37 @@ static void scene_switch(switch_e dir)
 
     switch (g.mode) {
     case MODE_SCENARIO:
-        g.scene.current_scenario = is_prev ? g.scene.current_scenario - 1 : g.scene.current_scenario + 1;
+        state.current_scenario = is_prev ? state.current_scenario - 1 : state.current_scenario + 1;
         while (true) {
-            if (g.scene.current_scenario < 0) {
-                g.scene.current_scenario = SCENARIO_COUNT - 1;
+            if (state.current_scenario < 0) {
+                state.current_scenario = SCENARIO_COUNT - 1;
             }
-            if (g.scene.current_scenario > SCENARIO_COUNT - 1) {
-                g.scene.current_scenario = 0;
+            if (state.current_scenario > SCENARIO_COUNT - 1) {
+                state.current_scenario = 0;
             }
-            scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
+            scenario_t scenario = g.fft.scenarios[state.current_scenario];
             event_t event = g.fft.events[scenario.id];
             if (!event.valid) {
-                g.scene.current_scenario = is_prev ? g.scene.current_scenario - 1 : g.scene.current_scenario + 1;
+                state.current_scenario = is_prev ? state.current_scenario - 1 : state.current_scenario + 1;
                 continue;
             }
-            scene_load_scenario(g.scene.current_scenario);
+            scene_load_scenario(state.current_scenario);
             break;
         }
         break;
 
     case MODE_MAP:
-        g.scene.current_map = is_prev ? g.scene.current_map - 1 : g.scene.current_map + 1;
-        while (!map_list[g.scene.current_map].valid) {
-            g.scene.current_map = is_prev ? g.scene.current_map - 1 : g.scene.current_map + 1;
-            if (g.scene.current_map < 0) {
-                g.scene.current_map = MAP_COUNT - 1;
+        state.current_map = is_prev ? state.current_map - 1 : state.current_map + 1;
+        while (!map_list[state.current_map].valid) {
+            state.current_map = is_prev ? state.current_map - 1 : state.current_map + 1;
+            if (state.current_map < 0) {
+                state.current_map = MAP_COUNT - 1;
             }
-            if (g.scene.current_map > MAP_COUNT - 1) {
-                g.scene.current_map = 0;
+            if (state.current_map > MAP_COUNT - 1) {
+                state.current_map = 0;
             }
         }
-        scene_load_map(g.scene.current_map, default_map_state);
+        scene_load_map(state.current_map, default_map_state);
         break;
 
     default:
@@ -145,16 +150,16 @@ static void scene_switch(switch_e dir)
 
 static void scene_map_unload(void)
 {
-    if (g.scene.map != NULL) {
+    if (state.map != NULL) {
 
-        if (g.scene.map->map_data != NULL) {
-            free(g.scene.map->map_data);
+        if (state.map->map_data != NULL) {
+            free(state.map->map_data);
         }
 
-        sg_destroy_image(g.scene.model.bindings.images[IMG_u_texture]);
-        sg_destroy_image(g.scene.model.bindings.images[IMG_u_palette]);
-        sg_destroy_buffer(g.scene.model.bindings.vertex_buffers[0]);
+        sg_destroy_image(state.model.bindings.images[IMG_u_texture]);
+        sg_destroy_image(state.model.bindings.images[IMG_u_palette]);
+        sg_destroy_buffer(state.model.bindings.vertex_buffers[0]);
 
-        free(g.scene.map);
+        free(state.map);
     }
 }

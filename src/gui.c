@@ -1,3 +1,4 @@
+#include "scene.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -145,16 +146,16 @@ static void draw_section_camera(struct nk_context* ctx)
 
 static void draw_section_lights(struct nk_context* ctx)
 {
-
+    scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Lighting", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
         nk_label(ctx, "Ambient Strenght and Color", NK_TEXT_LEFT);
 
         nk_layout_row_dynamic(ctx, 25, 2);
-        nk_slider_float(ctx, 0, &g.scene.map->mesh.lighting.ambient_strength, 3.0f, 0.1f);
+        nk_slider_float(ctx, 0, &scene->map->mesh.lighting.ambient_strength, 3.0f, 0.1f);
 
-        vec4s* ambient_color = &g.scene.map->mesh.lighting.ambient_color;
+        vec4s* ambient_color = &scene->map->mesh.lighting.ambient_color;
         struct nk_colorf ambient_color_nk = { ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a };
         if (nk_combo_begin_color(ctx, nk_rgba_f(ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a), nk_vec2(200, 400))) {
             nk_layout_row_dynamic(ctx, 120, 1);
@@ -175,7 +176,7 @@ static void draw_section_lights(struct nk_context* ctx)
         }
         for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
             nk_layout_row_dynamic(ctx, 25, 1);
-            light_t* light = &g.scene.map->mesh.lighting.lights[i];
+            light_t* light = &scene->map->mesh.lighting.lights[i];
             if (!light->valid) {
                 continue;
             }
@@ -221,10 +222,11 @@ static void draw_section_lights(struct nk_context* ctx)
 
 static void draw_section_misc(struct nk_context* ctx)
 {
+    scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
         nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
-        nk_checkbox_label(ctx, "Centered", &g.scene.center_model);
+        nk_checkbox_label(ctx, "Centered", &scene->center_model);
         nk_layout_row_static(ctx, 20, 40, 5);
         nk_label(ctx, "Scale", NK_TEXT_LEFT);
 
@@ -267,11 +269,12 @@ static void draw_window_scenarios(struct nk_context* ctx)
 
 static void draw_dropdown_map(struct nk_context* ctx)
 {
+    scene_t* scene = scene_get_internals();
 
     nk_layout_row_dynamic(ctx, 25, 1);
 
-    map_desc_t selected_map = map_list[g.scene.current_map];
-    map_state_t map_state = g.scene.map->map_state;
+    map_desc_t selected_map = map_list[scene->current_map];
+    map_state_t map_state = scene->map->map_state;
 
     char buffer[64];
 
@@ -287,8 +290,8 @@ static void draw_dropdown_map(struct nk_context* ctx)
             snprintf(buffer, 64, "%d %s", map_list[i].id, map_list[i].name);
 
             if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
-                g.scene.current_map = i;
-                scene_load_map(g.scene.current_map, default_map_state);
+                scene->current_map = i;
+                scene_load_map(scene->current_map, default_map_state);
             }
         }
         nk_combo_end(ctx);
@@ -298,10 +301,10 @@ static void draw_dropdown_map(struct nk_context* ctx)
     // This way we only show unique map_states in the dropdown.
     // It doesn't matter if the map_state is from a different record type.
 
-    record_t* records = g.scene.map->map_data->records;
+    record_t* records = scene->map->map_data->records;
     record_t unique_records[GNS_RECORD_MAX_NUM];
     int unique_record_count = 0;
-    for (int i = 0; i < g.scene.map->map_data->record_count; i++) {
+    for (int i = 0; i < scene->map->map_data->record_count; i++) {
         if (record_map_state_unique(unique_records, unique_record_count, records[i])) {
             unique_records[unique_record_count++] = records[i];
         }
@@ -327,7 +330,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
             snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_name, weather_name, record.state.layout);
 
             if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
-                scene_load_map(g.scene.current_map, record.state);
+                scene_load_map(scene->current_map, record.state);
             }
         }
         nk_combo_end(ctx);
@@ -336,9 +339,10 @@ static void draw_dropdown_map(struct nk_context* ctx)
 
 static void draw_dropdown_scenario(struct nk_context* ctx)
 {
+    scene_t* scene = scene_get_internals();
     nk_layout_row_dynamic(ctx, 25, 1);
 
-    scenario_t selected_scenario = g.fft.scenarios[g.scene.current_scenario];
+    scenario_t selected_scenario = g.fft.scenarios[scene->current_scenario];
 
     char selected_buffer[64];
     snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, map_list[selected_scenario.map_id].name);
@@ -357,14 +361,14 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
             snprintf(item_buffer, 64, "%d %s", scenario_list[scenario.id].id, scenario_list[scenario.id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
-                g.scene.current_scenario = i;
-                scene_load_scenario(g.scene.current_scenario);
+                scene->current_scenario = i;
+                scene_load_scenario(scene->current_scenario);
             }
         }
         nk_combo_end(ctx);
     }
 
-    scenario_t scenario = g.fft.scenarios[g.scene.current_scenario];
+    scenario_t scenario = g.fft.scenarios[scene->current_scenario];
     map_desc_t map = map_list[scenario.map_id];
 
     char weather_name[12];
