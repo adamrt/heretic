@@ -1,7 +1,9 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
-#include "cglm/struct.h"
+#include <stdbool.h>
+
+#include "cglm/types-struct.h"
 
 #define CAM_DIST_MIN  (0.01f)
 #define CAM_DIST_MAX  (1000.0f)

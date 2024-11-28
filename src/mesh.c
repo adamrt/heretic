@@ -1,6 +1,11 @@
-#include "mesh.h"
+#include "assert.h"
+#include "float.h"
+
+#include "cglm/types-struct.h"
+#include "cglm/util.h"
 
 #include "lighting.h"
+#include "mesh.h"
 #include "texture.h"
 
 static vec3s read_normal(file_t*);

@@ -1,3 +1,5 @@
+#include "cglm/types-struct.h"
+
 #include "texture.h"
 
 static vec4s read_rgb15(file_t*);

@@ -1,9 +1,10 @@
+#include "cglm/struct/cam.h"
 #include "cglm/struct/vec3.h"
+#include "cglm/types-struct.h"
 
 #include "sokol_app.h"
 
 #include "camera.h"
-#include "game.h"
 
 #define SENSITIVITY (2.0f)
 

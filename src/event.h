@@ -4,11 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define EVENT_FILE_SECTOR (3707)
-#define EVENT_FILE_SIZE   (4096000)
-#define EVENT_SIZE        (8192)
-#define EVENT_COUNT       (500)
-
 typedef struct {
     int text_count;
     int code_count;
@@ -18,6 +13,6 @@ typedef struct {
     bool valid;
 } event_t;
 
-void load_events(void);
+event_t event_get(int);
 
 #endif // EVENT_H_

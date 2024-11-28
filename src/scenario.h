@@ -10,18 +10,17 @@ typedef struct {
     int map_id;
     weather_e weather;
     time_e time;
-
     int entd_id;
     int next_scenario_id;
 } scenario_t;
 
-// Scenario and map descriptors
+// Scenario descriptors
 typedef struct {
     uint16_t id;
     const char* name;
 } scenario_desc_t;
 
-void load_scenarios(void);
+scenario_t scenario_get(int);
 
 extern scenario_desc_t scenario_list[];
 

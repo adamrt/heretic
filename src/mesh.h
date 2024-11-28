@@ -1,7 +1,7 @@
 #ifndef MESH_H_
 #define MESH_H_
 
-#include "cglm/struct.h"
+#include "cglm/types-struct.h"
 
 #include "bin.h"
 #include "lighting.h"

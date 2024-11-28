@@ -1,10 +1,8 @@
 #include "game.h"
 #include "bin.h"
 #include "camera.h"
-#include "event.h"
 #include "gfx.h"
 #include "gui.h"
-#include "scenario.h"
 #include "scene.h"
 #include "time.h"
 
@@ -12,7 +10,7 @@
 #    include <emscripten/emscripten.h>
 #endif
 
-game_t g = {
+game_t gstate = {
     .mode = MODE_SCENARIO,
 };
 
@@ -21,16 +19,11 @@ game_t g = {
 void data_init(void)
 {
     bin_init();
-
-    load_events();
-    load_scenarios();
     scene_init();
 }
 
 static void data_shutdown(void)
 {
-    free(g.fft.scenarios);
-    free(g.fft.events);
     bin_shutdown();
 }
 

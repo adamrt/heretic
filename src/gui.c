@@ -1,4 +1,3 @@
-#include "scene.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -16,10 +15,12 @@
 #include "util/sokol_nuklear.h"
 
 #include "camera.h"
+#include "event.h"
 #include "game.h"
 #include "gfx.h"
 #include "gui.h"
 #include "scenario.h"
+#include "scene.h"
 #include "time.h"
 
 static struct {
@@ -97,12 +98,12 @@ static void draw_section_scene(struct nk_context* ctx)
     if (nk_tree_push(ctx, NK_TREE_TAB, "Scene", NK_MAXIMIZED)) {
         nk_layout_row_static(ctx, 30, 100, 2);
 
-        g.mode = nk_option_label(ctx, "Maps", g.mode == MODE_MAP) ? MODE_MAP : g.mode;
-        g.mode = nk_option_label(ctx, "Scenarios", g.mode == MODE_SCENARIO) ? MODE_SCENARIO : g.mode;
+        gstate.mode = nk_option_label(ctx, "Maps", gstate.mode == MODE_MAP) ? MODE_MAP : gstate.mode;
+        gstate.mode = nk_option_label(ctx, "Scenarios", gstate.mode == MODE_SCENARIO) ? MODE_SCENARIO : gstate.mode;
 
-        if (g.mode == MODE_SCENARIO) {
+        if (gstate.mode == MODE_SCENARIO) {
             draw_dropdown_scenario(ctx);
-        } else if (g.mode == MODE_MAP) {
+        } else if (gstate.mode == MODE_MAP) {
             draw_dropdown_map(ctx);
         }
         nk_tree_pop(ctx);
@@ -248,17 +249,17 @@ static void draw_window_scenarios(struct nk_context* ctx)
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
-            scenario_t* scenario = &g.fft.scenarios[i];
+            scenario_t scenario = scenario_get(i);
 
             char buffer_id[64];
-            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario->id, scenario_list[scenario->id].name);
+            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario.id, scenario_list[scenario.id].name);
 
             char weather_name[12];
-            weather_str(scenario->weather, weather_name);
+            weather_str(scenario.weather, weather_name);
             char time_name[8];
-            time_str(scenario->time, time_name);
+            time_str(scenario.time, time_name);
             char buffer_weather[40];
-            snprintf(buffer_weather, 40, "Weather: %s, Time: %s, ENTD: %d", weather_name, time_name, scenario->entd_id);
+            snprintf(buffer_weather, 40, "Weather: %s, Time: %s, ENTD: %d", weather_name, time_name, scenario.entd_id);
 
             nk_label(ctx, buffer_id, NK_TEXT_LEFT);
             nk_label(ctx, buffer_weather, NK_TEXT_LEFT);
@@ -342,7 +343,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
     scene_t* scene = scene_get_internals();
     nk_layout_row_dynamic(ctx, 25, 1);
 
-    scenario_t selected_scenario = g.fft.scenarios[scene->current_scenario];
+    scenario_t selected_scenario = scenario_get(scene->current_scenario);
 
     char selected_buffer[64];
     snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, map_list[selected_scenario.map_id].name);
@@ -352,8 +353,8 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
 
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
             // FIXME: This should be cached as it is looping this per frame.
-            scenario_t scenario = g.fft.scenarios[i];
-            event_t event = g.fft.events[scenario.id];
+            scenario_t scenario = scenario_get(i);
+            event_t event = event_get(scenario.id);
             if (!event.valid) {
                 continue;
             }
@@ -368,7 +369,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         nk_combo_end(ctx);
     }
 
-    scenario_t scenario = g.fft.scenarios[scene->current_scenario];
+    scenario_t scenario = scenario_get(scene->current_scenario);
     map_desc_t map = map_list[scenario.map_id];
 
     char weather_name[12];

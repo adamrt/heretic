@@ -1,10 +1,9 @@
 #ifndef BIN_H_
 #define BIN_H_
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include "cglm/struct.h"
 
 typedef struct {
     uint8_t* data;

@@ -1,7 +1,7 @@
 #ifndef GFX_H_
 #define GFX_H_
 
-#include "cglm/struct.h"
+#include "cglm/types-struct.h"
 #include "sokol_gfx.h"
 
 #define GFX_DISPLAY_WIDTH  (1440)

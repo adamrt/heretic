@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "cglm/struct.h"
+#include "cglm/types-struct.h"
 
 #include "bin.h"
 

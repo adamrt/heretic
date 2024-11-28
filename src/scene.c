@@ -1,9 +1,10 @@
 #include "scenario.h"
 #include "sokol_gfx.h"
 
-#include "cglm/struct.h"
+#include "cglm/types-struct.h"
 #include "shader.glsl.h"
 
+#include "event.h"
 #include "scene.h"
 
 #include "game.h"
@@ -85,7 +86,7 @@ void scene_load_map(int num, map_state_t map_state)
 
 void scene_load_scenario(int num)
 {
-    scenario_t scenario = g.fft.scenarios[num];
+    scenario_t scenario = scenario_get(num);
     map_state_t scenario_state = {
         .time = scenario.time,
         .weather = scenario.weather,
@@ -108,7 +109,7 @@ static void scene_switch(switch_e dir)
 {
     bool is_prev = dir == SWITCH_PREV;
 
-    switch (g.mode) {
+    switch (gstate.mode) {
     case MODE_SCENARIO:
         state.current_scenario = is_prev ? state.current_scenario - 1 : state.current_scenario + 1;
         while (true) {
@@ -118,8 +119,8 @@ static void scene_switch(switch_e dir)
             if (state.current_scenario > SCENARIO_COUNT - 1) {
                 state.current_scenario = 0;
             }
-            scenario_t scenario = g.fft.scenarios[state.current_scenario];
-            event_t event = g.fft.events[scenario.id];
+            scenario_t scenario = scenario_get(state.current_scenario);
+            event_t event = event_get(scenario.id);
             if (!event.valid) {
                 state.current_scenario = is_prev ? state.current_scenario - 1 : state.current_scenario + 1;
                 continue;

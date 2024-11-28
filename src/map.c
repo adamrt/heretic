@@ -1,5 +1,4 @@
 #include "map.h"
-#include "game.h"
 #include "texture.h"
 
 void read_map(int num, map_state_t map_state, map_t* map_out)
