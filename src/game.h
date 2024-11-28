@@ -21,9 +21,6 @@ typedef enum mode_e {
 } mode_e;
 
 typedef struct {
-    FILE* bin;
-    bool bin_loaded;
-
     mode_e mode;
     scene_t scene;
     camera_t cam;

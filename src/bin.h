@@ -12,7 +12,11 @@ typedef struct {
     size_t size;
 } file_t;
 
-file_t read_file(FILE* f, int, int);
+void bin_init(void);
+void bin_shutdown(void);
+bool bin_is_loaded(void);
+
+file_t read_file(int, int);
 
 void read_bytes(file_t*, int, uint8_t*);
 uint8_t read_u8(file_t*);

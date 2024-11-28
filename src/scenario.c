@@ -11,7 +11,7 @@
 
 void load_scenarios(void)
 {
-    file_t attack_out_file = read_file(g.bin, ATTACK_FILE_SECTOR, ATTACK_FILE_SIZE);
+    file_t attack_out_file = read_file(ATTACK_FILE_SECTOR, ATTACK_FILE_SIZE);
     attack_out_file.offset = SCENARIO_DATA_OFFSET;
 
     scenario_t* scenarios = calloc(SCENARIO_COUNT, sizeof(scenario_t));

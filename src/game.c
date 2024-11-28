@@ -1,4 +1,5 @@
 #include "game.h"
+#include "bin.h"
 #include "camera.h"
 #include "event.h"
 #include "gfx.h"
@@ -18,13 +19,10 @@ game_t g = {
 // upload on a wasm build.
 void data_init(void)
 {
-    g.bin = fopen("../fft.bin", "rb");
-    assert(g.bin != NULL);
-    g.bin_loaded = true;
+    bin_init();
 
     load_events();
     load_scenarios();
-
     scene_init();
 }
 
@@ -32,7 +30,7 @@ static void data_shutdown(void)
 {
     free(g.fft.scenarios);
     free(g.fft.events);
-    fclose(g.bin);
+    bin_shutdown();
 }
 
 void game_init(void)
@@ -122,7 +120,7 @@ void game_input(const sapp_event* event)
 
 void game_update(void)
 {
-    if (!g.bin_loaded) {
+    if (!bin_is_loaded()) {
         return;
     }
 

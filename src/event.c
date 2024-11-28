@@ -6,7 +6,7 @@
 
 void load_events(void)
 {
-    file_t event_file = read_file(g.bin, EVENT_FILE_SECTOR, EVENT_FILE_SIZE);
+    file_t event_file = read_file(EVENT_FILE_SECTOR, EVENT_FILE_SIZE);
     event_t* events = calloc(EVENT_COUNT, sizeof(event_t));
 
     for (int i = 0; i < EVENT_COUNT; i++) {

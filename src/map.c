@@ -47,14 +47,14 @@ void read_map(int num, map_state_t map_state, map_t* map_out)
 
 void read_map_data(int num, map_data_t* map_data_out)
 {
-    file_t gns_file = read_file(g.bin, map_list[num].sector, GNS_FILE_MAX_SIZE);
+    file_t gns_file = read_file(map_list[num].sector, GNS_FILE_MAX_SIZE);
     map_data_out->record_count = read_records(&gns_file, map_data_out->records);
 
     free(gns_file.data);
 
     for (int i = 0; i < map_data_out->record_count; i++) {
         record_t record = map_data_out->records[i];
-        file_t file = read_file(g.bin, record.sector, record.length);
+        file_t file = read_file(record.sector, record.length);
 
         switch (record.type) {
         case FILETYPE_TEXTURE: {

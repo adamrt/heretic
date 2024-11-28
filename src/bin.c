@@ -8,10 +8,29 @@
 
 #define FILE_SIZE_MAX (131072)
 
-// Forward declarations
-static void read_sector(FILE* f, int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE]);
+static FILE* _bin = NULL;
 
-file_t read_file(FILE* f, int sector_num, int size)
+void bin_init(void)
+{
+    _bin = fopen("../fft.bin", "rb");
+    assert(_bin != NULL);
+}
+
+bool bin_is_loaded(void)
+{
+    return _bin != NULL;
+}
+
+void bin_shutdown(void)
+{
+    fclose(_bin);
+    _bin = NULL;
+}
+
+// Forward declarations
+static void read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE]);
+
+file_t read_file(int sector_num, int size)
 {
     file_t file = { .size = size };
     file.data = calloc(1, size);
@@ -21,7 +40,7 @@ file_t read_file(FILE* f, int sector_num, int size)
 
     for (uint32_t i = 0; i < occupied_sectors; i++) {
         uint8_t sector[SECTOR_SIZE];
-        read_sector(f, sector_num + i, sector);
+        read_sector(sector_num + i, sector);
 
         int remaining_size = size - offset;
         int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
@@ -96,14 +115,14 @@ float read_f1x3x12(file_t* f)
     return value / 4096.0f;
 }
 
-static void read_sector(FILE* f, int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
+static void read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(f, seek_to, SEEK_SET) != 0) {
+    if (fseek(_bin, seek_to, SEEK_SET) != 0) {
         assert(false);
     }
 
-    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, f);
+    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _bin);
     assert(n == SECTOR_SIZE);
     return;
 }
