@@ -19,10 +19,10 @@ typedef struct {
 typedef struct {
     uint16_t id;
     const char* name;
-} scenario_desc_t;
+} scenario_name_t;
 
 scenario_record_t scenario_get_record(int);
 
-extern scenario_desc_t scenario_record_list[];
+extern scenario_name_t scenario_name_list[];
 
 #endif // SCENARIO_RECORD_H_

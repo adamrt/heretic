@@ -250,7 +250,7 @@ static void draw_window_scenarios(struct nk_context* ctx)
         for (int i = 0; i < SCENARIO_COUNT; i++) {
             scenario_record_t scenario = scenario_get_record(i);
 
-            nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_record_list[scenario.event_id].name);
+            nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_name_list[scenario.event_id].name);
             nk_labelf(ctx, NK_TEXT_LEFT, "Weather: %s, Time: %s, ENTD: %d", weather_str(scenario.weather), time_str(scenario.time), scenario.entd_id);
         }
     }
@@ -356,7 +356,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
                 continue;
             }
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario_record_list[scenario.event_id].id, scenario_record_list[scenario.event_id].name);
+            snprintf(item_buffer, 64, "%d %s", scenario_name_list[scenario.event_id].id, scenario_name_list[scenario.event_id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 scene->current_scenario = i;
