@@ -8,6 +8,7 @@
 #include "event.h"
 #include "scenario.h"
 #include "scene.h"
+#include "time.h"
 
 void game_init(void);
 void game_update(void);
@@ -32,11 +33,6 @@ typedef struct {
         event_t* events;
     } fft;
 
-    struct {
-        float fps;
-        int frame_count;
-        uint64_t last_time;
-    } time;
 } game_t;
 
 extern game_t g;

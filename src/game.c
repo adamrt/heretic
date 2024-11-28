@@ -14,10 +14,6 @@ game_t g = {
     .mode = MODE_SCENARIO,
 };
 
-// Forward declarations
-static void time_init(void);
-static void time_update(void);
-
 // data_init is called during game_init() for native builds, and after file
 // upload on a wasm build.
 void data_init(void)
@@ -134,24 +130,4 @@ void game_update(void)
     scene_update();
     camera_update();
     gfx_update();
-}
-
-static void time_init(void)
-{
-    stm_setup();
-    g.time.last_time = stm_now();
-}
-
-static void time_update(void)
-{
-    g.time.frame_count++;
-    uint64_t current_time = stm_now();
-    uint64_t elapsed_ticks = stm_diff(current_time, g.time.last_time);
-    double elapsed_seconds = stm_sec(elapsed_ticks);
-
-    if (elapsed_seconds >= 1.0) {
-        g.time.fps = g.time.frame_count / (float)elapsed_seconds;
-        g.time.frame_count = 0;
-        g.time.last_time = current_time;
-    }
 }

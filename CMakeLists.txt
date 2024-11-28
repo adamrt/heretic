@@ -58,7 +58,8 @@ add_executable(heretic
     src/mesh.c
     src/scenario.c
     src/scene.c
-    src/texture.c)
+    src/texture.c
+    src/time.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)

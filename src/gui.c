@@ -19,6 +19,7 @@
 #include "gfx.h"
 #include "gui.h"
 #include "scenario.h"
+#include "time.h"
 
 static struct {
     nk_bool show_scenarios;
@@ -86,7 +87,7 @@ static void draw_section_fps(struct nk_context* ctx)
 {
     nk_layout_row_dynamic(ctx, 25, 1);
     char buffer[64];
-    snprintf(buffer, sizeof(buffer), "FPS: %f", g.time.fps);
+    snprintf(buffer, sizeof(buffer), "FPS: %f", time_get_fps());
     nk_label(ctx, buffer, NK_TEXT_LEFT);
 }
 
