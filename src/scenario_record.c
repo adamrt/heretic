@@ -1,4 +1,4 @@
-#include "scenario.h"
+#include "scenario_record.h"
 
 #include "bin.h"
 #include "event.h"
@@ -11,14 +11,14 @@
 
 // Module private state
 static struct {
-    scenario_t scenarios[SCENARIO_COUNT];
+    scenario_record_t scenarios[SCENARIO_COUNT];
     bool loaded;
 } _state;
 
 // Forward declarations
 static void _load_scenarios(void);
 
-scenario_t scenario_get(int index)
+scenario_record_t scenario_get_record(int index)
 {
     if (!_state.loaded) {
         _load_scenarios();
@@ -42,7 +42,7 @@ static void _load_scenarios(void)
             continue;
         }
 
-        _state.scenarios[i] = (scenario_t) {
+        _state.scenarios[i] = (scenario_record_t) {
             .id = event_id,
             .map_id = bytes[2],
             .weather = bytes[3],
@@ -58,7 +58,7 @@ static void _load_scenarios(void)
 
 // Thanks to FFTPAtcher for the scenario name list.
 // https://github.com/Glain/FFTPatcher/blob/master/EntryEdit/EntryData/PSX/ScenarioNames.xml
-scenario_desc_t scenario_list[500] = {
+scenario_desc_t scenario_record_list[500] = {
     { 0x0000, "Unusable" },
     { 0x0001, "Orbonne Prayer (Setup)" },
     { 0x0002, "Orbonne Prayer" },

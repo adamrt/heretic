@@ -7,9 +7,9 @@
 
 #include "bin.h"
 
-#define GNS_FILE_MAX_SIZE  (2388)
-#define GNS_RECORD_MAX_NUM (100)
-#define GNS_RECORD_SIZE    (20)
+#define MAP_FILE_MAX_SIZE  (2388)
+#define MAP_RECORD_MAX_NUM (100)
+#define MAP_RECORD_SIZE    (20)
 
 typedef enum {
     FILETYPE_NONE = 0x0000,
@@ -41,6 +41,10 @@ typedef struct {
     int layout;
 } map_state_t;
 
+// A map record is the information for a specific resource.
+// It can be for a mesh (multiple types), texture, or end of file.
+//
+// These are also called GNS records.
 typedef struct {
     filetype_e type;
     size_t sector;
@@ -48,8 +52,8 @@ typedef struct {
 
     map_state_t state;
 
-    uint8_t data[GNS_RECORD_SIZE];
-} record_t;
+    uint8_t data[MAP_RECORD_SIZE];
+} map_record_t;
 
 static map_state_t default_map_state = (map_state_t) {
     .time = TIME_DAY,
@@ -57,12 +61,12 @@ static map_state_t default_map_state = (map_state_t) {
     .layout = 0,
 };
 
-record_t read_record(file_t*);
-int read_records(file_t* f, record_t* out_records);
+map_record_t read_map_record(file_t*);
+int read_map_records(file_t*, map_record_t*);
 
 bool map_state_eq(map_state_t, map_state_t);
 bool map_state_default(map_state_t);
-bool record_map_state_unique(record_t*, int, record_t);
+bool map_record_state_unique(map_record_t*, int, map_record_t);
 
 void time_str(time_e, char[static 8]);
 void weather_str(weather_e, char[static 12]);

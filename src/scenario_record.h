@@ -1,5 +1,5 @@
-#ifndef SCENARIO_H_
-#define SCENARIO_H_
+#ifndef SCENARIO_RECORD_H_
+#define SCENARIO_RECORD_H_
 
 #include "map_record.h"
 
@@ -12,7 +12,7 @@ typedef struct {
     time_e time;
     int entd_id;
     int next_scenario_id;
-} scenario_t;
+} scenario_record_t;
 
 // Scenario descriptors
 typedef struct {
@@ -20,8 +20,8 @@ typedef struct {
     const char* name;
 } scenario_desc_t;
 
-scenario_t scenario_get(int);
+scenario_record_t scenario_get_record(int);
 
-extern scenario_desc_t scenario_list[];
+extern scenario_desc_t scenario_record_list[];
 
-#endif // SCENARIO_H_
+#endif // SCENARIO_RECORD_H_

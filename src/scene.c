@@ -7,7 +7,7 @@
 #include "shader.glsl.h"
 
 #include "event.h"
-#include "scenario.h"
+#include "scenario_record.h"
 #include "scene.h"
 
 static scene_t _state;
@@ -89,7 +89,7 @@ void scene_load_map(int num, map_state_t map_state)
 
 void scene_load_scenario(int num)
 {
-    scenario_t scenario = scenario_get(num);
+    scenario_record_t scenario = scenario_get_record(num);
     map_state_t scenario_state = {
         .time = scenario.time,
         .weather = scenario.weather,
@@ -129,7 +129,7 @@ static void _scene_switch(switch_e dir)
             if (_state.current_scenario > SCENARIO_COUNT - 1) {
                 _state.current_scenario = 0;
             }
-            scenario_t scenario = scenario_get(_state.current_scenario);
+            scenario_record_t scenario = scenario_get_record(_state.current_scenario);
             event_t event = event_get(scenario.id);
             if (!event.valid) {
                 _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;

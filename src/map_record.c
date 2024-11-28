@@ -2,10 +2,10 @@
 
 #include <string.h>
 
-record_t read_record(file_t* f)
+map_record_t read_map_record(file_t* f)
 {
-    uint8_t bytes[GNS_RECORD_SIZE];
-    read_bytes(f, GNS_RECORD_SIZE, bytes);
+    uint8_t bytes[MAP_RECORD_SIZE];
+    read_bytes(f, MAP_RECORD_SIZE, bytes);
     int sector = bytes[8] | bytes[9] << 8;
     uint64_t length = (uint32_t)(bytes[12]) | ((uint32_t)(bytes[13]) << 8) | ((uint32_t)(bytes[14]) << 16) | ((uint32_t)(bytes[15]) << 24);
     filetype_e type = (bytes[4] | (bytes[5] << 8));
@@ -13,7 +13,7 @@ record_t read_record(file_t* f)
     weather_e weather = (bytes[3] >> 4) & 0x7;
     int layout = bytes[2];
 
-    record_t record = {
+    map_record_t record = {
         .sector = sector,
         .length = length,
         .type = type,
@@ -23,15 +23,15 @@ record_t read_record(file_t* f)
             .layout = layout,
         },
     };
-    memcpy(record.data, bytes, GNS_RECORD_SIZE);
+    memcpy(record.data, bytes, MAP_RECORD_SIZE);
     return record;
 }
 
-int read_records(file_t* f, record_t* out_records)
+int read_map_records(file_t* f, map_record_t* out_records)
 {
     int count = 0;
     while (true) {
-        record_t record = read_record(f);
+        map_record_t record = read_map_record(f);
         if (record.type == FILETYPE_END) {
             break;
         }
@@ -114,7 +114,7 @@ bool map_state_eq(map_state_t a, map_state_t b)
     return a.time == b.time && a.weather == b.weather && a.layout == b.layout;
 }
 
-bool record_map_state_unique(record_t* unique_records, int unique_record_count, record_t record)
+bool map_record_state_unique(map_record_t* unique_records, int unique_record_count, map_record_t record)
 {
     for (int i = 0; i < unique_record_count; i++) {
         if (map_state_eq(unique_records[i].state, record.state)) {

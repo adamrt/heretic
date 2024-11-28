@@ -20,7 +20,7 @@
 #include "event.h"
 #include "gfx.h"
 #include "gui.h"
-#include "scenario.h"
+#include "scenario_record.h"
 #include "scene.h"
 #include "time.h"
 
@@ -261,10 +261,10 @@ static void draw_window_scenarios(struct nk_context* ctx)
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
-            scenario_t scenario = scenario_get(i);
+            scenario_record_t scenario = scenario_get_record(i);
 
             char buffer_id[64];
-            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario.id, scenario_list[scenario.id].name);
+            snprintf(buffer_id, 64, "Scenario %d, ID: %d, Map: %s", i, scenario.id, scenario_record_list[scenario.id].name);
 
             char weather_name[12];
             weather_str(scenario.weather, weather_name);
@@ -333,11 +333,11 @@ static void draw_dropdown_map(struct nk_context* ctx)
     // This way we only show unique map_states in the dropdown.
     // It doesn't matter if the map_state is from a different record type.
 
-    record_t* records = scene->map->map_data->records;
-    record_t unique_records[GNS_RECORD_MAX_NUM];
+    map_record_t* records = scene->map->map_data->records;
+    map_record_t unique_records[MAP_RECORD_MAX_NUM];
     int unique_record_count = 0;
     for (int i = 0; i < scene->map->map_data->record_count; i++) {
-        if (record_map_state_unique(unique_records, unique_record_count, records[i])) {
+        if (map_record_state_unique(unique_records, unique_record_count, records[i])) {
             unique_records[unique_record_count++] = records[i];
         }
     }
@@ -354,7 +354,7 @@ static void draw_dropdown_map(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < unique_record_count; ++i) {
-            record_t record = unique_records[i];
+            map_record_t record = unique_records[i];
 
             weather_str(record.state.weather, weather_name);
             time_str(record.state.time, time_name);
@@ -374,7 +374,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
     scene_t* scene = scene_get_internals();
     nk_layout_row_dynamic(ctx, 25, 1);
 
-    scenario_t selected_scenario = scenario_get(scene->current_scenario);
+    scenario_record_t selected_scenario = scenario_get_record(scene->current_scenario);
 
     char selected_buffer[64];
     snprintf(selected_buffer, 64, "%d %s", selected_scenario.id, map_list[selected_scenario.map_id].name);
@@ -384,13 +384,13 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
 
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
             // FIXME: This should be cached as it is looping this per frame.
-            scenario_t scenario = scenario_get(i);
+            scenario_record_t scenario = scenario_get_record(i);
             event_t event = event_get(scenario.id);
             if (!event.valid) {
                 continue;
             }
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario_list[scenario.id].id, scenario_list[scenario.id].name);
+            snprintf(item_buffer, 64, "%d %s", scenario_record_list[scenario.id].id, scenario_record_list[scenario.id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 scene->current_scenario = i;
@@ -400,7 +400,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         nk_combo_end(ctx);
     }
 
-    scenario_t scenario = scenario_get(scene->current_scenario);
+    scenario_record_t scenario = scenario_get_record(scene->current_scenario);
     map_desc_t map = map_list[scenario.map_id];
 
     char weather_name[12];

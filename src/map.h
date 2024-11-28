@@ -12,7 +12,7 @@
 // map_data_t represents all the data for a specific map.
 // This has all the different states a map can have.
 typedef struct {
-    record_t records[GNS_RECORD_MAX_NUM];
+    map_record_t records[MAP_RECORD_MAX_NUM];
 
     mesh_t primary_mesh;
     mesh_t override_mesh;
