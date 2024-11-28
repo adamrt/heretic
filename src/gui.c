@@ -16,7 +16,6 @@
 
 #include "camera.h"
 #include "event.h"
-#include "game.h"
 #include "gfx.h"
 #include "gui.h"
 #include "scenario.h"
@@ -95,15 +94,16 @@ static void draw_section_fps(struct nk_context* ctx)
 
 static void draw_section_scene(struct nk_context* ctx)
 {
+    scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Scene", NK_MAXIMIZED)) {
         nk_layout_row_static(ctx, 30, 100, 2);
 
-        gstate.mode = nk_option_label(ctx, "Maps", gstate.mode == MODE_MAP) ? MODE_MAP : gstate.mode;
-        gstate.mode = nk_option_label(ctx, "Scenarios", gstate.mode == MODE_SCENARIO) ? MODE_SCENARIO : gstate.mode;
+        scene->mode = nk_option_label(ctx, "Maps", scene->mode == MODE_MAP) ? MODE_MAP : scene->mode;
+        scene->mode = nk_option_label(ctx, "Scenarios", scene->mode == MODE_SCENARIO) ? MODE_SCENARIO : scene->mode;
 
-        if (gstate.mode == MODE_SCENARIO) {
+        if (scene->mode == MODE_SCENARIO) {
             draw_dropdown_scenario(ctx);
-        } else if (gstate.mode == MODE_MAP) {
+        } else if (scene->mode == MODE_MAP) {
             draw_dropdown_map(ctx);
         }
         nk_tree_pop(ctx);

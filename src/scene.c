@@ -9,10 +9,10 @@
 
 #include "game.h"
 
-static scene_t state;
+static scene_t _state;
 
 // Temporary
-scene_t* scene_get_internals(void) { return &state; }
+scene_t* scene_get_internals(void) { return &_state; }
 
 typedef enum {
     SWITCH_PREV,
@@ -24,9 +24,9 @@ static void scene_map_unload(void);
 
 void scene_init(void)
 {
-    state.center_model = true;
-    state.current_scenario = 10;
-    scene_load_scenario(state.current_scenario);
+    _state.center_model = true;
+    _state.current_scenario = 10;
+    scene_load_scenario(_state.current_scenario);
 }
 
 void scene_shutdown(void)
@@ -36,10 +36,10 @@ void scene_shutdown(void)
 
 void scene_update(void)
 {
-    if (state.center_model) {
-        state.model.transform.translation = state.map->centered_translation;
+    if (_state.center_model) {
+        _state.model.transform.translation = _state.map->centered_translation;
     } else {
-        state.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+        _state.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }
 }
 
@@ -79,9 +79,9 @@ void scene_load_map(int num, map_state_t map_state)
         },
     };
 
-    state.map = map;
-    state.model = model;
-    state.current_map = num;
+    _state.map = map;
+    _state.model = model;
+    _state.current_map = num;
 }
 
 void scene_load_scenario(int num)
@@ -109,39 +109,39 @@ static void scene_switch(switch_e dir)
 {
     bool is_prev = dir == SWITCH_PREV;
 
-    switch (gstate.mode) {
+    switch (_state.mode) {
     case MODE_SCENARIO:
-        state.current_scenario = is_prev ? state.current_scenario - 1 : state.current_scenario + 1;
+        _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
         while (true) {
-            if (state.current_scenario < 0) {
-                state.current_scenario = SCENARIO_COUNT - 1;
+            if (_state.current_scenario < 0) {
+                _state.current_scenario = SCENARIO_COUNT - 1;
             }
-            if (state.current_scenario > SCENARIO_COUNT - 1) {
-                state.current_scenario = 0;
+            if (_state.current_scenario > SCENARIO_COUNT - 1) {
+                _state.current_scenario = 0;
             }
-            scenario_t scenario = scenario_get(state.current_scenario);
+            scenario_t scenario = scenario_get(_state.current_scenario);
             event_t event = event_get(scenario.id);
             if (!event.valid) {
-                state.current_scenario = is_prev ? state.current_scenario - 1 : state.current_scenario + 1;
+                _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
                 continue;
             }
-            scene_load_scenario(state.current_scenario);
+            scene_load_scenario(_state.current_scenario);
             break;
         }
         break;
 
     case MODE_MAP:
-        state.current_map = is_prev ? state.current_map - 1 : state.current_map + 1;
-        while (!map_list[state.current_map].valid) {
-            state.current_map = is_prev ? state.current_map - 1 : state.current_map + 1;
-            if (state.current_map < 0) {
-                state.current_map = MAP_COUNT - 1;
+        _state.current_map = is_prev ? _state.current_map - 1 : _state.current_map + 1;
+        while (!map_list[_state.current_map].valid) {
+            _state.current_map = is_prev ? _state.current_map - 1 : _state.current_map + 1;
+            if (_state.current_map < 0) {
+                _state.current_map = MAP_COUNT - 1;
             }
-            if (state.current_map > MAP_COUNT - 1) {
-                state.current_map = 0;
+            if (_state.current_map > MAP_COUNT - 1) {
+                _state.current_map = 0;
             }
         }
-        scene_load_map(state.current_map, default_map_state);
+        scene_load_map(_state.current_map, default_map_state);
         break;
 
     default:
@@ -151,16 +151,16 @@ static void scene_switch(switch_e dir)
 
 static void scene_map_unload(void)
 {
-    if (state.map != NULL) {
+    if (_state.map != NULL) {
 
-        if (state.map->map_data != NULL) {
-            free(state.map->map_data);
+        if (_state.map->map_data != NULL) {
+            free(_state.map->map_data);
         }
 
-        sg_destroy_image(state.model.bindings.images[IMG_u_texture]);
-        sg_destroy_image(state.model.bindings.images[IMG_u_palette]);
-        sg_destroy_buffer(state.model.bindings.vertex_buffers[0]);
+        sg_destroy_image(_state.model.bindings.images[IMG_u_texture]);
+        sg_destroy_image(_state.model.bindings.images[IMG_u_palette]);
+        sg_destroy_buffer(_state.model.bindings.vertex_buffers[0]);
 
-        free(state.map);
+        free(_state.map);
     }
 }

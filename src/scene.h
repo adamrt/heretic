@@ -6,7 +6,14 @@
 #include "gfx.h"
 #include "map.h"
 
+typedef enum {
+    MODE_MAP,
+    MODE_SCENARIO,
+} mode_e;
+
 typedef struct {
+    mode_e mode;
+
     map_t* map;
     model_t model;
     bool center_model;

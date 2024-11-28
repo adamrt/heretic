@@ -10,21 +10,12 @@
 #    include <emscripten/emscripten.h>
 #endif
 
-game_t gstate = {
-    .mode = MODE_SCENARIO,
-};
-
 // data_init is called during game_init() for native builds, and after file
 // upload on a wasm build.
 void data_init(void)
 {
     bin_init();
     scene_init();
-}
-
-static void data_shutdown(void)
-{
-    bin_shutdown();
 }
 
 void game_init(void)
@@ -42,9 +33,21 @@ void game_init(void)
 void game_shutdown(void)
 {
     scene_shutdown();
-    data_shutdown();
+    bin_shutdown();
     gui_shutdown();
     gfx_shutdown();
+}
+
+void game_update(void)
+{
+    if (!bin_is_loaded()) {
+        return;
+    }
+
+    time_update();
+    scene_update();
+    camera_update();
+    gfx_update();
 }
 
 void game_input(const sapp_event* event)
@@ -110,16 +113,4 @@ void game_input(const sapp_event* event)
     default:
         break;
     }
-}
-
-void game_update(void)
-{
-    if (!bin_is_loaded()) {
-        return;
-    }
-
-    time_update();
-    scene_update();
-    camera_update();
-    gfx_update();
 }
