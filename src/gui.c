@@ -25,12 +25,14 @@
 #include "time.h"
 
 static struct {
-    nk_bool show_scenarios;
+    bool show_scenarios;
+    bool show_messages;
     int scale_divisor;
 } state;
 
 static void draw(void);
 static void draw_window_scenarios(struct nk_context* ctx);
+static void draw_window_messages(struct nk_context* ctx);
 static void draw_section_fps(struct nk_context* ctx);
 static void draw_section_scene(struct nk_context* ctx);
 static void draw_section_lights(struct nk_context* ctx);
@@ -47,6 +49,7 @@ void gui_init(void)
     });
 
     state.show_scenarios = false;
+    state.show_messages = false;
 }
 
 void gui_update(void)
@@ -82,6 +85,10 @@ static void draw(void)
 
     if (state.show_scenarios) {
         draw_window_scenarios(ctx);
+    }
+
+    if (state.show_messages) {
+        draw_window_messages(ctx);
     }
 
     return;
@@ -230,6 +237,7 @@ static void draw_section_misc(struct nk_context* ctx)
     if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
         nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
+        nk_checkbox_label(ctx, "Show Messages", &state.show_messages);
         nk_checkbox_label(ctx, "Centered", &scene->center_model);
         nk_layout_row_static(ctx, 20, 40, 5);
         nk_label(ctx, "Scale", NK_TEXT_LEFT);
@@ -267,6 +275,25 @@ static void draw_window_scenarios(struct nk_context* ctx)
 
             nk_label(ctx, buffer_id, NK_TEXT_LEFT);
             nk_label(ctx, buffer_weather, NK_TEXT_LEFT);
+        }
+    }
+    nk_end(ctx);
+}
+
+static void draw_window_messages(struct nk_context* ctx)
+{
+    if (nk_begin(ctx, "Message", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+        nk_layout_row_dynamic(ctx, 20, 1);
+        char** messages = scene_get_messages();
+        for (int i = 0; i < EVENT_MESSAGE_MAX; i++) {
+            char* message = messages[i];
+            if (message == NULL) {
+                break; // maybe continue?
+            }
+
+            char buffer[64];
+            snprintf(buffer, 64, "%s", message);
+            nk_label(ctx, buffer, NK_TEXT_LEFT);
         }
     }
     nk_end(ctx);

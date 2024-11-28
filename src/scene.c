@@ -100,6 +100,11 @@ void scene_load_scenario(int num)
     scene_load_map(scenario.map_id, scenario_state);
 }
 
+char** scene_get_messages(void)
+{
+    return _state.messages;
+}
+
 void scene_prev(void)
 {
     _scene_switch(SWITCH_PREV);
