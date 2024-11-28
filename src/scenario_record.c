@@ -11,7 +11,7 @@
 
 // Module private state
 static struct {
-    scenario_record_t scenarios[SCENARIO_COUNT];
+    scenario_record_t records[SCENARIO_COUNT];
     bool loaded;
 } _state;
 
@@ -23,7 +23,7 @@ scenario_record_t scenario_get_record(int index)
     if (!_state.loaded) {
         _load_scenarios();
     }
-    return _state.scenarios[index];
+    return _state.records[index];
 }
 
 static void _load_scenarios(void)
@@ -42,7 +42,7 @@ static void _load_scenarios(void)
             continue;
         }
 
-        _state.scenarios[i] = (scenario_record_t) {
+        _state.records[i] = (scenario_record_t) {
             .event_id = event_id,
             .map_id = bytes[2],
             .weather = bytes[3],
