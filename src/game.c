@@ -15,6 +15,7 @@
 void data_init(void)
 {
     bin_init();
+    gui_cache();
     scene_init();
 }
 

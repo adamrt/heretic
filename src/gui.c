@@ -32,11 +32,8 @@ static struct {
 
     // This is kinda hacky, but it works for now.
     struct {
-        bool scenario_cached[SCENARIO_COUNT];
         scenario_record_t scenario_records[SCENARIO_COUNT];
-
-        bool event_cached[EVENT_COUNT];
-        event_t event_records[EVENT_COUNT];
+        event_t events[EVENT_COUNT];
     } cache;
 } _state;
 
@@ -62,6 +59,16 @@ void gui_init(void)
     _state.show_instructions = false;
     _state.show_scenarios = false;
     _state.show_messages = false;
+}
+
+void gui_cache(void)
+{
+    for (int i = 0; i < SCENARIO_COUNT; i++) {
+        _state.cache.scenario_records[i] = scenario_get_record(i);
+    }
+    for (int i = 0; i < EVENT_COUNT; i++) {
+        _state.cache.events[i] = event_get_event(i);
+    }
 }
 
 void gui_update(void)
@@ -265,11 +272,6 @@ static void _draw_window_scenarios(struct nk_context* ctx)
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
-
-            if (_state.cache.scenario_cached[i] == false) {
-                _state.cache.scenario_records[i] = scenario_get_record(i);
-                _state.cache.scenario_cached[i] = true;
-            }
             scenario_record_t scenario = _state.cache.scenario_records[i];
 
             nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_name_list[scenario.event_id].name);
@@ -406,17 +408,8 @@ static void _draw_dropdown_scenario(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
-            if (_state.cache.scenario_cached[i] == false) {
-                _state.cache.scenario_records[i] = scenario_get_record(i);
-                _state.cache.scenario_cached[i] = true;
-            }
             scenario_record_t scenario = _state.cache.scenario_records[i];
-
-            if (_state.cache.event_cached[i] == false) {
-                _state.cache.event_records[i] = event_get_event(i);
-                _state.cache.event_cached[i] = true;
-            }
-            event_t event = _state.cache.event_records[scenario.event_id];
+            event_t event = _state.cache.events[scenario.event_id];
 
             if (!event.valid) {
                 continue;
