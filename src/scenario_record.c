@@ -1,8 +1,6 @@
-#include <assert.h>
-
+#include "scenario_record.h"
 #include "bin.h"
 #include "event.h"
-#include "scenario_record.h"
 
 #define SCENARIO_FILE_OFFSET (0x10938)
 #define SCENARIO_SIZE        (24)

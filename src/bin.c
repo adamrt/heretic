@@ -1,10 +1,10 @@
-#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "bin.h"
+#include "util.h"
 
 static struct {
     FILE* bin; // The FFT bin file.
@@ -22,7 +22,7 @@ static struct {
 void bin_init(void)
 {
     _state.bin = fopen("../fft.bin", "rb");
-    assert(_state.bin != NULL);
+    ASSERT(_state.bin != NULL, "Failed to open fft.bin");
 
     // Cache the files immediately.
     _state.test_evt = read_file_test_evt();
@@ -74,7 +74,7 @@ file_t read_file(int sector_num, int size)
 
 void read_bytes(file_t* f, int size, uint8_t* out_bytes)
 {
-    assert(size < FILE_SIZE_MAX);
+    ASSERT(size < FILE_SIZE_MAX, "File size too large");
     for (int i = 0; i < size; i++) {
         out_bytes[i] = read_u8(f);
     }
@@ -162,11 +162,9 @@ file_t read_file_attack_out(void)
 static void _read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(_state.bin, seek_to, SEEK_SET) != 0) {
-        assert(false);
-    }
+    size_t n = fseek(_state.bin, seek_to, SEEK_SET);
+    ASSERT(n == 0, "Failed to seek to sector");
 
-    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _state.bin);
-    assert(n == SECTOR_SIZE);
-    return;
+    n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _state.bin);
+    ASSERT(n == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
 }

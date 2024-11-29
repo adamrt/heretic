@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <float.h>
 
 #include "cglm/types-struct.h"
@@ -7,6 +6,7 @@
 #include "lighting.h"
 #include "mesh.h"
 #include "texture.h"
+#include "util.h"
 
 static vec3s read_normal(file_t*);
 static geometry_t read_geometry(file_t*);
@@ -45,7 +45,7 @@ static geometry_t read_geometry(file_t* f)
     int R = read_u16(f); // Untextured quads
 
     // Validate maximum values
-    assert(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS);
+    ASSERT(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS, "Mesh polygon count exceeded");
 
     geometry.tex_tri_count = N;
     geometry.tex_quad_count = P;
@@ -190,8 +190,8 @@ static vec3s read_normal(file_t* f)
 
 void merge_meshes(mesh_t* dst, mesh_t* src)
 {
-    assert(dst != NULL);
-    assert(src != NULL);
+    ASSERT(dst != NULL, "Destination mesh is NULL");
+    ASSERT(src != NULL, "Source mesh is NULL");
 
     if (src->geometry.valid) {
         dst->geometry = src->geometry;

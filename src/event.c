@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +5,7 @@
 #include "bin.h"
 #include "event.h"
 #include "font.h"
+#include "util.h"
 
 #define EVENT_SIZE  (8192)
 #define EVENT_COUNT (500)
@@ -33,6 +33,9 @@ event_t event_get_event(int event_id)
         .valid = true,
     };
 
+    ASSERT(event.text_size <= EVENT_TEXT_SIZE_MAX, "Event text size exceeded");
+    ASSERT(event.code_size <= EVENT_CODE_SIZE_MAX, "Event code size exceeded");
+
     memcpy(event.text, bytes + text_offset, event.text_size);
     memcpy(event.code, bytes + 4, event.code_size);
 
@@ -42,7 +45,7 @@ event_t event_get_event(int event_id)
 message_t* event_get_messages(event_t event, int* count)
 {
     message_t* messages = calloc(EVENT_MESSAGE_MAX, sizeof(message_t));
-    assert(messages != NULL);
+    ASSERT(messages != NULL, "Failed to allocate memory for messages");
 
     uint8_t delimiter = 0xFE;
     int i = 0;
@@ -197,7 +200,7 @@ message_t* event_get_messages(event_t event, int* count)
             .len = len + 1, // +1 for null terminator
         };
         message.cstr = calloc(1, message.len);
-        assert(message.cstr != NULL);
+        ASSERT(message.cstr != NULL, "Failed to allocate memory for message");
 
         memcpy(message.cstr, start, len);
         message.cstr[len] = '\0'; // not using message.len
@@ -216,15 +219,16 @@ message_t* event_get_messages(event_t event, int* count)
 instruction_t* event_get_instructions(event_t event, int* count)
 {
     instruction_t* instructions = calloc(EVENT_INSTRUCTION_MAX, sizeof(instruction_t));
-    assert(instructions != NULL);
+    ASSERT(instructions != NULL, "Failed to allocate memory for instructions");
 
-    int code_idx = 1;
+    int code_idx = 0; // FIXME: Why do we stip the first byte
 
     while (code_idx < event.code_size) {
         uint8_t code = event.code[code_idx++];
         opcode_t opcode = opcode_list[code];
 
-        instruction_t instruction = { 0 };
+        instruction_t instruction = { .code = opcode.id };
+
         for (int j = 0; j < opcode.param_count; j++) {
             parameter_t parameter = { 0 };
             if (opcode.param_sizes[j] == 2) {
@@ -240,6 +244,7 @@ instruction_t* event_get_instructions(event_t event, int* count)
             instruction.parameters[j] = parameter;
         }
         instructions[(*count)++] = instruction;
+        ASSERT(*count < EVENT_INSTRUCTION_MAX, "Instruction count exceeded");
     }
 
     return instructions;

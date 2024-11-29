@@ -1,7 +1,6 @@
-#include <assert.h>
-
 #include "map.h"
 #include "texture.h"
+#include "util.h"
 
 void read_map(int num, map_state_t map_state, map_t* map_out)
 {
@@ -42,8 +41,8 @@ void read_map(int num, map_state_t map_state, map_t* map_out)
     map_out->vertices = geometry_to_vertices(&map_out->mesh.geometry);
     map_out->centered_translation = vertices_centered(&map_out->vertices);
 
-    assert(map_out->mesh.valid);
-    assert(map_out->texture.valid);
+    ASSERT(map_out->mesh.valid, "Map mesh is invalid");
+    ASSERT(map_out->texture.valid, "Map texture is invalid");
 }
 
 void read_map_data(int num, map_data_t* map_data_out)
@@ -66,10 +65,10 @@ void read_map_data(int num, map_data_t* map_data_out)
         }
         case FILETYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
-            assert(map_state_default(record.state));
+            ASSERT(map_state_default(record.state), "Primary mesh file has non-default state");
 
             map_data_out->primary_mesh = read_mesh(&file);
-            assert(map_data_out->primary_mesh.valid);
+            ASSERT(map_data_out->primary_mesh.valid, "Primary mesh is invalid");
             break;
 
         case FILETYPE_MESH_ALT: {
@@ -81,7 +80,7 @@ void read_map_data(int num, map_data_t* map_data_out)
 
         case FILETYPE_MESH_OVERRIDE: {
             // If there is an override file, there is only one and it uses default state.
-            assert(map_state_default(record.state));
+            ASSERT(map_state_default(record.state), "Oerride must be default map state");
 
             map_data_out->override_mesh = read_mesh(&file);
             break;
@@ -89,7 +88,7 @@ void read_map_data(int num, map_data_t* map_data_out)
 
         default:
             free(file.data);
-            assert(false);
+            ASSERT(false, "Unknown map file type");
         }
 
         free(file.data);

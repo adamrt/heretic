@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 
 #include "cglm/types-struct.h"
@@ -9,6 +8,7 @@
 #include "event.h"
 #include "scenario_record.h"
 #include "scene.h"
+#include "util.h"
 
 static scene_t _state;
 
@@ -97,6 +97,7 @@ void scene_load_scenario(int num)
     };
 
     event_t event = event_get_event(num);
+    ASSERT(event.valid, "Invalid event %d", num);
     _state.messages = event_get_messages(event, &_state.message_count);
     _state.instructions = event_get_instructions(event, &_state.instruction_count);
 
@@ -158,7 +159,7 @@ static void _scene_switch(switch_e dir)
         break;
 
     default:
-        assert(false);
+        ASSERT(false, "Invalid mode %d", _state.mode);
     }
 }
 
