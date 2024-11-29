@@ -18,10 +18,14 @@ typedef enum {
 } transition_dir_e;
 
 typedef struct {
-    transition_dir_e direction;
+    vec3s start_position;
+    vec3s end_position;
 
-    float start_degrees;
-    float end_degrees;
+    float start_azimuth;
+    float end_azimuth;
+
+    float start_elevation;
+    float end_elevation;
 
     float current_frame;
     float total_frames;

@@ -207,11 +207,9 @@ static void _camera_azimuth(transition_dir_e dir)
     }
 
     _state.transition = (transition_t) {
-        .direction = dir,
-        .start_degrees = _state.azimuth,
-        .end_degrees = end_degrees,
+        .start_azimuth = _state.azimuth,
+        .end_azimuth = end_degrees,
         .total_frames = CAMERA_TRANS_FRAMES,
-        .current_frame = 0.0f,
         .valid = true,
     };
 }
@@ -222,60 +220,49 @@ static void _camera_elevation(transition_dir_e dir)
         return;
     }
 
-    if (dir == TRANS_DIR_DOWN) {
-        if (_state.elevation == CAMERA_ELV_LOW) {
-            return;
-        }
-
-        _state.transition = (transition_t) {
-            .direction = dir,
-            .start_degrees = _state.elevation,
-            .end_degrees = CAMERA_ELV_LOW,
-            .total_frames = 30.0f,
-            .current_frame = 0.0f,
-            .valid = true,
-        };
-    } else {
-        if (_state.elevation == CAMERA_ELV_HIGH) {
-            return;
-        }
-
-        _state.transition = (transition_t) {
-            .direction = dir,
-            .start_degrees = _state.elevation,
-            .end_degrees = CAMERA_ELV_HIGH,
-            .total_frames = 30.0f,
-            .current_frame = 0.0f,
-            .valid = true,
-        };
+    if ((dir == TRANS_DIR_DOWN && _state.elevation == CAMERA_ELV_LOW) ||
+        (dir == TRANS_DIR_UP && _state.elevation == CAMERA_ELV_HIGH)) {
+        return;
     }
+
+    bool move_up = dir == TRANS_DIR_UP;
+
+    _state.transition = (transition_t) {
+        .start_elevation = _state.elevation,
+        .end_elevation = move_up ? CAMERA_ELV_HIGH : CAMERA_ELV_LOW,
+        .total_frames = CAMERA_TRANS_FRAMES,
+        .valid = true,
+    };
 }
 
 static void _camera_process_transitions(void)
 {
-    if (!_state.transition.valid) {
+    transition_t* trans = &_state.transition;
+    if (!trans->valid) {
         return;
     }
 
-    float t = _state.transition.current_frame / _state.transition.total_frames;
-    float new_pos = glm_lerp(_state.transition.start_degrees, _state.transition.end_degrees, t);
+    float t = trans->current_frame / trans->total_frames;
 
-    if (_state.transition.direction == TRANS_DIR_LEFT || _state.transition.direction == TRANS_DIR_RIGHT) {
-        _state.azimuth = new_pos;
-    } else if (_state.transition.direction == TRANS_DIR_UP || _state.transition.direction == TRANS_DIR_DOWN) {
-        _state.elevation = new_pos;
+    if (trans->start_azimuth != trans->end_azimuth) {
+        _state.azimuth = glm_lerp(trans->start_azimuth, trans->end_azimuth, t);
     }
 
-    if (_state.transition.current_frame >= _state.transition.total_frames) {
-        if (_state.transition.direction == TRANS_DIR_LEFT || _state.transition.direction == TRANS_DIR_RIGHT) {
-            _state.azimuth = _state.transition.end_degrees;
-        } else if (_state.transition.direction == TRANS_DIR_UP || _state.transition.direction == TRANS_DIR_DOWN) {
-            _state.elevation = _state.transition.end_degrees;
+    if (trans->start_elevation != trans->end_elevation) {
+        _state.elevation = glm_lerp(trans->start_elevation, trans->end_elevation, t);
+    }
+
+    if (trans->current_frame >= trans->total_frames) {
+        if (trans->start_azimuth != trans->end_azimuth) {
+            _state.azimuth = trans->end_azimuth;
         }
-        _state.transition.valid = false;
+        if (trans->start_elevation != trans->end_elevation) {
+            _state.elevation = trans->end_elevation;
+        }
+        trans->valid = false;
     }
 
-    _state.transition.current_frame++;
+    trans->current_frame++;
 }
 
 const char* camera_cardinal_str(void)
