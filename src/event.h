@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define EVENT_COUNT           (500)
 #define EVENT_TEXT_SIZE_MAX   (8141)
 #define EVENT_CODE_SIZE_MAX   (3647)
 #define EVENT_MESSAGE_MAX     (1024)

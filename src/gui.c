@@ -34,6 +34,9 @@ static struct {
     struct {
         bool scenario_cached[SCENARIO_COUNT];
         scenario_record_t scenario_records[SCENARIO_COUNT];
+
+        bool event_cached[EVENT_COUNT];
+        event_t event_records[EVENT_COUNT];
     } cache;
 } state;
 
@@ -403,9 +406,18 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
-            // FIXME: This should be cached as it is looping this per frame.
-            scenario_record_t scenario = scenario_get_record(i);
-            event_t event = event_get_event(scenario.event_id);
+            if (state.cache.scenario_cached[i] == false) {
+                state.cache.scenario_records[i] = scenario_get_record(i);
+                state.cache.scenario_cached[i] = true;
+            }
+            scenario_record_t scenario = state.cache.scenario_records[i];
+
+            if (state.cache.event_cached[i] == false) {
+                state.cache.event_records[i] = event_get_event(i);
+                state.cache.event_cached[i] = true;
+            }
+            event_t event = state.cache.event_records[scenario.event_id];
+
             if (!event.valid) {
                 continue;
             }

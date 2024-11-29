@@ -7,8 +7,7 @@
 #include "font.h"
 #include "util.h"
 
-#define EVENT_SIZE  (8192)
-#define EVENT_COUNT (500)
+#define EVENT_SIZE (8192)
 
 event_t event_get_event(int event_id)
 {
