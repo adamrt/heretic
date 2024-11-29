@@ -28,6 +28,12 @@ static struct {
     bool show_scenarios;
     bool show_messages;
     int scale_divisor;
+
+    // This is kinda hacky, but it works for now.
+    struct {
+        bool scenario_cached[SCENARIO_COUNT];
+        scenario_record_t scenario_records[SCENARIO_COUNT];
+    } cache;
 } state;
 
 static void draw(void);
@@ -248,7 +254,12 @@ static void draw_window_scenarios(struct nk_context* ctx)
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
-            scenario_record_t scenario = scenario_get_record(i);
+
+            if (state.cache.scenario_cached[i] == false) {
+                state.cache.scenario_records[i] = scenario_get_record(i);
+                state.cache.scenario_cached[i] = true;
+            }
+            scenario_record_t scenario = state.cache.scenario_records[i];
 
             nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_name_list[scenario.event_id].name);
             nk_labelf(ctx, NK_TEXT_LEFT, "Weather: %s, Time: %s, ENTD: %d", weather_str(scenario.weather), time_str(scenario.time), scenario.entd_id);
