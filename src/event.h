@@ -4,9 +4,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define EVENT_TEXT_SIZE_MAX (8141)
-#define EVENT_CODE_SIZE_MAX (3647)
-#define EVENT_MESSAGE_MAX   (1024)
+#define EVENT_TEXT_SIZE_MAX   (8141)
+#define EVENT_CODE_SIZE_MAX   (3647)
+#define EVENT_MESSAGE_MAX     (1024)
+#define EVENT_INSTRUCTION_MAX (256)
+#define EVENT_PARAMETER_MAX   (10)
 
 // There are 126 opcodes in the game. The highest opcode id is 242.
 #define OPCODE_COUNT  (126)
@@ -31,11 +33,30 @@ typedef struct {
 typedef struct {
     int id;
     const char* name;
-    int arg_types[10];
-    int arg_count;
+    int param_sizes[EVENT_PARAMETER_MAX];
+    int param_count;
 } opcode_t;
 
+typedef enum {
+    PARAMETER_TYPE_U8,
+    PARAMETER_TYPE_U16,
+} parameter_type_e;
+
+typedef struct {
+    parameter_type_e type;
+    union {
+        uint8_t u8;
+        uint16_t u16;
+    } value;
+} parameter_t;
+
+typedef struct {
+    int code;
+    parameter_t parameters[EVENT_PARAMETER_MAX];
+} instruction_t;
+
 event_t event_get_event(int);
+instruction_t* event_get_instructions(event_t event, int* count);
 char** event_get_messages(event_t*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];

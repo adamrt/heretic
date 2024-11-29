@@ -210,6 +210,37 @@ char** event_get_messages(event_t* event)
     return messages;
 }
 
+instruction_t* event_get_instructions(event_t event, int* count)
+{
+    instruction_t* instructions = calloc(EVENT_INSTRUCTION_MAX, sizeof(instruction_t));
+
+    int buffer_idx = 1;
+
+    while (buffer_idx < event.code_size) {
+        uint8_t code = event.code[buffer_idx++];
+        opcode_t opcode = opcode_list[code];
+
+        instruction_t instruction = { 0 };
+        for (int j = 0; j < opcode.param_count; j++) {
+            parameter_t parameter = { 0 };
+            if (opcode.param_sizes[j] == 2) {
+                parameter.type = PARAMETER_TYPE_U16;
+                parameter.value.u16 = (event.code[buffer_idx + 1] << 8) | event.code[buffer_idx];
+                buffer_idx += 2;
+            } else {
+                parameter.type = PARAMETER_TYPE_U8;
+                parameter.value.u8 = event.code[buffer_idx];
+                buffer_idx += 1;
+            }
+
+            instruction.parameters[j] = parameter;
+        }
+        instructions[*count++] = instruction;
+    }
+
+    return instructions;
+}
+
 const opcode_t opcode_list[OPCODE_ID_MAX] = {
     [0x10] = { 0x10, "DisplayMessage", { 1, 1, 2, 1, 1, 1, 2, 2, 2, 1 }, 10 },
     [0x11] = { 0x11, "UnitAnim", { 1, 1, 1, 1, 1 }, 5 },
