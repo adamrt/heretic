@@ -28,6 +28,7 @@ void scene_init(void)
 {
     _state.center_model = true;
     _state.current_scenario = 10;
+    _state.mode = MODE_SCENARIO;
     scene_load_scenario(_state.current_scenario);
 }
 
@@ -87,20 +88,22 @@ void scene_load_map(int num, map_state_t map_state)
     _state.current_map = num;
 }
 
-void scene_load_scenario(int num)
+void scene_load_scenario(int scenario_id)
 {
-    scenario_record_t scenario = scenario_get_record(num);
+    _scene_scenario_unload();
+    scenario_record_t scenario = scenario_get_record(scenario_id);
     map_state_t scenario_state = {
         .time = scenario.time,
         .weather = scenario.weather,
         .layout = 0,
     };
 
-    event_t event = event_get_event(num);
-    ASSERT(event.valid, "Invalid event %d", num);
+    // Load scenario data
+    event_t event = event_get_event(scenario.event_id);
     _state.messages = event_get_messages(event, &_state.message_count);
     _state.instructions = event_get_instructions(event, &_state.instruction_count);
 
+    // Load map data
     scene_load_map(scenario.map_id, scenario_state);
 }
 
@@ -187,4 +190,10 @@ static void _scene_scenario_unload(void)
             }
         }
     }
+    _state.message_count = 0;
+
+    if (_state.instructions != NULL) {
+        free(_state.instructions);
+    }
+    _state.instruction_count = 0;
 }

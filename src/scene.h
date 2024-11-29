@@ -39,6 +39,8 @@ void scene_load_scenario(int num);
 
 message_t* scene_get_messages(void);
 instruction_t* scene_get_instructions(void);
+int scene_get_message_count(void);
+int scene_get_instruction_count(void);
 
 void scene_prev(void);
 void scene_next(void);

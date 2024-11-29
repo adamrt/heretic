@@ -221,13 +221,13 @@ instruction_t* event_get_instructions(event_t event, int* count)
     instruction_t* instructions = calloc(EVENT_INSTRUCTION_MAX, sizeof(instruction_t));
     ASSERT(instructions != NULL, "Failed to allocate memory for instructions");
 
-    int code_idx = 0; // FIXME: Why do we stip the first byte
+    int code_idx = 0;
 
     while (code_idx < event.code_size) {
         uint8_t code = event.code[code_idx++];
         opcode_t opcode = opcode_list[code];
 
-        instruction_t instruction = { .code = opcode.id };
+        instruction_t instruction = { .code = code };
 
         for (int j = 0; j < opcode.param_count; j++) {
             parameter_t parameter = { 0 };
@@ -253,7 +253,7 @@ instruction_t* event_get_instructions(event_t event, int* count)
 const opcode_t opcode_list[OPCODE_ID_MAX] = {
     [0x10] = { 0x10, "DisplayMessage", { 1, 1, 2, 1, 1, 1, 2, 2, 2, 1 }, 10 },
     [0x11] = { 0x11, "UnitAnim", { 1, 1, 1, 1, 1 }, 5 },
-    [0x12] = { 0x12, "Chapter 3 Start BS", { 2 }, 1 },
+    [0x12] = { 0x12, "Unknown(0x12)", { 2 }, 1 }, // Chatper 3 Initialization
     [0x13] = { 0x13, "ChangeMapBeta", { 1, 1 }, 2 },
     [0x16] = { 0x16, "Pause", { 0 }, 1 },
     [0x18] = { 0x18, "Effect", { 2, 1, 1, 1, 1 }, 5 },
@@ -278,10 +278,13 @@ const opcode_t opcode_list[OPCODE_ID_MAX] = {
     [0x32] = { 0x32, "ColorUnit", { 1, 1, 1, 1, 1, 1, 1 }, 7 },
     [0x33] = { 0x33, "ColorField", { 1, 1, 1, 1, 1 }, 5 },
     [0x38] = { 0x38, "FocusSpeed", { 2 }, 1 },
+    [0x39] = { 0x39, "Unknown(0x39)", { 0 }, 0 },
+    [0x3A] = { 0x3A, "Unknown(0x3A)", { 0 }, 0 },
     [0x3B] = { 0x3B, "SpriteMove", { 1, 1, 2, 2, 2, 1, 1, 2 }, 8 },
     [0x3C] = { 0x3C, "Weather", { 1, 1 }, 2 },
     [0x3D] = { 0x3D, "RemoveUnit", { 1, 1 }, 2 },
     [0x3E] = { 0x3E, "ColorScreen", { 1, 1, 1, 1, 1, 1, 1, 2 }, 8 },
+    [0x40] = { 0x40, "Unknown(0x40)", { 0 }, 0 },
     [0x41] = { 0x41, "EarthquakeStart", { 1, 1, 1, 1 }, 4 },
     [0x42] = { 0x42, "EarthquakeEnd", { 0 }, 0 },
     [0x43] = { 0x43, "CallFunction", { 1 }, 1 },
@@ -312,22 +315,30 @@ const opcode_t opcode_list[OPCODE_ID_MAX] = {
     [0x63] = { 0x63, "CameraSpeedCurve", { 1 }, 1 },
     [0x64] = { 0x64, "WaitRotateUnit", { 1, 1 }, 2 },
     [0x65] = { 0x65, "WaitRotateAll", { 0 }, 0 },
+    [0x66] = { 0x66, "Unknown(0x66)", { 0 }, 0 },
     [0x68] = { 0x68, "MirrorSprite", { 1, 1, 1 }, 3 },
     [0x69] = { 0x69, "FaceTile", { 1, 1, 1, 1, 1, 1, 1, 1 }, 8 },
     [0x6A] = { 0x6A, "EditBGSound", { 1, 1, 1, 1, 1 }, 5 },
     [0x6B] = { 0x6B, "BGSound", { 1, 1, 1, 1, 1 }, 5 },
+    [0x6D] = { 0x6D, "Unknown(0x6D)", { 1, 1 }, 2 },
     [0x6E] = { 0x6E, "SpriteMoveBeta", { 1, 1, 2, 2, 2, 1, 1, 2 }, 8 },
     [0x6F] = { 0x6F, "WaitSpriteMove", { 1, 1 }, 2 },
     [0x70] = { 0x70, "Jump", { 1, 1, 1, 1 }, 4 },
+    [0x71] = { 0x71, "Unknown(0x71)", { 1, 1 }, 2 },
+    [0x73] = { 0x73, "Unknown(0x73)", { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, 14 },
+    [0x75] = { 0x75, "Unknown(0x75)", { 0 }, 0 },
     [0x76] = { 0x76, "DarkScreen", { 1, 1, 1, 1, 1, 1 }, 6 },
     [0x77] = { 0x77, "RemoveDarkScreen", { 0 }, 0 },
     [0x78] = { 0x78, "DisplayConditions", { 1, 1 }, 2 },
     [0x79] = { 0x79, "WalkToAnim", { 1, 1, 2 }, 3 },
     [0x7A] = { 0x7A, "DismissUnit", { 1, 1 }, 2 },
+    [0x7B] = { 0x7B, "Unknown(0x7B)", { 1, 1 }, 2 },
+    [0x7C] = { 0x7C, "Unknown(0x7C)", { 0 }, 0 },
     [0x7D] = { 0x7D, "ShowGraphic", { 1 }, 1 },
     [0x7E] = { 0x7E, "WaitValue", { 2, 2 }, 2 },
     [0x7F] = { 0x7F, "EVTCHRPalette", { 1, 1, 1, 1 }, 4 },
     [0x80] = { 0x80, "March", { 1, 1, 1 }, 3 },
+    [0x82] = { 0x82, "Unknown(0x82)", { 0 }, 0 },
     [0x83] = { 0x83, "ChangeStats", { 1, 1, 1, 2 }, 4 },
     [0x84] = { 0x84, "PlayTune", { 1 }, 1 },
     [0x85] = { 0x85, "UnlockDate", { 1 }, 1 },
@@ -339,8 +350,11 @@ const opcode_t opcode_list[OPCODE_ID_MAX] = {
     [0x8B] = { 0x8B, "EffectEnd", { 0 }, 0 },
     [0x8C] = { 0x8C, "UnitAnimRotate", { 1, 1, 1, 1, 1, 1 }, 6 },
     [0x8E] = { 0x8E, "WaitGraphicPrint", { 0 }, 0 },
+    [0x8F] = { 0x8F, "Unknown(0x8F)", { 0 }, 0 },
+    [0x90] = { 0x90, "Unknown(0x90)", { 0 }, 0 },
     [0x91] = { 0x91, "ShowMapTitle", { 1, 1, 1 }, 3 },
     [0x92] = { 0x92, "InflictStatus", { 1, 1, 1, 1, 1 }, 5 },
+    [0x93] = { 0x93, "Unknown(0x93)", { 0 }, 0 },
     [0x94] = { 0x94, "TeleportOut", { 1, 1 }, 2 },
     [0x96] = { 0x96, "AppendMapState", { 0 }, 0 },
     [0x97] = { 0x97, "ResetPalette", { 1, 1 }, 2 },
@@ -371,10 +385,12 @@ const opcode_t opcode_list[OPCODE_ID_MAX] = {
     [0xD1] = { 0xD1, "JumpForward", { 1 }, 1 },
     [0xD2] = { 0xD2, "ForwardTarget", { 1 }, 1 },
     [0xD3] = { 0xD3, "JumpBack", { 1 }, 1 },
+    [0xD4] = { 0xD4, "Unknown(0xD4)", { 0 }, 0 },
     [0xD5] = { 0xD5, "BackTarget", { 1 }, 1 },
     [0xDB] = { 0xDB, "EventEnd", { 0 }, 0 },
     [0xE3] = { 0xE3, "EventEnd2", { 0 }, 0 },
     [0xE5] = { 0xE5, "WaitForInstruction", { 1, 1 }, 2 },
+    [0xF0] = { 0xF0, "Unknown(0xF0)", { 0 }, 0 },
     [0xF1] = { 0xF1, "Wait", { 2 }, 1 },
     [0xF2] = { 0xF2, "Pad", { 0 }, 0 },
 };

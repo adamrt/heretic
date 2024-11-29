@@ -7,8 +7,8 @@
 #define EVENT_TEXT_SIZE_MAX   (8141)
 #define EVENT_CODE_SIZE_MAX   (3647)
 #define EVENT_MESSAGE_MAX     (1024)
-#define EVENT_INSTRUCTION_MAX (256)
-#define EVENT_PARAMETER_MAX   (10)
+#define EVENT_INSTRUCTION_MAX (768)
+#define EVENT_PARAMETER_MAX   (14)
 
 // There are 126 opcodes in the game. The highest opcode id is 242.
 #define OPCODE_COUNT  (126)
@@ -43,8 +43,9 @@ typedef struct {
 } opcode_t;
 
 typedef enum {
-    PARAMETER_TYPE_U8,
-    PARAMETER_TYPE_U16,
+    PARAMETER_TYPE_NONE = 0,
+    PARAMETER_TYPE_U8 = 1,
+    PARAMETER_TYPE_U16 = 2,
 } parameter_type_e;
 
 typedef struct {
