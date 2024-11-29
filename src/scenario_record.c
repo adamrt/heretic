@@ -1,59 +1,38 @@
-#include "scenario_record.h"
+#include <assert.h>
 
 #include "bin.h"
 #include "event.h"
+#include "scenario_record.h"
 
-#define ATTACK_FILE_SECTOR (2448)
-#define ATTACK_FILE_SIZE   (125956)
-
-#define SCENARIO_DATA_OFFSET (0x10938)
+#define SCENARIO_FILE_OFFSET (0x10938)
 #define SCENARIO_SIZE        (24)
 
-// Module private state
-static struct {
-    scenario_record_t records[SCENARIO_COUNT];
-    bool loaded;
-} _state;
-
-// Forward declarations
-static void _load_scenarios(void);
-
-scenario_record_t scenario_get_record(int index)
+scenario_record_t scenario_get_record(int scenario_id)
 {
-    if (!_state.loaded) {
-        _load_scenarios();
-    }
-    return _state.records[index];
-}
 
-static void _load_scenarios(void)
-{
-    file_t attack_out_file = read_file(ATTACK_FILE_SECTOR, ATTACK_FILE_SIZE);
-    attack_out_file.offset = SCENARIO_DATA_OFFSET;
+    file_t f = read_file_attack_out();
+    f.offset = SCENARIO_FILE_OFFSET + (scenario_id * SCENARIO_SIZE);
 
     uint8_t bytes[SCENARIO_SIZE];
-    for (int i = 0; i < SCENARIO_COUNT; i++) {
-        read_bytes(&attack_out_file, SCENARIO_SIZE, bytes);
+    read_bytes(&f, sizeof(bytes), bytes);
 
-        int event_id = bytes[0] | (bytes[1] << 8);
+    scenario_record_t record = {
+        .event_id = bytes[0] | (bytes[1] << 8),
+        .map_id = bytes[2],
+        .weather = bytes[3],
+        .time = bytes[4],
+        .entd_id = bytes[7] | (bytes[8] << 8),
+        .next_scenario_id = bytes[18] | (bytes[19] << 8),
+    };
 
-        event_t event = event_get(event_id);
-        if (!event.valid) {
-            continue;
-        }
-
-        _state.records[i] = (scenario_record_t) {
-            .event_id = event_id,
-            .map_id = bytes[2],
-            .weather = bytes[3],
-            .time = bytes[4],
-            .entd_id = bytes[7] | (bytes[8] << 8),
-            .next_scenario_id = bytes[18] | (bytes[19] << 8),
-        };
+    event_t event = event_get_event(record.event_id);
+    if (!event.valid) {
+        return record;
     }
 
-    free(attack_out_file.data);
-    _state.loaded = true;
+    record.valid = true;
+
+    return record;
 }
 
 // Thanks to FFTPAtcher for the scenario name list.

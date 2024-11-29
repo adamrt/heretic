@@ -26,4 +26,7 @@ int16_t read_i16(file_t*);
 int32_t read_i32(file_t*);
 float read_f1x3x12(file_t*);
 
+file_t read_file_test_evt(void);
+file_t read_file_attack_out(void);
+
 #endif // BIN_H_

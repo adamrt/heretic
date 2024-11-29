@@ -351,7 +351,7 @@ static void draw_dropdown_scenario(struct nk_context* ctx)
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
             // FIXME: This should be cached as it is looping this per frame.
             scenario_record_t scenario = scenario_get_record(i);
-            event_t event = event_get(scenario.event_id);
+            event_t event = event_get_event(scenario.event_id);
             if (!event.valid) {
                 continue;
             }

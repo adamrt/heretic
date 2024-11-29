@@ -6,29 +6,45 @@
 
 #include "bin.h"
 
+static struct {
+    FILE* bin; // The FFT bin file.
+
+    file_t test_evt;   // The EVENT/TEST.EVT file.
+    file_t attack_out; // The ATTACK.OUT file.
+} _state;
+
 #define SECTOR_HEADER_SIZE (24)
 #define SECTOR_SIZE        (2048)
 #define SECTOR_SIZE_RAW    (2352)
 
 #define FILE_SIZE_MAX (131072)
 
-static FILE* _bin_file = NULL;
-
 void bin_init(void)
 {
-    _bin_file = fopen("../fft.bin", "rb");
-    assert(_bin_file != NULL);
+    _state.bin = fopen("../fft.bin", "rb");
+    assert(_state.bin != NULL);
+
+    // Cache the files immediately.
+    _state.test_evt = read_file_test_evt();
+    _state.attack_out = read_file_attack_out();
 }
 
 bool bin_is_loaded(void)
 {
-    return _bin_file != NULL;
+    return _state.bin != NULL;
 }
 
 void bin_shutdown(void)
 {
-    fclose(_bin_file);
-    _bin_file = NULL;
+    fclose(_state.bin);
+    _state.bin = NULL;
+
+    if (_state.test_evt.data != NULL) {
+        free(_state.test_evt.data);
+    }
+    if (_state.attack_out.data != NULL) {
+        free(_state.attack_out.data);
+    }
 }
 
 // Forward declarations
@@ -119,14 +135,38 @@ float read_f1x3x12(file_t* f)
     return value / 4096.0f;
 }
 
+// Read the EVENT/TEST.EVT file.
+file_t read_file_test_evt(void)
+{
+    const int test_evt_sector = 3707;
+    const int test_evt_size = 4096000;
+
+    if (_state.test_evt.data == NULL) {
+        _state.test_evt = read_file(test_evt_sector, test_evt_size);
+    }
+    return _state.test_evt;
+}
+
+// Read the ATTACK.OUT file.
+file_t read_file_attack_out(void)
+{
+    const int attack_out_sector = 2448;
+    const int attack_out_size = 125956;
+
+    if (_state.attack_out.data == NULL) {
+        _state.attack_out = read_file(attack_out_sector, attack_out_size);
+    }
+    return _state.attack_out;
+}
+
 static void _read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
 {
     int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    if (fseek(_bin_file, seek_to, SEEK_SET) != 0) {
+    if (fseek(_state.bin, seek_to, SEEK_SET) != 0) {
         assert(false);
     }
 
-    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _bin_file);
+    size_t n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _state.bin);
     assert(n == SECTOR_SIZE);
     return;
 }

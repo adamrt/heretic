@@ -13,6 +13,8 @@ typedef struct {
     int next_scenario_id;
     weather_e weather;
     time_e time;
+
+    bool valid;
 } scenario_record_t;
 
 // Scenario descriptors

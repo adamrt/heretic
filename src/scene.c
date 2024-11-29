@@ -95,7 +95,7 @@ void scene_load_scenario(int num)
         .weather = scenario.weather,
         .layout = 0,
     };
-    event_t event = event_get(num);
+    event_t event = event_get_event(num);
     _state.messages = event_get_messages(&event);
     scene_load_map(scenario.map_id, scenario_state);
 }
@@ -130,7 +130,7 @@ static void _scene_switch(switch_e dir)
                 _state.current_scenario = 0;
             }
             scenario_record_t scenario = scenario_get_record(_state.current_scenario);
-            event_t event = event_get(scenario.event_id);
+            event_t event = event_get_event(scenario.event_id);
             if (!event.valid) {
                 _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
                 continue;

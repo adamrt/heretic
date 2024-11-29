@@ -35,7 +35,7 @@ typedef struct {
     int arg_count;
 } opcode_t;
 
-event_t event_get(int);
+event_t event_get_event(int);
 char** event_get_messages(event_t*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];
