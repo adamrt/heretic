@@ -39,18 +39,18 @@ event_t event_get_event(int event_id)
     return event;
 }
 
-char** event_get_messages(event_t* event)
+message_t* event_get_messages(event_t event, int* count)
 {
-    char** messages = calloc(EVENT_MESSAGE_MAX * 2, sizeof(char*));
+    message_t* messages = calloc(EVENT_MESSAGE_MAX, sizeof(message_t));
     assert(messages != NULL);
 
     uint8_t delimiter = 0xFE;
     int i = 0;
-    char event_text[EVENT_TEXT_SIZE_MAX * 4]; // Adjust size as needed
+    char event_text[EVENT_TEXT_SIZE_MAX * 2]; // Adjust size as needed
     size_t event_text_len = 0;
 
-    while (i < event->text_size) {
-        uint8_t byte = event->text[i];
+    while (i < event.text_size) {
+        uint8_t byte = event.text[i];
 
         // These are special characters. We need to handle them differently.
         // https://ffhacktics.com/wiki/Text_Format#Special_Characters
@@ -71,9 +71,9 @@ char** event_get_messages(event_t* event)
         }
         case 0xE2: {
             i++;
-            if (i >= event->text_size)
+            if (i >= event.text_size)
                 break;
-            uint8_t delay = event->text[i];
+            uint8_t delay = event.text[i];
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Delay: %d}", (int)delay);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -83,9 +83,9 @@ char** event_get_messages(event_t* event)
         }
         case 0xE3: {
             i++;
-            if (i >= event->text_size)
+            if (i >= event.text_size)
                 break;
-            uint8_t color = event->text[i];
+            uint8_t color = event.text[i];
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Color: %d}", (int)color);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -101,10 +101,10 @@ char** event_get_messages(event_t* event)
             // The next 2 bytes are the jump location and how many bytes to read.
             // https://gomtuu.org/fft/trans/compression/
             i++;
-            if (i + 1 >= event->text_size)
+            if (i + 1 >= event.text_size)
                 break;
-            uint8_t second_byte = event->text[i];
-            uint8_t third_byte = event->text[i + 1];
+            uint8_t second_byte = event.text[i];
+            uint8_t third_byte = event.text[i + 1];
             (void)second_byte; // Unused
             (void)third_byte;  // Unused
             const char* text_jump = "{TextJump}";
@@ -135,12 +135,12 @@ char** event_get_messages(event_t* event)
         default: {
             if (byte > 0xCF) {
                 /* Two-byte character */
-                if (i + 1 >= event->text_size) {
+                if (i + 1 >= event.text_size) {
                     /* Can't read second byte */
                     i++;
                     break;
                 }
-                uint8_t second_byte = event->text[i + 1];
+                uint8_t second_byte = event.text[i + 1];
                 uint16_t combined = (second_byte | (byte << 8));
                 const char* font_str = font_get_char(combined);
                 if (font_str != NULL) {
@@ -179,11 +179,10 @@ char** event_get_messages(event_t* event)
 
     // Split the text into messages
 
-    int message_count = 0;
     const char* start = event_text;
     char* end = event_text + event_text_len;
 
-    while (start < end && message_count < EVENT_MESSAGE_MAX) {
+    while (start < end && *count < EVENT_MESSAGE_MAX) {
         /* Find next delimiter */
         char* delimiter_pos = memchr(start, (char)delimiter, end - start);
         size_t len;
@@ -194,12 +193,16 @@ char** event_get_messages(event_t* event)
         }
 
         /* Allocate memory for the message */
-        char* message = calloc(1, len + 1);
-        assert(message != NULL);
+        message_t message = {
+            .len = len + 1, // +1 for null terminator
+        };
+        message.cstr = calloc(1, message.len);
+        assert(message.cstr != NULL);
 
-        memcpy(message, start, len);
-        message[len] = '\0';
-        messages[message_count++] = message;
+        memcpy(message.cstr, start, len);
+        message.cstr[len] = '\0'; // not using message.len
+
+        messages[(*count)++] = message;
 
         if (delimiter_pos != NULL) {
             start = delimiter_pos + 1;
@@ -213,11 +216,12 @@ char** event_get_messages(event_t* event)
 instruction_t* event_get_instructions(event_t event, int* count)
 {
     instruction_t* instructions = calloc(EVENT_INSTRUCTION_MAX, sizeof(instruction_t));
+    assert(instructions != NULL);
 
-    int buffer_idx = 1;
+    int code_idx = 1;
 
-    while (buffer_idx < event.code_size) {
-        uint8_t code = event.code[buffer_idx++];
+    while (code_idx < event.code_size) {
+        uint8_t code = event.code[code_idx++];
         opcode_t opcode = opcode_list[code];
 
         instruction_t instruction = { 0 };
@@ -225,17 +229,17 @@ instruction_t* event_get_instructions(event_t event, int* count)
             parameter_t parameter = { 0 };
             if (opcode.param_sizes[j] == 2) {
                 parameter.type = PARAMETER_TYPE_U16;
-                parameter.value.u16 = (event.code[buffer_idx + 1] << 8) | event.code[buffer_idx];
-                buffer_idx += 2;
+                parameter.value.u16 = (event.code[code_idx + 1] << 8) | event.code[code_idx];
+                code_idx += 2;
             } else {
                 parameter.type = PARAMETER_TYPE_U8;
-                parameter.value.u8 = event.code[buffer_idx];
-                buffer_idx += 1;
+                parameter.value.u8 = event.code[code_idx];
+                code_idx += 1;
             }
 
             instruction.parameters[j] = parameter;
         }
-        instructions[*count++] = instruction;
+        instructions[(*count)++] = instruction;
     }
 
     return instructions;

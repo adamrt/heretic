@@ -261,14 +261,14 @@ static void draw_window_messages(struct nk_context* ctx)
 {
     if (nk_begin(ctx, "Message", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 20, 1);
-        char** messages = scene_get_messages();
+        message_t* messages = scene_get_messages();
         for (int i = 0; i < EVENT_MESSAGE_MAX; i++) {
-            char* message = messages[i];
-            if (message == NULL) {
+            message_t message = messages[i];
+            if (message.cstr == NULL) {
                 break; // maybe continue?
             }
 
-            nk_labelf(ctx, NK_TEXT_LEFT, "%s", message);
+            nk_labelf(ctx, NK_TEXT_LEFT, "%s", message.cstr);
         }
     }
     nk_end(ctx);

@@ -31,6 +31,11 @@ typedef struct {
 } event_t;
 
 typedef struct {
+    char* cstr;
+    int len;
+} message_t;
+
+typedef struct {
     int id;
     const char* name;
     int param_sizes[EVENT_PARAMETER_MAX];
@@ -56,8 +61,8 @@ typedef struct {
 } instruction_t;
 
 event_t event_get_event(int);
-instruction_t* event_get_instructions(event_t event, int* count);
-char** event_get_messages(event_t*);
+instruction_t* event_get_instructions(event_t, int*);
+message_t* event_get_messages(event_t, int*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];
 

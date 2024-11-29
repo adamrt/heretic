@@ -95,15 +95,18 @@ void scene_load_scenario(int num)
         .weather = scenario.weather,
         .layout = 0,
     };
+
     event_t event = event_get_event(num);
-    _state.messages = event_get_messages(&event);
+    _state.messages = event_get_messages(event, &_state.message_count);
+    _state.instructions = event_get_instructions(event, &_state.instruction_count);
+
     scene_load_map(scenario.map_id, scenario_state);
 }
 
-char** scene_get_messages(void)
-{
-    return _state.messages;
-}
+message_t* scene_get_messages(void) { return _state.messages; }
+instruction_t* scene_get_instructions(void) { return _state.instructions; }
+int scene_get_message_count(void) { return _state.message_count; }
+int scene_get_instruction_count(void) { return _state.instruction_count; }
 
 void scene_prev(void)
 {
@@ -177,9 +180,9 @@ static void _scene_map_unload(void)
 static void _scene_scenario_unload(void)
 {
     if (_state.messages != NULL) {
-        for (int i = 0; i < EVENT_MESSAGE_MAX; i++) {
-            if (_state.messages[i] != NULL) {
-                free((void*)_state.messages[i]);
+        for (int i = 0; i < _state.message_count; i++) {
+            if (_state.messages[i].cstr != NULL) {
+                free((void*)_state.messages[i].cstr);
             }
         }
     }
