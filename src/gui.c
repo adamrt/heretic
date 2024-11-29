@@ -27,6 +27,7 @@
 static struct {
     bool show_scenarios;
     bool show_messages;
+    bool show_instructions;
     int scale_divisor;
 
     // This is kinda hacky, but it works for now.
@@ -39,6 +40,7 @@ static struct {
 static void draw(void);
 static void draw_window_scenarios(struct nk_context* ctx);
 static void draw_window_messages(struct nk_context* ctx);
+static void draw_window_instructions(struct nk_context* ctx);
 static void draw_section_fps(struct nk_context* ctx);
 static void draw_section_scene(struct nk_context* ctx);
 static void draw_section_lights(struct nk_context* ctx);
@@ -54,6 +56,7 @@ void gui_init(void)
         .logger.func = slog_func,
     });
 
+    state.show_instructions = false;
     state.show_scenarios = false;
     state.show_messages = false;
 }
@@ -88,6 +91,10 @@ static void draw(void)
         draw_section_misc(ctx);
     }
     nk_end(ctx);
+
+    if (state.show_instructions) {
+        draw_window_instructions(ctx);
+    }
 
     if (state.show_scenarios) {
         draw_window_scenarios(ctx);
@@ -229,6 +236,7 @@ static void draw_section_misc(struct nk_context* ctx)
     scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
+        nk_checkbox_label(ctx, "Show Instructions", &state.show_instructions);
         nk_checkbox_label(ctx, "Show Scenarios", &state.show_scenarios);
         nk_checkbox_label(ctx, "Show Messages", &state.show_messages);
         nk_checkbox_label(ctx, "Centered", &scene->center_model);
@@ -270,7 +278,7 @@ static void draw_window_scenarios(struct nk_context* ctx)
 
 static void draw_window_messages(struct nk_context* ctx)
 {
-    if (nk_begin(ctx, "Message", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+    if (nk_begin(ctx, "Messages", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 20, 1);
         message_t* messages = scene_get_messages();
         for (int i = 0; i < EVENT_MESSAGE_MAX; i++) {
@@ -280,6 +288,41 @@ static void draw_window_messages(struct nk_context* ctx)
             }
 
             nk_labelf(ctx, NK_TEXT_LEFT, "%s", message.cstr);
+        }
+    }
+    nk_end(ctx);
+}
+
+static void draw_window_instructions(struct nk_context* ctx)
+{
+    if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+        nk_layout_row_begin(ctx, NK_STATIC, 20, 15);
+        instruction_t* instructions = scene_get_instructions();
+        int count = scene_get_instruction_count();
+
+        for (int i = 0; i < count; i++) {
+            instruction_t instruction = instructions[i];
+            opcode_t opcode = opcode_list[instruction.code];
+
+            nk_layout_row_push(ctx, 200);
+
+            if (opcode.name != NULL) {
+                nk_label(ctx, opcode.name, NK_TEXT_LEFT);
+            } else {
+                nk_labelf(ctx, NK_TEXT_LEFT, "NO OPCODE ---- (0x%X)", instruction.code);
+            }
+            for (int j = 0; j < EVENT_PARAMETER_MAX; j++) {
+                nk_layout_row_push(ctx, 50);
+                parameter_t param = instruction.parameters[j];
+                if (param.type == PARAMETER_TYPE_NONE) {
+                    nk_labelf(ctx, NK_TEXT_RIGHT, "%d", 0);
+                } else if (param.type == PARAMETER_TYPE_U16) {
+                    nk_labelf(ctx, NK_TEXT_RIGHT, "0x%04X", param.value.u16);
+                } else {
+                    nk_labelf(ctx, NK_TEXT_RIGHT, "0x%02X", param.value.u8);
+                }
+            }
+            nk_layout_row_end(ctx);
         }
     }
     nk_end(ctx);
