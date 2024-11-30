@@ -131,6 +131,7 @@
                 Module.onFFTBinLoaded();
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("canvas").style.display = "block";
+                window.dispatchEvent(new Event("resize"));
               };
               reader.readAsArrayBuffer(file);
             }
