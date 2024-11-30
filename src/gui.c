@@ -38,14 +38,19 @@ static struct {
 } _state;
 
 static void _draw(void);
+static void _draw_mode_selector(struct nk_context* ctx);
+
 static void _draw_window_scenarios(struct nk_context* ctx);
 static void _draw_window_messages(struct nk_context* ctx);
 static void _draw_window_instructions(struct nk_context* ctx);
-static void _draw_section_fps(struct nk_context* ctx);
-static void _draw_section_scene(struct nk_context* ctx);
+
+static void _draw_section_scenario(struct nk_context* ctx);
+static void _draw_section_map(struct nk_context* ctx);
 static void _draw_section_lights(struct nk_context* ctx);
 static void _draw_section_camera(struct nk_context* ctx);
 static void _draw_section_misc(struct nk_context* ctx);
+static void _draw_section_fps(struct nk_context* ctx);
+
 static void _draw_dropdown_map(struct nk_context* ctx);
 static void _draw_dropdown_scenario(struct nk_context* ctx);
 
@@ -94,11 +99,19 @@ static void _draw(void)
 
     nk_flags window_flags = NK_WINDOW_BORDER | NK_WINDOW_SCALABLE | NK_WINDOW_MOVABLE | NK_WINDOW_MINIMIZABLE;
     if (nk_begin(ctx, "Heretic", nk_rect(10, 25, 400, 600), window_flags)) {
-        _draw_section_fps(ctx);
-        _draw_section_scene(ctx);
+        _draw_mode_selector(ctx);
+
+        scene_t* scene = scene_get_internals();
+        if (scene->mode == MODE_SCENARIO) {
+            _draw_section_scenario(ctx);
+        } else if (scene->mode == MODE_MAP) {
+            _draw_section_map(ctx);
+        }
+
         _draw_section_lights(ctx);
         _draw_section_camera(ctx);
         _draw_section_misc(ctx);
+        _draw_section_fps(ctx);
     }
     nk_end(ctx);
 
@@ -123,20 +136,43 @@ static void _draw_section_fps(struct nk_context* ctx)
     nk_labelf(ctx, NK_TEXT_LEFT, "FPS: %f", time_get_fps());
 }
 
-static void _draw_section_scene(struct nk_context* ctx)
+static void _draw_mode_selector(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
-    if (nk_tree_push(ctx, NK_TREE_TAB, "Scene", NK_MAXIMIZED)) {
-        nk_layout_row_static(ctx, 30, 100, 2);
+    nk_layout_row_static(ctx, 30, 100, 2);
 
-        scene->mode = nk_option_label(ctx, "Maps", scene->mode == MODE_MAP) ? MODE_MAP : scene->mode;
-        scene->mode = nk_option_label(ctx, "Scenarios", scene->mode == MODE_SCENARIO) ? MODE_SCENARIO : scene->mode;
+    scene->mode = nk_option_label(ctx, "Maps", scene->mode == MODE_MAP) ? MODE_MAP : scene->mode;
+    scene->mode = nk_option_label(ctx, "Scenarios", scene->mode == MODE_SCENARIO) ? MODE_SCENARIO : scene->mode;
+}
 
-        if (scene->mode == MODE_SCENARIO) {
-            _draw_dropdown_scenario(ctx);
-        } else if (scene->mode == MODE_MAP) {
-            _draw_dropdown_map(ctx);
-        }
+static void _draw_section_scenario(struct nk_context* ctx)
+{
+
+    if (nk_tree_push(ctx, NK_TREE_TAB, "Scenario", NK_MAXIMIZED)) {
+        _draw_dropdown_scenario(ctx);
+
+        scene_t* scene = scene_get_internals();
+        scenario_record_t scenario = scenario_get_record(scene->current_scenario);
+        map_desc_t map = map_list[scenario.map_id];
+
+        nk_layout_row_dynamic(ctx, 25, 1);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Map %d: %s", map.id, map.name);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Time: %s, Weather: %s, Layout: %d", time_str(scenario.time), weather_str(scenario.weather), 0);
+
+        nk_checkbox_label(ctx, "Show Event Instructions", &_state.show_instructions);
+        nk_checkbox_label(ctx, "Show Event Messages", &_state.show_messages);
+
+        nk_spacer(ctx);
+        nk_tree_pop(ctx);
+    }
+}
+
+static void _draw_section_map(struct nk_context* ctx)
+{
+    if (nk_tree_push(ctx, NK_TREE_TAB, "Map", NK_MAXIMIZED)) {
+        _draw_dropdown_map(ctx);
+        nk_spacer(ctx);
+
         nk_tree_pop(ctx);
     }
 }
@@ -171,24 +207,18 @@ static void _draw_section_lights(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Lighting", NK_MINIMIZED)) {
-        nk_layout_row_dynamic(ctx, 25, 1);
+        nk_layout_row_dynamic(ctx, 25, 3);
 
-        nk_label(ctx, "Ambient Strenght and Color", NK_TEXT_LEFT);
+        nk_label(ctx, "Ambient", NK_TEXT_LEFT);
 
-        nk_layout_row_dynamic(ctx, 25, 2);
         nk_slider_float(ctx, 0, &scene->map->mesh.lighting.ambient_strength, 3.0f, 0.1f);
 
         vec4s* ambient_color = &scene->map->mesh.lighting.ambient_color;
         struct nk_colorf ambient_color_nk = { ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a };
         if (nk_combo_begin_color(ctx, nk_rgba_f(ambient_color->r, ambient_color->g, ambient_color->b, ambient_color->a), nk_vec2(200, 400))) {
-            nk_layout_row_dynamic(ctx, 120, 1);
-
             ambient_color_nk = nk_color_picker(ctx, ambient_color_nk, NK_RGBA);
 
-            nk_layout_row_dynamic(ctx, 25, 2);
             nk_option_label(ctx, "RGBA", true);
-            nk_layout_row_dynamic(ctx, 25, 1);
-
             ambient_color_nk.r = nk_propertyf(ctx, "#R:", 0, ambient_color_nk.r, 1.0f, 0.01f, 0.005f);
             ambient_color_nk.g = nk_propertyf(ctx, "#G:", 0, ambient_color_nk.g, 1.0f, 0.01f, 0.005f);
             ambient_color_nk.b = nk_propertyf(ctx, "#B:", 0, ambient_color_nk.b, 1.0f, 0.01f, 0.005f);
@@ -197,16 +227,18 @@ static void _draw_section_lights(struct nk_context* ctx)
             *ambient_color = (vec4s) { { ambient_color_nk.r, ambient_color_nk.g, ambient_color_nk.b, ambient_color_nk.a } };
             nk_combo_end(ctx);
         }
+
+        nk_spacer(ctx);
+
         for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
-            nk_layout_row_dynamic(ctx, 25, 1);
+            nk_layout_row_dynamic(ctx, 25, 3);
             light_t* light = &scene->map->mesh.lighting.lights[i];
             if (!light->valid) {
                 continue;
             }
 
-            nk_labelf(ctx, NK_TEXT_LEFT, "Light %d", i);
+            nk_labelf(ctx, NK_TEXT_LEFT, "Light %d", i + 1);
 
-            nk_layout_row_dynamic(ctx, 25, 2);
             char posbuffer[64];
             snprintf(posbuffer, 64, "%.2f, %.2f, %.2f", light->direction.x, light->direction.y, light->direction.z);
             if (nk_combo_begin_label(ctx, posbuffer, nk_vec2(200, 200))) {
@@ -244,13 +276,11 @@ static void _draw_section_lights(struct nk_context* ctx)
 static void _draw_section_misc(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
-    if (nk_tree_push(ctx, NK_TREE_TAB, "Misc", NK_MINIMIZED)) {
+    if (nk_tree_push(ctx, NK_TREE_TAB, "Global", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
-        nk_checkbox_label(ctx, "Show Instructions", &_state.show_instructions);
-        nk_checkbox_label(ctx, "Show Scenarios", &_state.show_scenarios);
-        nk_checkbox_label(ctx, "Show Messages", &_state.show_messages);
-        nk_checkbox_label(ctx, "Centered", &scene->center_model);
-        nk_layout_row_static(ctx, 20, 40, 5);
+        nk_checkbox_label(ctx, "Show Game Scenarios", &_state.show_scenarios);
+        nk_checkbox_label(ctx, "Center Model", &scene->center_model);
+        nk_layout_row_static(ctx, 20, 40, 6);
         nk_label(ctx, "Scale", NK_TEXT_LEFT);
 
         int current = gfx_get_scale_divisor();
@@ -259,6 +289,7 @@ static void _draw_section_misc(struct nk_context* ctx)
         new_value = nk_option_label(ctx, "2", new_value == 2) ? 2 : new_value;
         new_value = nk_option_label(ctx, "3", new_value == 3) ? 3 : new_value;
         new_value = nk_option_label(ctx, "4", new_value == 4) ? 4 : new_value;
+        new_value = nk_option_label(ctx, "8", new_value == 8) ? 8 : new_value;
         if (new_value != current) {
             gfx_set_scale_divisor(new_value);
         }
@@ -337,14 +368,17 @@ static void _draw_dropdown_map(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
 
-    nk_layout_row_dynamic(ctx, 25, 1);
-
     map_desc_t selected_map = map_list[scene->current_map];
     map_state_t map_state = scene->map->map_state;
 
     char buffer[64];
 
+    nk_layout_row_begin(ctx, NK_STATIC, 25, 2);
+    nk_layout_row_push(ctx, 50);
+    nk_label(ctx, "Map", NK_TEXT_LEFT);
     snprintf(buffer, 64, "%d %s", selected_map.id, map_list[selected_map.id].name);
+
+    nk_layout_row_push(ctx, 300);
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
@@ -362,6 +396,7 @@ static void _draw_dropdown_map(struct nk_context* ctx)
         }
         nk_combo_end(ctx);
     }
+    nk_layout_row_end(ctx);
 
     // Find unique map_states for all records.
     // This way we only show unique map_states in the dropdown.
@@ -376,8 +411,13 @@ static void _draw_dropdown_map(struct nk_context* ctx)
         }
     }
 
+    nk_layout_row_begin(ctx, NK_STATIC, 25, 2);
+    nk_layout_row_push(ctx, 50);
+    nk_label(ctx, "Env", NK_TEXT_LEFT);
+
     snprintf(buffer, 64, "Time: %s, Weather: %s, Layout: %d", time_str(map_state.time), weather_str(map_state.weather), map_state.layout);
 
+    nk_layout_row_push(ctx, 300);
     if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
@@ -392,19 +432,24 @@ static void _draw_dropdown_map(struct nk_context* ctx)
         }
         nk_combo_end(ctx);
     }
+
+    nk_layout_row_end(ctx);
 }
 
 static void _draw_dropdown_scenario(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
-    nk_layout_row_dynamic(ctx, 25, 1);
-
     scenario_record_t selected_scenario = scenario_get_record(scene->current_scenario);
 
-    char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d %s", selected_scenario.event_id, map_list[selected_scenario.map_id].name);
+    nk_layout_row_begin(ctx, NK_STATIC, 25, 2);
+    nk_layout_row_push(ctx, 50);
+    nk_label(ctx, "Scenaio", NK_TEXT_LEFT);
 
-    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(370, 550))) {
+    char selected_buffer[64];
+    snprintf(selected_buffer, 64, "%d %s", selected_scenario.event_id, scenario_name_list[selected_scenario.event_id].name);
+
+    nk_layout_row_push(ctx, 300);
+    if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(480, 550))) {
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
@@ -424,10 +469,5 @@ static void _draw_dropdown_scenario(struct nk_context* ctx)
         }
         nk_combo_end(ctx);
     }
-
-    scenario_record_t scenario = scenario_get_record(scene->current_scenario);
-    map_desc_t map = map_list[scenario.map_id];
-
-    nk_labelf(ctx, NK_TEXT_LEFT, "Map %d: %s", map.id, map.name);
-    nk_labelf(ctx, NK_TEXT_LEFT, "Time: %s, Weather: %s, Layout: %d", time_str(scenario.time), weather_str(scenario.weather), 0);
+    nk_layout_row_end(ctx);
 }
