@@ -453,7 +453,7 @@ static void _draw_dropdown_scenario(struct nk_context* ctx)
     nk_label(ctx, "Scenaio", NK_TEXT_LEFT);
 
     char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d %s", selected_scenario.event_id, scenario_name_list[selected_scenario.event_id].name);
+    snprintf(selected_buffer, 64, "%d - %d %s", scene->current_scenario, selected_scenario.event_id, scenario_name_list[selected_scenario.event_id].name);
 
     nk_layout_row_push(ctx, 300);
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(480, 550))) {
@@ -467,7 +467,7 @@ static void _draw_dropdown_scenario(struct nk_context* ctx)
                 continue;
             }
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d %s", scenario_name_list[scenario.event_id].id, scenario_name_list[scenario.event_id].name);
+            snprintf(item_buffer, 64, "%d - %d %s", i, scenario_name_list[scenario.event_id].id, scenario_name_list[scenario.event_id].name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
                 scene->current_scenario = i;
