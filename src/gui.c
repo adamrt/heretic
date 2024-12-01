@@ -184,6 +184,13 @@ static void _draw_section_camera(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
 
+        nk_layout_row_dynamic(ctx, 25, 2);
+        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", cam->eye.x);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", cam->eye.y);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", cam->eye.z);
+
+        nk_layout_row_dynamic(ctx, 25, 1);
+
         nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
         nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", cam->azimuth);
         nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", cam->elevation);

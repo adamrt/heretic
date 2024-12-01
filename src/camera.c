@@ -5,25 +5,26 @@
 #include "sokol_app.h"
 
 #include "camera.h"
+#include "util.h"
 
 #define SENSITIVITY (2.0f)
 
-#define DIR_S   (0.0f)
-#define DIR_W   (270.0f)
-#define DIR_N   (180.0f)
+#define DIR_N   (0.0f)
+#define DIR_NNE (22.5f)
+#define DIR_NE  (45.0f)
+#define DIR_ENE (67.5f)
 #define DIR_E   (90.0f)
-#define DIR_SW  (315.0f)
-#define DIR_NW  (225.0f)
-#define DIR_NE  (135.0f)
-#define DIR_SE  (45.0f)
-#define DIR_SSW (337.5f)
-#define DIR_WSW (292.5f)
-#define DIR_WNW (247.5f)
-#define DIR_NNW (202.5f)
-#define DIR_NNE (157.5f)
-#define DIR_ENE (112.5f)
-#define DIR_ESE (67.5f)
-#define DIR_SSE (22.5f)
+#define DIR_ESE (112.5f)
+#define DIR_SE  (135.0f)
+#define DIR_SSE (157.5f)
+#define DIR_S   (180.0f)
+#define DIR_SSW (202.5f)
+#define DIR_SW  (225.0f)
+#define DIR_WSW (247.5f)
+#define DIR_W   (270.0f)
+#define DIR_WNW (292.5f)
+#define DIR_NW  (315.0f)
+#define DIR_NNW (337.5f)
 
 #define CAMERA_ELV_MIN (-89.1)
 #define CAMERA_ELV_MAX (89.1)
@@ -77,7 +78,7 @@ void camera_update(void)
     vec3s position = { {
         cosf(elevation_rad) * sinf(azimuth_rad),
         sinf(elevation_rad),
-        cosf(elevation_rad) * cosf(azimuth_rad),
+        -cosf(elevation_rad) * cosf(azimuth_rad),
     } };
 
     vec3s scaled_position = glms_vec3_scale(position, _state.distance);
@@ -98,7 +99,7 @@ mat4s camera_get_proj(void) { return _state.proj_mat; }
 
 void camera_orbit(float dx_deg, float dy_deg)
 {
-    _state.azimuth -= dx_deg;
+    _state.azimuth += dx_deg;
     _state.elevation += dy_deg;
     _state.elevation = glm_clamp(_state.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
 }
@@ -120,13 +121,13 @@ cardinal_e camera_cardinal(void)
     int corner_width = 15;
 
     if (azimuth > 345.0f || azimuth < 15.0f) {
-        return CARDINAL_S;
+        return CARDINAL_N;
     }
     if (fabs(azimuth - DIR_W) < corner_width) {
         return CARDINAL_W;
     }
-    if (fabs(azimuth - DIR_N) < corner_width) {
-        return CARDINAL_N;
+    if (fabs(azimuth - DIR_S) < corner_width) {
+        return CARDINAL_S;
     }
     if (fabs(azimuth - DIR_E) < corner_width) {
         return CARDINAL_E;
@@ -187,23 +188,28 @@ static void _camera_azimuth(transition_dir_e dir)
     bool move_left = dir == TRANS_DIR_LEFT;
 
     float degrees = _state.azimuth;
-    float end_degrees = move_left ? degrees - 90.0f : degrees + 90.0f;
+    float end_degrees = 0.0f;
 
-    if (degrees > DIR_SE && degrees < DIR_NE) {
+    if (degrees == DIR_NE) {
+        end_degrees = move_left ? DIR_SE : DIR_NW - 360.0f;
+    } else if (degrees == DIR_SE) {
+        end_degrees = move_left ? DIR_SW : DIR_NE;
+    } else if (degrees == DIR_SW) {
+        end_degrees = move_left ? DIR_NW : DIR_SE;
+    } else if (degrees == DIR_NW) {
+        end_degrees = move_left ? DIR_NE + 360.0f : DIR_SW;
+    } else if (degrees > DIR_NE && degrees < DIR_SE) {
         end_degrees = move_left ? DIR_SE : DIR_NE;
-    } else if (degrees > DIR_NE && degrees < DIR_NW) {
-        end_degrees = move_left ? DIR_NE : DIR_NW;
-    } else if (degrees > DIR_NW && degrees < DIR_SW) {
-        end_degrees = move_left ? DIR_NW : DIR_SW;
-    } else if (degrees > DIR_SW || degrees < DIR_SE) {
+    } else if (degrees > DIR_SE && degrees < DIR_SW) {
         end_degrees = move_left ? DIR_SW : DIR_SE;
-
-        // Handle 360 wrap around
-        if (move_left && degrees < 180.0f) {
-            end_degrees -= 360.0f;
-        } else if (!move_left && degrees > 180.0f) {
-            end_degrees += 360.0f;
-        }
+    } else if (degrees > DIR_SW && degrees < DIR_NW) {
+        end_degrees = move_left ? DIR_NW : DIR_SW;
+    } else if (degrees > DIR_NW && degrees <= 360.0f) {
+        end_degrees = move_left ? DIR_NE + 360.0f : DIR_NW;
+    } else if (degrees >= 0.0f && degrees < DIR_NE) {
+        end_degrees = move_left ? DIR_NE : DIR_NW - 360.0f;
+    } else {
+        ASSERT(false, "Invalid azimuth %f", degrees);
     }
 
     _state.transition = (transition_t) {
@@ -220,8 +226,8 @@ static void _camera_elevation(transition_dir_e dir)
         return;
     }
 
-    if ((dir == TRANS_DIR_DOWN && _state.elevation == CAMERA_ELV_LOW) ||
-        (dir == TRANS_DIR_UP && _state.elevation == CAMERA_ELV_HIGH)) {
+    if ((dir == TRANS_DIR_DOWN && _state.elevation == CAMERA_ELV_LOW)
+        || (dir == TRANS_DIR_UP && _state.elevation == CAMERA_ELV_HIGH)) {
         return;
     }
 
