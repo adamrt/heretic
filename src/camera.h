@@ -41,7 +41,7 @@ typedef struct {
     float distance;
     bool use_perspective;
     transition_t transition;
-} camera_t;
+} orbit_camera_t;
 
 // These are listed clockwise to match the FFT data storage. We might change
 // later since we use counter-clockwise for the camera since we are RHS. These
@@ -68,24 +68,27 @@ typedef enum {
     CARDINAL_UNKNOWN = 0x0,
 } cardinal_e;
 
-void camera_init(void);
-void camera_update(void);
+void orbit_camera_init(void);
+void orbit_camera_update(void);
 
-void camera_orbit(float, float);
-void camera_zoom(float);
-void camera_left(void);
-void camera_right(void);
-void camera_up(void);
-void camera_down(void);
+void orbit_camera_orbit(float, float);
+void orbit_camera_zoom(float);
 
-mat4s camera_get_view(void);
-mat4s camera_get_proj(void);
+// These don't need to be on the orbit camera.
+// Move them to the camera_t.
+void orbit_camera_left(void);
+void orbit_camera_right(void);
+void orbit_camera_up(void);
+void orbit_camera_down(void);
+
+mat4s orbit_camera_get_view(void);
+mat4s orbit_camera_get_proj(void);
 
 // This is a helper function to get the internal camera struct. This is strictly
 // used for the GUI.
-camera_t* camera_get_internals(void);
+orbit_camera_t* orbit_camera_get_internals(void);
 
-cardinal_e camera_cardinal(void);
-const char* camera_cardinal_str(void);
+cardinal_e orbit_camera_cardinal(void);
+const char* orbit_camera_cardinal_str(void);
 
 #endif // CAMERA_H_

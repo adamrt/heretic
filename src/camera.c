@@ -34,14 +34,14 @@
 
 #define CAMERA_TRANS_FRAMES (45.0f)
 
-static camera_t _state;
+static orbit_camera_t _state;
 
 // Forward declarations
-static void _camera_azimuth(transition_dir_e);
-static void _camera_elevation(transition_dir_e);
+static void _orbit_camera_azimuth(transition_dir_e);
+static void _orbit_camera_elevation(transition_dir_e);
 static void _camera_process_transitions(void);
 
-void camera_init(void)
+void orbit_camera_init(void)
 {
     _state.target = glms_vec3_zero();
 
@@ -53,7 +53,7 @@ void camera_init(void)
     _state.zfar = 1000.0f;
 }
 
-void camera_update(void)
+void orbit_camera_update(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
     float w = _state.distance;
@@ -93,29 +93,29 @@ void camera_update(void)
     }
 }
 
-camera_t* camera_get_internals(void) { return &_state; }
-mat4s camera_get_view(void) { return _state.view_mat; }
-mat4s camera_get_proj(void) { return _state.proj_mat; }
+orbit_camera_t* orbit_camera_get_internals(void) { return &_state; }
+mat4s orbit_camera_get_view(void) { return _state.view_mat; }
+mat4s orbit_camera_get_proj(void) { return _state.proj_mat; }
 
-void camera_orbit(float dx_deg, float dy_deg)
+void orbit_camera_orbit(float dx_deg, float dy_deg)
 {
     _state.azimuth += dx_deg;
     _state.elevation += dy_deg;
     _state.elevation = glm_clamp(_state.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
 }
 
-void camera_zoom(float delta)
+void orbit_camera_zoom(float delta)
 {
     _state.distance -= delta * SENSITIVITY;
     _state.distance = glm_clamp(_state.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 }
 
-void camera_left(void) { _camera_azimuth(TRANS_DIR_LEFT); }
-void camera_right(void) { _camera_azimuth(TRANS_DIR_RIGHT); }
-void camera_up(void) { _camera_elevation(TRANS_DIR_UP); }
-void camera_down(void) { _camera_elevation(TRANS_DIR_DOWN); }
+void orbit_camera_left(void) { _orbit_camera_azimuth(TRANS_DIR_LEFT); }
+void orbit_camera_right(void) { _orbit_camera_azimuth(TRANS_DIR_RIGHT); }
+void orbit_camera_up(void) { _orbit_camera_elevation(TRANS_DIR_UP); }
+void orbit_camera_down(void) { _orbit_camera_elevation(TRANS_DIR_DOWN); }
 
-cardinal_e camera_cardinal(void)
+cardinal_e orbit_camera_cardinal(void)
 {
     float azimuth = _state.azimuth;
     int corner_width = 15;
@@ -179,7 +179,7 @@ cardinal_e camera_cardinal(void)
 // Camera transitions deal with values < 0.0f and > 360.0f to simplify
 // calculations. When a transition finishes, the camera_update() will bring the
 // values back within 0.0f-360.0f range.
-static void _camera_azimuth(transition_dir_e dir)
+static void _orbit_camera_azimuth(transition_dir_e dir)
 {
     if (_state.transition.valid) {
         return;
@@ -220,7 +220,7 @@ static void _camera_azimuth(transition_dir_e dir)
     };
 }
 
-static void _camera_elevation(transition_dir_e dir)
+static void _orbit_camera_elevation(transition_dir_e dir)
 {
     if (_state.transition.valid) {
         return;
@@ -271,9 +271,9 @@ static void _camera_process_transitions(void)
     trans->current_frame++;
 }
 
-const char* camera_cardinal_str(void)
+const char* orbit_camera_cardinal_str(void)
 {
-    cardinal_e dir = camera_cardinal();
+    cardinal_e dir = orbit_camera_cardinal();
     switch (dir) {
     case CARDINAL_S:
         return "South";

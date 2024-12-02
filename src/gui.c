@@ -47,7 +47,7 @@ static void _draw_window_instructions(struct nk_context* ctx);
 static void _draw_section_scenario(struct nk_context* ctx);
 static void _draw_section_map(struct nk_context* ctx);
 static void _draw_section_lights(struct nk_context* ctx);
-static void _draw_section_camera(struct nk_context* ctx);
+static void _draw_section_orbit_camera(struct nk_context* ctx);
 static void _draw_section_misc(struct nk_context* ctx);
 static void _draw_section_fps(struct nk_context* ctx);
 
@@ -109,7 +109,7 @@ static void _draw(void)
         }
 
         _draw_section_lights(ctx);
-        _draw_section_camera(ctx);
+        _draw_section_orbit_camera(ctx);
         _draw_section_misc(ctx);
         _draw_section_fps(ctx);
     }
@@ -177,34 +177,34 @@ static void _draw_section_map(struct nk_context* ctx)
     }
 }
 
-static void _draw_section_camera(struct nk_context* ctx)
+static void _draw_section_orbit_camera(struct nk_context* ctx)
 {
-    camera_t* cam = camera_get_internals();
+    orbit_camera_t* orbcam = orbit_camera_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 1);
-        nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
+        nk_checkbox_label(ctx, "Perspective", &orbcam->use_perspective);
 
         nk_layout_row_dynamic(ctx, 25, 2);
-        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", cam->eye.x);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", cam->eye.y);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", cam->eye.z);
+        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", orbcam->eye.x);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", orbcam->eye.y);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", orbcam->eye.z);
 
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
-        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", cam->azimuth);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", cam->elevation);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", orbit_camera_cardinal_str());
+        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", orbcam->azimuth);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", orbcam->elevation);
 
         nk_layout_row_dynamic(ctx, 25, 2);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", cam->distance);
-        nk_slider_float(ctx, 0.001f, &cam->distance, CAMERA_DIST_MAX, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", orbcam->distance);
+        nk_slider_float(ctx, 0.001f, &orbcam->distance, CAMERA_DIST_MAX, 0.1f);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", cam->znear);
-        nk_slider_float(ctx, 0.01f, &cam->znear, CAMERA_ZFAR_MAX, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", orbcam->znear);
+        nk_slider_float(ctx, 0.01f, &orbcam->znear, CAMERA_ZFAR_MAX, 0.1f);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", cam->zfar);
-        nk_slider_float(ctx, 0.01f, &cam->zfar, CAMERA_ZFAR_MAX, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", orbcam->zfar);
+        nk_slider_float(ctx, 0.01f, &orbcam->zfar, CAMERA_ZFAR_MAX, 0.1f);
 
         nk_tree_pop(ctx);
     }

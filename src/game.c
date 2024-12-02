@@ -22,7 +22,7 @@ void data_init(void)
 void game_init(void)
 {
     time_init();
-    camera_init();
+    orbit_camera_init();
     gfx_init();
     gui_init();
 
@@ -47,7 +47,7 @@ void game_update(void)
 
     time_update();
     scene_update();
-    camera_update();
+    orbit_camera_update();
     gfx_update();
 }
 
@@ -76,16 +76,16 @@ void game_input(const sapp_event* event)
             scene_prev();
             break;
         case SAPP_KEYCODE_LEFT:
-            camera_left();
+            orbit_camera_left();
             break;
         case SAPP_KEYCODE_RIGHT:
-            camera_right();
+            orbit_camera_right();
             break;
         case SAPP_KEYCODE_UP:
-            camera_up();
+            orbit_camera_up();
             break;
         case SAPP_KEYCODE_DOWN:
-            camera_down();
+            orbit_camera_down();
             break;
         default:
             break;
@@ -103,12 +103,12 @@ void game_input(const sapp_event* event)
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            camera_orbit(event->mouse_dx, event->mouse_dy);
+            orbit_camera_orbit(event->mouse_dx, event->mouse_dy);
         }
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        camera_zoom(event->scroll_y);
+        orbit_camera_zoom(event->scroll_y);
         break;
 
     default:
