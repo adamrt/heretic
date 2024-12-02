@@ -195,7 +195,7 @@ static void _draw_section_scenario(struct nk_context* ctx)
         _draw_dropdown_scenario(ctx);
 
         scene_t* scene = scene_get_internals();
-        scenario_record_t scenario = scenario_get_record(scene->current_scenario);
+        scenario_record_t scenario = _state.cache.scenario_records[scene->current_scenario];
         map_desc_t map = map_list[scenario.map_id];
 
         nk_layout_row_dynamic(ctx, 25, 1);
@@ -535,7 +535,7 @@ static void _draw_dropdown_map(struct nk_context* ctx)
 static void _draw_dropdown_scenario(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
-    scenario_record_t selected_scenario = scenario_get_record(scene->current_scenario);
+    scenario_record_t selected_scenario = _state.cache.scenario_records[scene->current_scenario];
 
     nk_layout_row_begin(ctx, NK_STATIC, 25, 2);
     nk_layout_row_push(ctx, 50);
