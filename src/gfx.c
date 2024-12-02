@@ -299,8 +299,8 @@ static void frame_offscreen(void)
     mat4s model_mat = model_matrix(scene->model.transform);
 
     vs_standard_params_t vs_params = {
-        .u_proj = orbit_camera_get_proj(),
-        .u_view = orbit_camera_get_view(),
+        .u_proj = camera_get_proj(),
+        .u_view = camera_get_view(),
         .u_model = model_mat,
     };
 

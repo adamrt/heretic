@@ -34,46 +34,94 @@
 
 #define CAMERA_TRANS_FRAMES (45.0f)
 
-static orbit_camera_t _state;
+// FIXME: Add a type two switch between cameras.
+//
+// Rename camera_t to game_camera_t along with the functions and then add public
+// functions (camera_init(), camera_left(), etc) to switch between the two that
+// feeds input to both internally.
+static struct {
+    camera_t cam;
+    orbit_camera_t orb;
+} _state;
 
 // Forward declarations
 static void _orbit_camera_azimuth(transition_dir_e);
 static void _orbit_camera_elevation(transition_dir_e);
 static void _camera_process_transitions(void);
 
+void camera_init(void)
+{
+    _state.cam.position = (vec3s) { { 0.0f, 128.0f, 256.0f } };
+    _state.cam.yaw = 0.0f;
+    _state.cam.pitch = -30.0f;
+    _state.cam.znear = 0.01f;
+    _state.cam.zfar = 1000.0f;
+}
+
+void camera_update(void)
+{
+    float yaw_rad = glm_rad(_state.cam.yaw);
+    float pitch_rad = glm_rad(_state.cam.pitch);
+
+    // pitch_rad = glm_clamp(pitch_rad, -89.1f, 89.1f);
+
+    vec3s forward = glms_vec3_normalize((vec3s) { {
+        cosf(pitch_rad) * sinf(yaw_rad),
+        sinf(pitch_rad),
+        -cosf(pitch_rad) * cosf(yaw_rad),
+    } });
+
+    vec3s target = glms_vec3_add(_state.cam.position, forward);
+    _state.cam.view_mat = glms_lookat(_state.cam.position, target, GLMS_YUP);
+
+    float aspect = sapp_widthf() / sapp_heightf();
+    float w = 256.0f;
+    float h = w / aspect;
+
+    if (_state.cam.use_perspective) {
+        _state.cam.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.cam.znear, _state.cam.zfar);
+    } else {
+        _state.cam.proj_mat = glms_ortho(-w, w, -h, h, _state.cam.znear, _state.cam.zfar);
+    }
+}
+
+camera_t* camera_get_internals(void) { return &_state.cam; }
+mat4s camera_get_view(void) { return _state.cam.view_mat; }
+mat4s camera_get_proj(void) { return _state.cam.proj_mat; }
+
 void orbit_camera_init(void)
 {
-    _state.target = glms_vec3_zero();
+    _state.orb.target = glms_vec3_zero();
 
-    _state.azimuth = DIR_SE;
-    _state.elevation = CAMERA_ELV_LOW;
+    _state.orb.azimuth = DIR_SE;
+    _state.orb.elevation = CAMERA_ELV_LOW;
 
-    _state.distance = 256.0f;
-    _state.znear = 0.01f;
-    _state.zfar = 1000.0f;
+    _state.orb.distance = 256.0f;
+    _state.orb.znear = 0.01f;
+    _state.orb.zfar = 1000.0f;
 }
 
 void orbit_camera_update(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = _state.distance;
+    float w = _state.orb.distance;
     float h = w / aspect;
 
     _camera_process_transitions();
 
     // Transitions work with negative degrees sometimes so don't keep camera
     // position degrees positive mid-transition.
-    if (!_state.transition.valid) {
-        if (_state.azimuth >= 360.0f) {
-            _state.azimuth -= 360.0f;
+    if (!_state.orb.transition.valid) {
+        if (_state.orb.azimuth >= 360.0f) {
+            _state.orb.azimuth -= 360.0f;
         }
-        if (_state.azimuth < 0.0f) {
-            _state.azimuth += 360.0f;
+        if (_state.orb.azimuth < 0.0f) {
+            _state.orb.azimuth += 360.0f;
         }
     }
 
-    float azimuth_rad = glm_rad(_state.azimuth);
-    float elevation_rad = glm_rad(_state.elevation);
+    float azimuth_rad = glm_rad(_state.orb.azimuth);
+    float elevation_rad = glm_rad(_state.orb.elevation);
 
     vec3s position = { {
         cosf(elevation_rad) * sinf(azimuth_rad),
@@ -81,33 +129,33 @@ void orbit_camera_update(void)
         -cosf(elevation_rad) * cosf(azimuth_rad),
     } };
 
-    vec3s scaled_position = glms_vec3_scale(position, _state.distance);
+    vec3s scaled_position = glms_vec3_scale(position, _state.orb.distance);
 
-    _state.eye = glms_vec3_add(_state.target, scaled_position);
-    _state.view_mat = glms_lookat(_state.eye, _state.target, GLMS_YUP);
+    _state.orb.eye = glms_vec3_add(_state.orb.target, scaled_position);
+    _state.orb.view_mat = glms_lookat(_state.orb.eye, _state.orb.target, GLMS_YUP);
 
-    if (_state.use_perspective) {
-        _state.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.znear, _state.zfar);
+    if (_state.orb.use_perspective) {
+        _state.orb.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.orb.znear, _state.orb.zfar);
     } else {
-        _state.proj_mat = glms_ortho(-w, w, -h, h, _state.znear, _state.zfar);
+        _state.orb.proj_mat = glms_ortho(-w, w, -h, h, _state.orb.znear, _state.orb.zfar);
     }
 }
 
-orbit_camera_t* orbit_camera_get_internals(void) { return &_state; }
-mat4s orbit_camera_get_view(void) { return _state.view_mat; }
-mat4s orbit_camera_get_proj(void) { return _state.proj_mat; }
+orbit_camera_t* orbit_camera_get_internals(void) { return &_state.orb; }
+mat4s orbit_camera_get_view(void) { return _state.orb.view_mat; }
+mat4s orbit_camera_get_proj(void) { return _state.orb.proj_mat; }
 
 void orbit_camera_orbit(float dx_deg, float dy_deg)
 {
-    _state.azimuth += dx_deg;
-    _state.elevation += dy_deg;
-    _state.elevation = glm_clamp(_state.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
+    _state.orb.azimuth += dx_deg;
+    _state.orb.elevation += dy_deg;
+    _state.orb.elevation = glm_clamp(_state.orb.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
 }
 
 void orbit_camera_zoom(float delta)
 {
-    _state.distance -= delta * SENSITIVITY;
-    _state.distance = glm_clamp(_state.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+    _state.orb.distance -= delta * SENSITIVITY;
+    _state.orb.distance = glm_clamp(_state.orb.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 }
 
 void orbit_camera_left(void) { _orbit_camera_azimuth(TRANS_DIR_LEFT); }
@@ -117,7 +165,7 @@ void orbit_camera_down(void) { _orbit_camera_elevation(TRANS_DIR_DOWN); }
 
 cardinal_e orbit_camera_cardinal(void)
 {
-    float azimuth = _state.azimuth;
+    float azimuth = _state.orb.azimuth;
     int corner_width = 15;
 
     if (azimuth > 345.0f || azimuth < 15.0f) {
@@ -181,13 +229,13 @@ cardinal_e orbit_camera_cardinal(void)
 // values back within 0.0f-360.0f range.
 static void _orbit_camera_azimuth(transition_dir_e dir)
 {
-    if (_state.transition.valid) {
+    if (_state.orb.transition.valid) {
         return;
     }
 
     bool move_left = dir == TRANS_DIR_LEFT;
 
-    float degrees = _state.azimuth;
+    float degrees = _state.orb.azimuth;
     float end_degrees = 0.0f;
 
     if (degrees == DIR_NE) {
@@ -212,8 +260,8 @@ static void _orbit_camera_azimuth(transition_dir_e dir)
         ASSERT(false, "Invalid azimuth %f", degrees);
     }
 
-    _state.transition = (transition_t) {
-        .start_azimuth = _state.azimuth,
+    _state.orb.transition = (transition_t) {
+        .start_azimuth = _state.orb.azimuth,
         .end_azimuth = end_degrees,
         .total_frames = CAMERA_TRANS_FRAMES,
         .valid = true,
@@ -222,19 +270,19 @@ static void _orbit_camera_azimuth(transition_dir_e dir)
 
 static void _orbit_camera_elevation(transition_dir_e dir)
 {
-    if (_state.transition.valid) {
+    if (_state.orb.transition.valid) {
         return;
     }
 
-    if ((dir == TRANS_DIR_DOWN && _state.elevation == CAMERA_ELV_LOW)
-        || (dir == TRANS_DIR_UP && _state.elevation == CAMERA_ELV_HIGH)) {
+    if ((dir == TRANS_DIR_DOWN && _state.orb.elevation == CAMERA_ELV_LOW)
+        || (dir == TRANS_DIR_UP && _state.orb.elevation == CAMERA_ELV_HIGH)) {
         return;
     }
 
     bool move_up = dir == TRANS_DIR_UP;
 
-    _state.transition = (transition_t) {
-        .start_elevation = _state.elevation,
+    _state.orb.transition = (transition_t) {
+        .start_elevation = _state.orb.elevation,
         .end_elevation = move_up ? CAMERA_ELV_HIGH : CAMERA_ELV_LOW,
         .total_frames = CAMERA_TRANS_FRAMES,
         .valid = true,
@@ -243,7 +291,7 @@ static void _orbit_camera_elevation(transition_dir_e dir)
 
 static void _camera_process_transitions(void)
 {
-    transition_t* trans = &_state.transition;
+    transition_t* trans = &_state.orb.transition;
     if (!trans->valid) {
         return;
     }
@@ -251,19 +299,19 @@ static void _camera_process_transitions(void)
     float t = trans->current_frame / trans->total_frames;
 
     if (trans->start_azimuth != trans->end_azimuth) {
-        _state.azimuth = glm_lerp(trans->start_azimuth, trans->end_azimuth, t);
+        _state.orb.azimuth = glm_lerp(trans->start_azimuth, trans->end_azimuth, t);
     }
 
     if (trans->start_elevation != trans->end_elevation) {
-        _state.elevation = glm_lerp(trans->start_elevation, trans->end_elevation, t);
+        _state.orb.elevation = glm_lerp(trans->start_elevation, trans->end_elevation, t);
     }
 
     if (trans->current_frame >= trans->total_frames) {
         if (trans->start_azimuth != trans->end_azimuth) {
-            _state.azimuth = trans->end_azimuth;
+            _state.orb.azimuth = trans->end_azimuth;
         }
         if (trans->start_elevation != trans->end_elevation) {
-            _state.elevation = trans->end_elevation;
+            _state.orb.elevation = trans->end_elevation;
         }
         trans->valid = false;
     }

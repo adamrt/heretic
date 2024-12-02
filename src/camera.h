@@ -43,6 +43,14 @@ typedef struct {
     transition_t transition;
 } orbit_camera_t;
 
+typedef struct {
+    mat4s proj_mat, view_mat;
+    vec3s position;
+    float yaw, pitch;
+    float znear, zfar;
+    bool use_perspective;
+} camera_t;
+
 // These are listed clockwise to match the FFT data storage. We might change
 // later since we use counter-clockwise for the camera since we are RHS. These
 // values match the polygon visibility data layout (unless its backwards).
@@ -68,9 +76,14 @@ typedef enum {
     CARDINAL_UNKNOWN = 0x0,
 } cardinal_e;
 
+void camera_init(void);
+void camera_update(void);
+mat4s camera_get_view(void);
+mat4s camera_get_proj(void);
+camera_t* camera_get_internals(void);
+
 void orbit_camera_init(void);
 void orbit_camera_update(void);
-
 void orbit_camera_orbit(float, float);
 void orbit_camera_zoom(float);
 
@@ -83,9 +96,6 @@ void orbit_camera_down(void);
 
 mat4s orbit_camera_get_view(void);
 mat4s orbit_camera_get_proj(void);
-
-// This is a helper function to get the internal camera struct. This is strictly
-// used for the GUI.
 orbit_camera_t* orbit_camera_get_internals(void);
 
 cardinal_e orbit_camera_cardinal(void);

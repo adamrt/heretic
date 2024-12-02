@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "cglm/util.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -30,6 +31,9 @@ static struct {
     bool show_instructions;
     int scale_divisor;
 
+    float xz_scale;
+    float y_scale;
+
     // This is kinda hacky, but it works for now.
     struct {
         scenario_record_t scenario_records[SCENARIO_COUNT];
@@ -47,9 +51,9 @@ static void _draw_window_instructions(struct nk_context* ctx);
 static void _draw_section_scenario(struct nk_context* ctx);
 static void _draw_section_map(struct nk_context* ctx);
 static void _draw_section_lights(struct nk_context* ctx);
+static void _draw_section_camera(struct nk_context* ctx);
 static void _draw_section_orbit_camera(struct nk_context* ctx);
 static void _draw_section_misc(struct nk_context* ctx);
-static void _draw_section_fps(struct nk_context* ctx);
 
 static void _draw_dropdown_map(struct nk_context* ctx);
 static void _draw_dropdown_scenario(struct nk_context* ctx);
@@ -61,9 +65,11 @@ void gui_init(void)
         .logger.func = slog_func,
     });
 
-    _state.show_instructions = false;
+    _state.show_instructions = true;
     _state.show_scenarios = false;
     _state.show_messages = false;
+    _state.xz_scale = 4.0f;
+    _state.y_scale = 2.0f;
 }
 
 void gui_cache(void)
@@ -111,7 +117,7 @@ static void _draw(void)
         _draw_section_lights(ctx);
         _draw_section_orbit_camera(ctx);
         _draw_section_misc(ctx);
-        _draw_section_fps(ctx);
+        _draw_section_camera(ctx);
     }
     nk_end(ctx);
 
@@ -130,10 +136,47 @@ static void _draw(void)
     return;
 }
 
-static void _draw_section_fps(struct nk_context* ctx)
+static void _draw_section_camera(struct nk_context* ctx)
 {
-    nk_layout_row_dynamic(ctx, 25, 1);
-    nk_labelf(ctx, NK_TEXT_LEFT, "FPS: %f", time_get_fps());
+    camera_t* cam = camera_get_internals();
+    scene_t* scene = scene_get_internals();
+    if (nk_tree_push(ctx, NK_TREE_TAB, "FPS", NK_MAXIMIZED)) {
+        nk_layout_row_dynamic(ctx, 25, 2);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Model Y: %f", scene->model.transform.rotation.y);
+        nk_slider_float(ctx, -10.0f, &scene->model.transform.rotation.y, 10.0f, 0.0001f);
+
+        nk_layout_row_dynamic(ctx, 25, 1);
+        nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Yaw: %f", cam->yaw);
+        nk_slider_float(ctx, -256.0f, &cam->yaw, 256.0f, 0.1f);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "XZ Scale: %f", _state.xz_scale);
+        nk_slider_float(ctx, 1.0f, &_state.xz_scale, 8.0f, 1.0f);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Y Scale: %f", _state.y_scale);
+        nk_slider_float(ctx, 1.0f, &_state.y_scale, 8.0f, 1.0f);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %f", cam->pitch);
+        nk_slider_float(ctx, -256.0f, &cam->pitch, 256.0f, 0.1f);
+
+        nk_layout_row_dynamic(ctx, 25, 2);
+        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", cam->position.x);
+        nk_slider_float(ctx, -640.00f, &cam->position.x, 640.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", cam->position.y);
+        nk_slider_float(ctx, -640.00f, &cam->position.y, 640.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", cam->position.z);
+        nk_slider_float(ctx, -640.00f, &cam->position.z, 640.0f, 0.1f);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", cam->znear);
+        nk_slider_float(ctx, -100.01f, &cam->znear, CAMERA_ZFAR_MAX * 2, 0.1f);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", cam->zfar);
+        nk_slider_float(ctx, -100.01f, &cam->zfar, CAMERA_ZFAR_MAX * 2, 0.1f);
+
+        nk_tree_pop(ctx);
+    }
 }
 
 static void _draw_mode_selector(struct nk_context* ctx)
@@ -338,16 +381,51 @@ static void _draw_window_messages(struct nk_context* ctx)
 
 static void _draw_window_instructions(struct nk_context* ctx)
 {
+    scene_t* scene = scene_get_internals();
+    camera_t* cam = camera_get_internals();
     if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
-        nk_layout_row_begin(ctx, NK_STATIC, 20, 15);
+        nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
         instruction_t* instructions = scene_get_instructions();
         int count = scene_get_instruction_count();
 
+        nk_layout_row_push(ctx, 60);
+        nk_label(ctx, "Select", NK_TEXT_RIGHT);
+        nk_label(ctx, "OpCode", NK_TEXT_RIGHT);
+        nk_label(ctx, "X", NK_TEXT_RIGHT);
+        nk_label(ctx, "Y", NK_TEXT_RIGHT);
+        nk_label(ctx, "Z", NK_TEXT_RIGHT);
+        nk_label(ctx, "Pitch", NK_TEXT_RIGHT);
+        nk_label(ctx, "MapRot", NK_TEXT_RIGHT);
+        nk_label(ctx, "Yaw", NK_TEXT_RIGHT);
+        nk_label(ctx, "Zoom", NK_TEXT_RIGHT);
+        nk_label(ctx, "Timer", NK_TEXT_RIGHT);
+        nk_layout_row_end(ctx);
+        nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
         for (int i = 0; i < count; i++) {
             instruction_t instruction = instructions[i];
             opcode_t opcode = opcode_list[instruction.code];
+            if (instruction.code != 0x19)
+                continue;
 
-            nk_layout_row_push(ctx, 200);
+            nk_layout_row_push(ctx, 60);
+            if (nk_button_label(ctx, "MoveTo")) {
+                float x = (float)((int16_t)instruction.parameters[0].value.u16);
+                float y = -(float)((int16_t)instruction.parameters[1].value.u16);
+                float z = (float)((int16_t)instruction.parameters[2].value.u16);
+
+                cam->position.x = x / _state.xz_scale;
+                cam->position.y = y / _state.y_scale;
+                cam->position.z = z / _state.xz_scale;
+                printf("xz_scale: %f, y_scale: %f\n", _state.xz_scale, _state.y_scale);
+
+                float pitch = -(float)((int16_t)instruction.parameters[3].value.u16);
+                cam->pitch = (pitch / 1024.0f) * 90.0f;
+
+                float maprot = -(float)((int16_t)instruction.parameters[4].value.u16);
+                float maprot_scaled = (maprot * 360.0f) / 4096.0f;
+                float maprot_rad = glm_rad(maprot_scaled);
+                scene->model.transform.rotation.y = maprot_rad;
+            }
 
             if (opcode.name != NULL) {
                 nk_label(ctx, opcode.name, NK_TEXT_LEFT);
@@ -355,14 +433,25 @@ static void _draw_window_instructions(struct nk_context* ctx)
                 nk_labelf(ctx, NK_TEXT_LEFT, "NO OPCODE ---- (0x%X)", instruction.code);
             }
             for (int j = 0; j < EVENT_PARAMETER_MAX; j++) {
-                nk_layout_row_push(ctx, 50);
                 parameter_t param = instruction.parameters[j];
                 if (param.type == PARAMETER_TYPE_NONE) {
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%d", 0);
                 } else if (param.type == PARAMETER_TYPE_U16) {
-                    nk_labelf(ctx, NK_TEXT_RIGHT, "0x%04X", param.value.u16);
+
+                    float value = (float)((int16_t)param.value.u16);
+                    if (j == 1) {
+                        value = -value;
+                        value = value / 2.0f;
+                    }
+                    if (j == 0 || j == 2)
+                        value = value / 4.0f;
+                    if (j == 3) {
+                        value = (value / 1024.0f) * 90.0f;
+                    }
+                    nk_labelf(ctx, NK_TEXT_RIGHT, "%0.1f", value);
                 } else {
-                    nk_labelf(ctx, NK_TEXT_RIGHT, "0x%02X", param.value.u8);
+                    float value = (float)(int8_t)param.value.u8;
+                    nk_labelf(ctx, NK_TEXT_RIGHT, "%0.1f", value);
                 }
             }
             nk_layout_row_end(ctx);
