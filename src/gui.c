@@ -149,6 +149,11 @@ static void _draw_section_camera(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
 
+        nk_layout_row_dynamic(ctx, 25, 2);
+
+        nk_labelf(ctx, NK_TEXT_LEFT, "Frustum: %f", cam->frustum_scale);
+        nk_slider_float(ctx, -32.00f, &cam->frustum_scale, 512.0f, 0.1f);
+
         nk_labelf(ctx, NK_TEXT_LEFT, "Yaw: %f", cam->yaw);
         nk_slider_float(ctx, -256.0f, &cam->yaw, 256.0f, 0.1f);
 

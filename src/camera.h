@@ -8,7 +8,7 @@
 #define CAMERA_DIST_MIN  (0.01f)
 #define CAMERA_DIST_MAX  (1000.0f)
 #define CAMERA_ZNEAR_MIN (0.01f)
-#define CAMERA_ZFAR_MAX  (1000.0f)
+#define CAMERA_ZFAR_MAX  (2000.0f)
 
 typedef enum {
     TRANS_DIR_LEFT,
@@ -49,6 +49,7 @@ typedef struct {
     float yaw, pitch;
     float znear, zfar;
     bool use_perspective;
+    float frustum_scale;
 } camera_t;
 
 // These are listed clockwise to match the FFT data storage. We might change

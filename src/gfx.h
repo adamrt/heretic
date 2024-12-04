@@ -4,8 +4,8 @@
 #include "cglm/types-struct.h"
 #include "sokol_gfx.h"
 
-#define GFX_DISPLAY_WIDTH  (1440)
-#define GFX_DISPLAY_HEIGHT (960)
+#define GFX_DISPLAY_WIDTH  (256 * 4)
+#define GFX_DISPLAY_HEIGHT (240 * 4)
 
 void gfx_init(void);
 void gfx_shutdown(void);

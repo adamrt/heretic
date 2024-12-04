@@ -51,11 +51,12 @@ static void _camera_process_transitions(void);
 
 void camera_init(void)
 {
-    _state.cam.position = (vec3s) { { 0.0f, 128.0f, 256.0f } };
+    _state.cam.position = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     _state.cam.yaw = 0.0f;
     _state.cam.pitch = -30.0f;
     _state.cam.znear = 0.01f;
-    _state.cam.zfar = 1000.0f;
+    _state.cam.zfar = 2000.0f;
+    _state.cam.frustum_scale = 128.0f;
 }
 
 void camera_update(void)
@@ -75,7 +76,7 @@ void camera_update(void)
     _state.cam.view_mat = glms_lookat(_state.cam.position, target, GLMS_YUP);
 
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = 256.0f;
+    float w = _state.cam.frustum_scale;
     float h = w / aspect;
 
     if (_state.cam.use_perspective) {
