@@ -29,13 +29,12 @@ typedef struct {
 } model_t;
 
 typedef struct {
-    sg_image color_image;
-    sg_image depth_image;
-
     sg_sampler sampler;
 
     struct {
         sg_pipeline pipeline;
+        sg_image color_image;
+        sg_image depth_image;
         sg_attachments attachments;
     } offscreen;
 

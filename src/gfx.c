@@ -20,7 +20,7 @@ static gfx_t _state;
 
 // Forward declarations
 static void _init_images(void);
-static void _init_shared(void);
+static void _init(void);
 
 static void frame_offscreen(void);
 static void frame_background(void);
@@ -52,7 +52,7 @@ void gfx_init(void)
     _state.display.scale_divisor = 2;
 
     _init_images();
-    _init_shared();
+    _init();
 }
 
 void gfx_update(void)
@@ -93,13 +93,13 @@ void gfx_update(void)
 
 void gfx_scale_change(void)
 {
-    sg_destroy_image(_state.color_image);
-    sg_destroy_image(_state.depth_image);
+    sg_destroy_image(_state.offscreen.color_image);
+    sg_destroy_image(_state.offscreen.depth_image);
     sg_destroy_attachments(_state.offscreen.attachments);
 
     _init_images();
 
-    _state.display.bindings.images[IMG_u_texture] = _state.color_image;
+    _state.display.bindings.images[IMG_u_texture] = _state.offscreen.color_image;
     _state.display.bindings.samplers[SMP_u_sampler] = _state.sampler;
 }
 
@@ -110,8 +110,8 @@ void gfx_shutdown(void)
     sg_destroy_pipeline(_state.display.pipeline);
 
     sg_destroy_attachments(_state.offscreen.attachments);
-    sg_destroy_image(_state.color_image);
-    sg_destroy_image(_state.depth_image);
+    sg_destroy_image(_state.offscreen.color_image);
+    sg_destroy_image(_state.offscreen.depth_image);
 
     sg_destroy_sampler(_state.sampler);
 
@@ -134,13 +134,15 @@ sg_sampler gfx_get_sampler(void)
     return _state.sampler;
 }
 
+// This is split out from _init() because it can be called separately when
+// changing the resolution.
 static void _init_images(void)
 {
 
     int scaled_width = _state.display.width / _state.display.scale_divisor;
     int scaled_height = _state.display.height / _state.display.scale_divisor;
 
-    _state.color_image = sg_make_image(&(sg_image_desc) {
+    _state.offscreen.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = scaled_width,
         .height = scaled_height,
@@ -148,7 +150,7 @@ static void _init_images(void)
         .label = "color-image",
     });
 
-    _state.depth_image = sg_make_image(&(sg_image_desc) {
+    _state.offscreen.depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = scaled_width,
         .height = scaled_height,
@@ -157,14 +159,16 @@ static void _init_images(void)
     });
 
     _state.offscreen.attachments = sg_make_attachments(&(sg_attachments_desc) {
-        .colors[0].image = _state.color_image,
-        .depth_stencil.image = _state.depth_image,
+        .colors[0].image = _state.offscreen.color_image,
+        .depth_stencil.image = _state.offscreen.depth_image,
         .label = "offscreen-attachments",
     });
 }
 
-static void _init_shared(void)
+static void _init(void)
 {
+    _init_images();
+
     _state.sampler = sg_make_sampler(&(sg_sampler_desc) {
         .min_filter = SG_FILTER_NEAREST,
         .mag_filter = SG_FILTER_NEAREST,
@@ -278,7 +282,7 @@ static void _init_shared(void)
     _state.display.bindings = (sg_bindings) {
         .vertex_buffers[0] = quad_vbuf,
         .index_buffer = quad_ibuf,
-        .images[IMG_u_texture] = _state.color_image,
+        .images[IMG_u_texture] = _state.offscreen.color_image,
         .samplers[SMP_u_sampler] = _state.sampler,
     };
 }
