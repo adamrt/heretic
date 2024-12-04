@@ -6,12 +6,12 @@ OS=$(uname)
 
 # Validate parameters
 if [[ $# -lt 1 || ! "$1" =~ ^(native|wasm)$ ]]; then
-    echo "Usage: ./build.sh [native|wasm] [shader]"
+    echo "Usage: ./build.sh [native|wasm] [shader|buildonly]"
     exit 1
 fi
 
 TARGET="$1"
-COMPILE_SHADER_ONLY=${2:-} # Optional second argument to compile only the shader
+OPTION=${2:-} # Optional arg to compile only the shader, or not run after building.
 
 if [[ $TARGET == "native" &&  ! -f "fft.bin" ]]; then
     echo "You need to place the PSX BIN file 'fft.bin' in the project root directory."
@@ -67,7 +67,7 @@ echo "Compiling shader..."
 ./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l "$SHADER_LANG"
 
 # If the second argument is 'shader', skip the rest of the build
-if [[ "$COMPILE_SHADER_ONLY" == "shader" ]]; then
+if [[ "$OPTION" == "shader" ]]; then
     echo "Shader compilation complete. Skipping further build steps."
     exit 0
 fi
@@ -81,12 +81,14 @@ case "$TARGET" in
         echo "Building for WebAssembly..."
         emcmake cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
         cmake --build . -j"$NUMCORES"
+        [[ "$OPTION" == "buildonly" ]] && exit 0
         emrun heretic.html
         ;;
     native)
         echo "Building natively..."
         cmake -DCMAKE_BUILD_TYPE=Debug ..
         cmake --build . -j"$NUMCORES"
+        [[ "$OPTION" == "buildonly" ]] && exit 0
         ./heretic
         ;;
 esac
