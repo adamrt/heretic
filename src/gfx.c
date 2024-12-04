@@ -57,8 +57,19 @@ void gfx_init(void)
 
 void gfx_update(void)
 {
+    sg_pass_action pass_action = (sg_pass_action) {
+        .colors[0] = (sg_color_attachment_action) {
+            .load_action = SG_LOADACTION_CLEAR,
+            .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
+        },
+    };
+
     // Render the scene and background to an offscreen image
-    sg_begin_pass(&_state.offscreen.pass);
+    sg_begin_pass(&(sg_pass) {
+        .attachments = _state.offscreen.attachments,
+        .action = pass_action,
+        .label = "offscreen-pass",
+    });
     {
         frame_offscreen();
         frame_background();
@@ -67,9 +78,9 @@ void gfx_update(void)
 
     // Display the offscreen image to a fullscreen quad and render the UI
     sg_begin_pass(&(sg_pass) {
-        .action = _state.pass_action,
         .swapchain = sglue_swapchain(),
-        .label = "swapchain-pass",
+        .action = pass_action,
+        .label = "display-pass",
     });
     {
         frame_display();
@@ -84,19 +95,9 @@ void gfx_scale_change(void)
 {
     sg_destroy_image(_state.color_image);
     sg_destroy_image(_state.depth_image);
-    sg_destroy_attachments(_state.offscreen.pass.attachments);
+    sg_destroy_attachments(_state.offscreen.attachments);
 
     _init_images();
-
-    _state.offscreen.pass = (sg_pass) {
-        .attachments = sg_make_attachments(&(sg_attachments_desc) {
-            .colors[0].image = _state.color_image,
-            .depth_stencil.image = _state.depth_image,
-            .label = "offscreen-attachments",
-        }),
-        .action = _state.pass_action,
-        .label = "offscreen-pass",
-    };
 
     _state.display.bindings.images[IMG_u_texture] = _state.color_image;
     _state.display.bindings.samplers[SMP_u_sampler] = _state.sampler;
@@ -108,6 +109,7 @@ void gfx_shutdown(void)
     sg_destroy_pipeline(_state.background.pipeline);
     sg_destroy_pipeline(_state.display.pipeline);
 
+    sg_destroy_attachments(_state.offscreen.attachments);
     sg_destroy_image(_state.color_image);
     sg_destroy_image(_state.depth_image);
 
@@ -153,6 +155,12 @@ static void _init_images(void)
         .pixel_format = SG_PIXELFORMAT_DEPTH,
         .label = "depth-image",
     });
+
+    _state.offscreen.attachments = sg_make_attachments(&(sg_attachments_desc) {
+        .colors[0].image = _state.color_image,
+        .depth_stencil.image = _state.depth_image,
+        .label = "offscreen-attachments",
+    });
 }
 
 static void _init_shared(void)
@@ -164,26 +172,9 @@ static void _init_shared(void)
         .wrap_v = SG_WRAP_REPEAT,
     });
 
-    _state.pass_action = (sg_pass_action) {
-        .colors[0] = (sg_color_attachment_action) {
-            .load_action = SG_LOADACTION_CLEAR,
-            .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
-        },
-    };
-
     //
     // Offscreen
     //
-
-    _state.offscreen.pass = (sg_pass) {
-        .attachments = sg_make_attachments(&(sg_attachments_desc) {
-            .colors[0].image = _state.color_image,
-            .depth_stencil.image = _state.depth_image,
-            .label = "offscreen-attachments",
-        }),
-        .action = _state.pass_action,
-        .label = "offscreen-pass",
-    };
 
     _state.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {

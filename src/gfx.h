@@ -33,12 +33,10 @@ typedef struct {
     sg_image depth_image;
 
     sg_sampler sampler;
-    sg_pass_action pass_action;
 
     struct {
-
         sg_pipeline pipeline;
-        sg_pass pass;
+        sg_attachments attachments;
     } offscreen;
 
     struct {
