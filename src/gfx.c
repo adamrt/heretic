@@ -22,9 +22,9 @@ static gfx_t _state;
 static void _init_images(void);
 static void _init(void);
 
-static void frame_offscreen(void);
-static void frame_background(void);
-static void frame_display(void);
+static void _render_offscreen(void);
+static void _render_background(void);
+static void _render_display(void);
 
 static mat4s model_matrix(transform_t);
 
@@ -71,8 +71,8 @@ void gfx_update(void)
         .label = "offscreen-pass",
     });
     {
-        frame_offscreen();
-        frame_background();
+        _render_background();
+        _render_offscreen();
     }
     sg_end_pass();
 
@@ -83,7 +83,7 @@ void gfx_update(void)
         .label = "display-pass",
     });
     {
-        frame_display();
+        _render_display();
         gui_update();
     }
     sg_end_pass();
@@ -287,7 +287,7 @@ static void _init(void)
     };
 }
 
-static void frame_offscreen(void)
+static void _render_offscreen(void)
 {
     scene_t* scene = scene_get_internals();
 
@@ -324,7 +324,7 @@ static void frame_offscreen(void)
     sg_draw(0, scene->map->mesh.geometry.vertex_count, 1);
 }
 
-static void frame_background(void)
+static void _render_background(void)
 {
     scene_t* scene = scene_get_internals();
 
@@ -340,7 +340,7 @@ static void frame_background(void)
     sg_draw(0, 6, 1);
 }
 
-static void frame_display(void)
+static void _render_display(void)
 {
     sg_apply_pipeline(_state.display.pipeline);
     sg_apply_bindings(&_state.display.bindings);
