@@ -11,7 +11,7 @@
 
 event_t event_get_event(int event_id)
 {
-    file_t f = read_file_test_evt();
+    buffer_t f = read_file_test_evt();
     f.offset = event_id * EVENT_SIZE;
 
     uint8_t bytes[EVENT_SIZE];

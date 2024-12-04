@@ -30,6 +30,6 @@ typedef struct {
     bool valid;
 } lighting_t;
 
-lighting_t read_lighting(file_t*);
+lighting_t read_lighting(buffer_t*);
 
 #endif // LIGHTING_H_

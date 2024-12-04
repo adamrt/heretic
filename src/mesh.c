@@ -8,11 +8,11 @@
 #include "texture.h"
 #include "util.h"
 
-static vec3s read_normal(file_t*);
-static geometry_t read_geometry(file_t*);
+static vec3s read_normal(buffer_t*);
+static geometry_t read_geometry(buffer_t*);
 static vec2s process_tex_coords(float u, float v, uint8_t page);
 
-mesh_t read_mesh(file_t* f)
+mesh_t read_mesh(buffer_t* f)
 {
     mesh_t mesh = { 0 };
 
@@ -26,7 +26,7 @@ mesh_t read_mesh(file_t* f)
     return mesh;
 }
 
-static geometry_t read_geometry(file_t* f)
+static geometry_t read_geometry(buffer_t* f)
 {
     geometry_t geometry = { 0 };
 
@@ -164,7 +164,7 @@ static geometry_t read_geometry(file_t* f)
     return geometry;
 }
 
-vec3s read_position(file_t* f)
+vec3s read_position(buffer_t* f)
 {
     float x = read_i16(f);
     float y = read_i16(f);
@@ -176,7 +176,7 @@ vec3s read_position(file_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s read_normal(file_t* f)
+static vec3s read_normal(buffer_t* f)
 {
     float x = read_f1x3x12(f);
     float y = read_f1x3x12(f);

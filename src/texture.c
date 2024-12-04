@@ -2,9 +2,9 @@
 
 #include "texture.h"
 
-static vec4s read_rgb15(file_t*);
+static vec4s read_rgb15(buffer_t*);
 
-texture_t read_texture(file_t* f)
+texture_t read_texture(buffer_t* f)
 {
     const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2); // Each pixel stored as 1/2 a byte
 
@@ -28,7 +28,7 @@ texture_t read_texture(file_t* f)
     return texture;
 }
 
-palette_t read_palette(file_t* f)
+palette_t read_palette(buffer_t* f)
 {
     palette_t palette = { 0 };
 
@@ -52,7 +52,7 @@ palette_t read_palette(file_t* f)
     return palette;
 }
 
-static vec4s read_rgb15(file_t* f)
+static vec4s read_rgb15(buffer_t* f)
 {
     uint16_t val = read_u16(f);
 

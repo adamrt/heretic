@@ -61,8 +61,8 @@ static map_state_t default_map_state = (map_state_t) {
     .layout = 0,
 };
 
-map_record_t read_map_record(file_t*);
-int read_map_records(file_t*, map_record_t*);
+map_record_t read_map_record(buffer_t*);
+int read_map_records(buffer_t*, map_record_t*);
 
 bool map_state_eq(map_state_t, map_state_t);
 bool map_state_default(map_state_t);

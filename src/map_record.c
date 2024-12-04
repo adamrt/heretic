@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-map_record_t read_map_record(file_t* f)
+map_record_t read_map_record(buffer_t* f)
 {
     uint8_t bytes[MAP_RECORD_SIZE];
     read_bytes(f, MAP_RECORD_SIZE, bytes);
@@ -27,7 +27,7 @@ map_record_t read_map_record(file_t* f)
     return record;
 }
 
-int read_map_records(file_t* f, map_record_t* out_records)
+int read_map_records(buffer_t* f, map_record_t* out_records)
 {
     int count = 0;
     while (true) {

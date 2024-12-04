@@ -3,13 +3,13 @@
 #include "lighting.h"
 #include "mesh.h"
 
-static float read_light_color(file_t*);
-static vec4s read_rgb8(file_t*);
+static float read_light_color(buffer_t*);
+static vec4s read_rgb8(buffer_t*);
 
 // read_light_color clamps the value between 0.0 and 1.0. These unclamped values
 // are used to affect the lighting model but it isn't understood yet.
 // https://ffhacktics.com/wiki/Maps/Mesh#Light_colors_and_positions.2C_background_gradient_colors
-lighting_t read_lighting(file_t* f)
+lighting_t read_lighting(buffer_t* f)
 {
     lighting_t lighting = { 0 };
 
@@ -57,7 +57,7 @@ lighting_t read_lighting(file_t* f)
     return lighting;
 }
 
-static vec4s read_rgb8(file_t* f)
+static vec4s read_rgb8(buffer_t* f)
 {
     vec4s color = { 0 };
     color.r = read_u8(f) / 255.0f;
@@ -67,7 +67,7 @@ static vec4s read_rgb8(file_t* f)
     return color;
 }
 
-static float read_light_color(file_t* f)
+static float read_light_color(buffer_t* f)
 {
     float val = read_f1x3x12(f);
     return glm_min(glm_max(0.0f, val), 1.0f);

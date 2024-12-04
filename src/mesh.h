@@ -71,8 +71,8 @@ typedef struct {
     bool valid;
 } mesh_t;
 
-vec3s read_position(file_t* f);
-mesh_t read_mesh(file_t*);
+vec3s read_position(buffer_t* f);
+mesh_t read_mesh(buffer_t*);
 void merge_meshes(mesh_t*, mesh_t*);
 vec3s vertices_centered(vertices_t* vertices);
 vertices_t geometry_to_vertices(geometry_t*);
