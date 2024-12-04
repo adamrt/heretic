@@ -91,6 +91,8 @@ endif()
 if (NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten)
 target_compile_options(heretic PUBLIC
     -Wall
+    -g
+    -O0
     -Wextra
     -Wpedantic
     -Werror
