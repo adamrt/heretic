@@ -36,7 +36,6 @@ typedef struct {
     sg_pass_action pass_action;
 
     struct {
-        int scale_divisor;
 
         sg_pipeline pipeline;
         sg_pass pass;
@@ -50,7 +49,7 @@ typedef struct {
     struct {
         int width;
         int height;
-
+        int scale_divisor;
         sg_pipeline pipeline;
         sg_bindings bindings;
     } display;

@@ -49,7 +49,7 @@ void gfx_init(void)
 
     _state.display.width = GFX_DISPLAY_WIDTH;
     _state.display.height = GFX_DISPLAY_HEIGHT;
-    _state.offscreen.scale_divisor = 2;
+    _state.display.scale_divisor = 2;
 
     _init_images();
     _init_shared();
@@ -118,12 +118,12 @@ void gfx_shutdown(void)
 
 int gfx_get_scale_divisor(void)
 {
-    return _state.offscreen.scale_divisor;
+    return _state.display.scale_divisor;
 }
 
 void gfx_set_scale_divisor(int divisor)
 {
-    _state.offscreen.scale_divisor = divisor;
+    _state.display.scale_divisor = divisor;
     gfx_scale_change();
 }
 
@@ -135,8 +135,8 @@ sg_sampler gfx_get_sampler(void)
 static void _init_images(void)
 {
 
-    int scaled_width = _state.display.width / _state.offscreen.scale_divisor;
-    int scaled_height = _state.display.height / _state.offscreen.scale_divisor;
+    int scaled_width = _state.display.width / _state.display.scale_divisor;
+    int scaled_height = _state.display.height / _state.display.scale_divisor;
 
     _state.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
