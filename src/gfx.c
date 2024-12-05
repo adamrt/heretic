@@ -137,9 +137,37 @@ void gfx_render_model(model_t* model, lighting_t* lighting)
     sg_draw(0, model->vertex_count, 1);
 }
 
-static void _render_background(void)
+model_t gfx_map_to_model(map_t* map)
 {
+    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(map->vertices),
+        .label = "mesh-vertices",
+    });
+
+    sg_image texture = sg_make_image(&(sg_image_desc) {
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(map->texture.data),
+    });
+
+    sg_image palette = sg_make_image(&(sg_image_desc) {
+        .width = PALETTE_WIDTH,
+        .height = PALETTE_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
+    });
+
+    model_t model = {
+        .vertex_count = map->mesh.geometry.vertex_count,
+        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
+        .vbuf = vbuf,
+        .texture = texture,
+        .palette = palette,
+    };
+    return model;
 }
+
 void gfx_render_background(vec4s top_color, vec4s bottom_color)
 {
     sg_apply_pipeline(_state.background.pipeline);

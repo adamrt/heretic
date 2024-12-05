@@ -3,6 +3,7 @@
 
 #include "cglm/types-struct.h"
 #include "lighting.h"
+#include "map.h"
 #include "sokol_gfx.h"
 
 #define GFX_DISPLAY_WIDTH  (256 * 4)
@@ -31,6 +32,7 @@ void gfx_render_background(vec4s, vec4s);
 void gfx_render_model(model_t*, lighting_t*);
 void gfx_render_end(void);
 void gfx_scale_change(void);
+model_t gfx_map_to_model(map_t*);
 
 sg_sampler gfx_get_sampler(void);
 int gfx_get_scale_divisor(void);

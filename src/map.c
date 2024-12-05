@@ -2,24 +2,27 @@
 #include "texture.h"
 #include "util.h"
 
-void read_map(int num, map_state_t map_state, map_t* map_out)
+map_t* read_map(int num, map_state_t map_state)
 {
+
+    map_t* map = calloc(1, sizeof(map_t));
+
     map_data_t* map_data = calloc(1, sizeof(map_data_t));
     read_map_data(num, map_data);
 
-    map_out->map_state = map_state;
-    map_out->map_data = map_data;
+    map->map_state = map_state;
+    map->map_data = map_data;
 
     if (map_data->primary_mesh.valid) {
-        map_out->mesh = map_data->primary_mesh;
+        map->mesh = map_data->primary_mesh;
     } else {
-        map_out->mesh = map_data->override_mesh;
+        map->mesh = map_data->override_mesh;
     }
 
     for (int i = 0; i < map_data->alt_mesh_count; i++) {
         mesh_t alt_mesh = map_data->alt_meshes[i];
         if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
-            merge_meshes(&map_out->mesh, &alt_mesh);
+            merge_meshes(&map->mesh, &alt_mesh);
             break;
         }
     }
@@ -28,21 +31,23 @@ void read_map(int num, map_state_t map_state, map_t* map_out)
         texture_t texture = map_data->textures[i];
 
         if (texture.valid && map_state_eq(texture.map_state, map_state)) {
-            map_out->texture = texture;
+            map->texture = texture;
             break;
         }
         if (texture.valid && map_state_default(texture.map_state)) {
-            if (!map_out->texture.valid) {
-                map_out->texture = texture;
+            if (!map->texture.valid) {
+                map->texture = texture;
             }
         }
     }
 
-    map_out->vertices = geometry_to_vertices(&map_out->mesh.geometry);
-    map_out->centered_translation = vertices_centered(&map_out->vertices);
+    map->vertices = geometry_to_vertices(&map->mesh.geometry);
+    map->centered_translation = vertices_centered(&map->vertices);
 
-    ASSERT(map_out->mesh.valid, "Map mesh is invalid");
-    ASSERT(map_out->texture.valid, "Map texture is invalid");
+    ASSERT(map->mesh.valid, "Map mesh is invalid");
+    ASSERT(map->texture.valid, "Map texture is invalid");
+
+    return map;
 }
 
 void read_map_data(int num, map_data_t* map_data_out)

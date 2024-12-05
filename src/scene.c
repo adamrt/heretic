@@ -61,35 +61,8 @@ void scene_load_map(int num, map_state_t map_state)
 {
     _scene_map_unload();
 
-    map_t* map = calloc(1, sizeof(map_t));
-    read_map(num, map_state, map);
-
-    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(map->vertices),
-        .label = "mesh-vertices",
-    });
-
-    sg_image texture = sg_make_image(&(sg_image_desc) {
-        .width = TEXTURE_WIDTH,
-        .height = TEXTURE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map->texture.data),
-    });
-
-    sg_image palette = sg_make_image(&(sg_image_desc) {
-        .width = PALETTE_WIDTH,
-        .height = PALETTE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
-    });
-
-    model_t model = {
-        .vertex_count = map->mesh.geometry.vertex_count,
-        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
-        .vbuf = vbuf,
-        .texture = texture,
-        .palette = palette,
-    };
+    map_t* map = read_map(num, map_state);
+    model_t model = gfx_map_to_model(map);
 
     _state.map = map;
     _state.model = model;

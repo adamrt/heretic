@@ -45,7 +45,7 @@ typedef struct {
     const char* name;
 } map_desc_t;
 
-void read_map(int, map_state_t, map_t*);
+map_t* read_map(int, map_state_t);
 void read_map_data(int num, map_data_t* map_data_out);
 
 extern map_desc_t map_list[];
