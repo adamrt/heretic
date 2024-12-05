@@ -52,6 +52,22 @@ typedef struct {
     float frustum_scale;
 } game_camera_t;
 
+void camera_init(void);
+void camera_update(void);
+mat4s camera_get_view(void);
+mat4s camera_get_proj(void);
+void camera_toggle_type(void);
+
+void camera_mouse_movement(float, float);
+void camera_mouse_wheel(float);
+void camera_key_left(void);
+void camera_key_right(void);
+void camera_key_up(void);
+void camera_key_down(void);
+
+game_camera_t* game_camera_get_internals(void);
+orbit_camera_t* orbit_camera_get_internals(void);
+
 // These are listed clockwise to match the FFT data storage. We might change
 // later since we use counter-clockwise for the camera since we are RHS. These
 // values match the polygon visibility data layout (unless its backwards).
@@ -76,26 +92,6 @@ typedef enum {
     CARDINAL_E = 0xF3,
     CARDINAL_UNKNOWN = 0x0,
 } cardinal_e;
-
-void camera_init(void);
-void camera_update(void);
-mat4s camera_get_view(void);
-mat4s camera_get_proj(void);
-void camera_toggle_type(void);
-
-game_camera_t* game_camera_get_internals(void);
-
-void orbit_camera_orbit(float, float);
-void orbit_camera_zoom(float);
-
-// These don't need to be on the orbit camera.
-// Move them to the camera_t.
-void orbit_camera_left(void);
-void orbit_camera_right(void);
-void orbit_camera_up(void);
-void orbit_camera_down(void);
-
-orbit_camera_t* orbit_camera_get_internals(void);
 
 cardinal_e orbit_camera_cardinal(void);
 const char* orbit_camera_cardinal_str(void);

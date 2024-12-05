@@ -47,6 +47,11 @@ static struct {
 } _state;
 
 // Forward declarations
+static void _game_camera_init(void);
+static void _game_camera_update(void);
+
+static void _orbit_camera_init(void);
+static void _orbit_camera_update(void);
 static void _orbit_camera_azimuth(transition_dir_e);
 static void _orbit_camera_elevation(transition_dir_e);
 static void _orbit_camera_process_transitions(void);
@@ -56,7 +61,61 @@ void camera_toggle_type(void)
     _state.type = _state.type == CAMTYPE_GAME ? CAMTYPE_ORBIT : CAMTYPE_GAME;
 }
 
-void game_camera_init(void)
+void camera_init(void)
+{
+    _game_camera_init();
+    _orbit_camera_init();
+}
+
+void camera_update(void)
+{
+    _game_camera_update();
+    _orbit_camera_update();
+}
+
+mat4s camera_get_view(void)
+{
+    return _state.type == CAMTYPE_GAME ? _state.game.view_mat : _state.orbit.view_mat;
+}
+
+mat4s camera_get_proj(void)
+{
+    return _state.type == CAMTYPE_GAME ? _state.game.proj_mat : _state.orbit.proj_mat;
+}
+void camera_mouse_movement(float dx_deg, float dy_deg)
+{
+    _state.orbit.azimuth += dx_deg;
+    _state.orbit.elevation += dy_deg;
+    _state.orbit.elevation = glm_clamp(_state.orbit.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
+}
+
+void camera_mouse_wheel(float delta)
+{
+    _state.orbit.distance -= delta * SENSITIVITY;
+    _state.orbit.distance = glm_clamp(_state.orbit.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+}
+
+void camera_key_left(void)
+{
+    _orbit_camera_azimuth(TRANS_DIR_LEFT);
+}
+void camera_key_right(void)
+{
+    _orbit_camera_azimuth(TRANS_DIR_RIGHT);
+}
+void camera_key_up(void)
+{
+    _orbit_camera_elevation(TRANS_DIR_UP);
+}
+void camera_key_down(void)
+{
+    _orbit_camera_elevation(TRANS_DIR_DOWN);
+}
+
+game_camera_t* game_camera_get_internals(void) { return &_state.game; }
+orbit_camera_t* orbit_camera_get_internals(void) { return &_state.orbit; }
+
+static void _game_camera_init(void)
 {
     _state.game.position = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     _state.game.yaw = 0.0f;
@@ -66,7 +125,7 @@ void game_camera_init(void)
     _state.game.frustum_scale = 128.0f;
 }
 
-void game_camera_update(void)
+static void _game_camera_update(void)
 {
     float yaw_rad = glm_rad(_state.game.yaw);
     float pitch_rad = glm_rad(_state.game.pitch);
@@ -93,11 +152,7 @@ void game_camera_update(void)
     }
 }
 
-game_camera_t* game_camera_get_internals(void) { return &_state.game; }
-mat4s game_camera_get_view(void) { return _state.game.view_mat; }
-mat4s game_camera_get_proj(void) { return _state.game.proj_mat; }
-
-void orbit_camera_init(void)
+static void _orbit_camera_init(void)
 {
     _state.orbit.target = glms_vec3_zero();
 
@@ -109,7 +164,7 @@ void orbit_camera_init(void)
     _state.orbit.zfar = 1000.0f;
 }
 
-void orbit_camera_update(void)
+static void _orbit_camera_update(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
     float w = _state.orbit.distance;
@@ -147,84 +202,6 @@ void orbit_camera_update(void)
     } else {
         _state.orbit.proj_mat = glms_ortho(-w, w, -h, h, _state.orbit.znear, _state.orbit.zfar);
     }
-}
-
-orbit_camera_t* orbit_camera_get_internals(void) { return &_state.orbit; }
-mat4s orbit_camera_get_view(void) { return _state.orbit.view_mat; }
-mat4s orbit_camera_get_proj(void) { return _state.orbit.proj_mat; }
-
-void orbit_camera_orbit(float dx_deg, float dy_deg)
-{
-    _state.orbit.azimuth += dx_deg;
-    _state.orbit.elevation += dy_deg;
-    _state.orbit.elevation = glm_clamp(_state.orbit.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
-}
-
-void orbit_camera_zoom(float delta)
-{
-    _state.orbit.distance -= delta * SENSITIVITY;
-    _state.orbit.distance = glm_clamp(_state.orbit.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
-}
-
-void orbit_camera_left(void) { _orbit_camera_azimuth(TRANS_DIR_LEFT); }
-void orbit_camera_right(void) { _orbit_camera_azimuth(TRANS_DIR_RIGHT); }
-void orbit_camera_up(void) { _orbit_camera_elevation(TRANS_DIR_UP); }
-void orbit_camera_down(void) { _orbit_camera_elevation(TRANS_DIR_DOWN); }
-
-cardinal_e orbit_camera_cardinal(void)
-{
-    float azimuth = _state.orbit.azimuth;
-    int corner_width = 15;
-
-    if (azimuth > 345.0f || azimuth < 15.0f) {
-        return CARDINAL_N;
-    }
-    if (fabs(azimuth - DIR_W) < corner_width) {
-        return CARDINAL_W;
-    }
-    if (fabs(azimuth - DIR_S) < corner_width) {
-        return CARDINAL_S;
-    }
-    if (fabs(azimuth - DIR_E) < corner_width) {
-        return CARDINAL_E;
-    }
-    if (fabs(azimuth - DIR_SW) < corner_width) {
-        return CARDINAL_SW;
-    }
-    if (fabs(azimuth - DIR_NW) < corner_width) {
-        return CARDINAL_NW;
-    }
-    if (fabs(azimuth - DIR_NE) < corner_width) {
-        return CARDINAL_NE;
-    }
-    if (fabs(azimuth - DIR_SE) < corner_width) {
-        return CARDINAL_SE;
-    }
-    if (fabs(azimuth - DIR_SSW) < corner_width) {
-        return CARDINAL_SSW;
-    }
-    if (fabs(azimuth - DIR_WSW) < corner_width) {
-        return CARDINAL_WSW;
-    }
-    if (fabs(azimuth - DIR_WNW) < corner_width) {
-        return CARDINAL_WNW;
-    }
-    if (fabs(azimuth - DIR_NNW) < corner_width) {
-        return CARDINAL_NNW;
-    }
-    if (fabs(azimuth - DIR_NNE) < corner_width) {
-        return CARDINAL_NNE;
-    }
-    if (fabs(azimuth - DIR_ENE) < corner_width) {
-        return CARDINAL_ENE;
-    }
-    if (fabs(azimuth - DIR_ESE) < corner_width) {
-        return CARDINAL_ESE;
-    }
-    if (fabs(azimuth - DIR_SSE) < corner_width) {
-        return CARDINAL_SSE;
-    }
-    return CARDINAL_UNKNOWN;
 }
 
 // Move camera to the next intercardinal direction to the left.
@@ -327,6 +304,62 @@ static void _orbit_camera_process_transitions(void)
     trans->current_frame++;
 }
 
+cardinal_e orbit_camera_cardinal(void)
+{
+    float azimuth = _state.orbit.azimuth;
+    int corner_width = 15;
+
+    if (azimuth > 345.0f || azimuth < 15.0f) {
+        return CARDINAL_N;
+    }
+    if (fabs(azimuth - DIR_W) < corner_width) {
+        return CARDINAL_W;
+    }
+    if (fabs(azimuth - DIR_S) < corner_width) {
+        return CARDINAL_S;
+    }
+    if (fabs(azimuth - DIR_E) < corner_width) {
+        return CARDINAL_E;
+    }
+    if (fabs(azimuth - DIR_SW) < corner_width) {
+        return CARDINAL_SW;
+    }
+    if (fabs(azimuth - DIR_NW) < corner_width) {
+        return CARDINAL_NW;
+    }
+    if (fabs(azimuth - DIR_NE) < corner_width) {
+        return CARDINAL_NE;
+    }
+    if (fabs(azimuth - DIR_SE) < corner_width) {
+        return CARDINAL_SE;
+    }
+    if (fabs(azimuth - DIR_SSW) < corner_width) {
+        return CARDINAL_SSW;
+    }
+    if (fabs(azimuth - DIR_WSW) < corner_width) {
+        return CARDINAL_WSW;
+    }
+    if (fabs(azimuth - DIR_WNW) < corner_width) {
+        return CARDINAL_WNW;
+    }
+    if (fabs(azimuth - DIR_NNW) < corner_width) {
+        return CARDINAL_NNW;
+    }
+    if (fabs(azimuth - DIR_NNE) < corner_width) {
+        return CARDINAL_NNE;
+    }
+    if (fabs(azimuth - DIR_ENE) < corner_width) {
+        return CARDINAL_ENE;
+    }
+    if (fabs(azimuth - DIR_ESE) < corner_width) {
+        return CARDINAL_ESE;
+    }
+    if (fabs(azimuth - DIR_SSE) < corner_width) {
+        return CARDINAL_SSE;
+    }
+    return CARDINAL_UNKNOWN;
+}
+
 const char* orbit_camera_cardinal_str(void)
 {
     cardinal_e dir = orbit_camera_cardinal();
@@ -366,26 +399,4 @@ const char* orbit_camera_cardinal_str(void)
     default:
         return "Unknown";
     }
-}
-
-void camera_init(void)
-{
-    game_camera_init();
-    orbit_camera_init();
-}
-
-void camera_update(void)
-{
-    game_camera_update();
-    orbit_camera_update();
-}
-
-mat4s camera_get_view(void)
-{
-    return _state.type == CAMTYPE_GAME ? game_camera_get_view() : orbit_camera_get_view();
-}
-
-mat4s camera_get_proj(void)
-{
-    return _state.type == CAMTYPE_GAME ? game_camera_get_proj() : orbit_camera_get_proj();
 }

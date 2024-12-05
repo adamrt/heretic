@@ -76,16 +76,16 @@ void game_input(const sapp_event* event)
             scene_prev();
             break;
         case SAPP_KEYCODE_LEFT:
-            orbit_camera_left();
+            camera_key_left();
             break;
         case SAPP_KEYCODE_RIGHT:
-            orbit_camera_right();
+            camera_key_right();
             break;
         case SAPP_KEYCODE_UP:
-            orbit_camera_up();
+            camera_key_up();
             break;
         case SAPP_KEYCODE_DOWN:
-            orbit_camera_down();
+            camera_key_down();
             break;
         default:
             break;
@@ -103,12 +103,12 @@ void game_input(const sapp_event* event)
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            orbit_camera_orbit(event->mouse_dx, event->mouse_dy);
+            camera_mouse_movement(event->mouse_dx, event->mouse_dy);
         }
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        orbit_camera_zoom(event->scroll_y);
+        camera_mouse_wheel(event->scroll_y);
         break;
 
     default:
