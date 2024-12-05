@@ -50,7 +50,7 @@ typedef struct {
     float znear, zfar;
     bool use_perspective;
     float frustum_scale;
-} camera_t;
+} game_camera_t;
 
 // These are listed clockwise to match the FFT data storage. We might change
 // later since we use counter-clockwise for the camera since we are RHS. These
@@ -77,11 +77,11 @@ typedef enum {
     CARDINAL_UNKNOWN = 0x0,
 } cardinal_e;
 
-void camera_init(void);
-void camera_update(void);
-mat4s camera_get_view(void);
-mat4s camera_get_proj(void);
-camera_t* camera_get_internals(void);
+void game_camera_init(void);
+void game_camera_update(void);
+mat4s game_camera_get_view(void);
+mat4s game_camera_get_proj(void);
+game_camera_t* game_camera_get_internals(void);
 
 void orbit_camera_init(void);
 void orbit_camera_update(void);

@@ -23,7 +23,7 @@ void game_init(void)
 {
     time_init();
     orbit_camera_init();
-    camera_init();
+    game_camera_init();
     gfx_init();
     gui_init();
 
@@ -49,7 +49,7 @@ void game_update(void)
     time_update();
     scene_update();
     orbit_camera_update();
-    camera_update();
+    game_camera_update();
     scene_render();
 }
 
