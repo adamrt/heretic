@@ -15,6 +15,7 @@
 #include "camera.h"
 #include "gfx.h"
 #include "gui.h"
+#include "shape.h"
 
 // Global gfx state
 static gfx_t _state;
@@ -323,26 +324,14 @@ static void _init(void)
         .label = "background-pipeline",
     });
 
-    // Fullscreen quad vertices, moved back a bit
-    // clang-format off
-    vertex_t quad_vertices[] = {
-        { .position = {{ -1.0f, -1.0f, 1.0f }}, .uv = {{ 0.0f, 1.0f }} }, // bottom-left
-        { .position = {{  1.0f, -1.0f, 1.0f }}, .uv = {{ 1.0f, 1.0f }} }, // bottom-right
-        { .position = {{ -1.0f,  1.0f, 1.0f }}, .uv = {{ 0.0f, 0.0f }} }, // top-left
-        { .position = {{  1.0f,  1.0f, 1.0f }}, .uv = {{ 1.0f, 0.0f }} }  // top-right
-    };
-
-    uint16_t quad_indices[] = { 0, 1, 2, 1, 3, 2 };
-    // clang-format on
-
     sg_buffer quad_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(quad_vertices),
+        .data = SG_RANGE(shape_quad_vertices),
         .label = "background-vertices",
     });
 
     sg_buffer quad_ibuf = sg_make_buffer(&(sg_buffer_desc) {
         .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(quad_indices),
+        .data = SG_RANGE(shape_quad_indices),
         .label = "background-indices",
     });
 
