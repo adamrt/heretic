@@ -139,8 +139,10 @@ void gfx_render_model(model_t* model, lighting_t* lighting)
 
 model_t gfx_map_to_model(map_t* map)
 {
+    vertices_t vertices = geometry_to_vertices(&map->mesh.geometry);
+
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(map->vertices),
+        .data = SG_RANGE(vertices),
         .label = "mesh-vertices",
     });
 
@@ -158,9 +160,14 @@ model_t gfx_map_to_model(map_t* map)
         .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
     });
 
+    vec3s centered_translation = vertices_centered(&vertices);
+
     model_t model = {
         .vertex_count = map->mesh.geometry.vertex_count,
-        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
+        .transform = {
+            .scale = { { 1.0f, 1.0f, 1.0f } },
+            .centered_translation = centered_translation,
+        },
         .vbuf = vbuf,
         .texture = texture,
         .palette = palette,

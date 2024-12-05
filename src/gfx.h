@@ -13,6 +13,8 @@ typedef struct {
     vec3s translation;
     vec3s rotation;
     vec3s scale;
+
+    vec3s centered_translation;
 } transform_t;
 
 // model_t represents a renderable model

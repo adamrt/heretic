@@ -41,7 +41,7 @@ void scene_shutdown(void)
 void scene_update(void)
 {
     if (_state.center_model) {
-        _state.model.transform.translation = _state.map->centered_translation;
+        _state.model.transform.translation = _state.model.transform.centered_translation;
     } else {
         _state.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
     }

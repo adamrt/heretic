@@ -38,9 +38,6 @@ map_t* read_map(int num, map_state_t map_state)
         }
     }
 
-    map->vertices = geometry_to_vertices(&map->mesh.geometry);
-    map->centered_translation = vertices_centered(&map->vertices);
-
     ASSERT(map->mesh.valid, "Map mesh is invalid");
     ASSERT(map->texture.valid, "Map texture is invalid");
 

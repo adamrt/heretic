@@ -34,8 +34,6 @@ typedef struct {
 
     mesh_t mesh;
     texture_t texture;
-    vertices_t vertices;
-    vec3s centered_translation;
 } map_t;
 
 typedef struct {
