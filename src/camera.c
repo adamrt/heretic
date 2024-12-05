@@ -93,8 +93,8 @@ void camera_mouse_movement(float dx_deg, float dy_deg)
 
 void camera_mouse_wheel(float delta)
 {
-    _state.orbit.distance -= delta * SENSITIVITY;
-    _state.orbit.distance = glm_clamp(_state.orbit.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+    _state.orbit.frustum_scale -= delta * SENSITIVITY;
+    _state.orbit.frustum_scale = glm_clamp(_state.orbit.frustum_scale, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 }
 
 void camera_key_left(void)
@@ -161,7 +161,7 @@ static void _orbit_camera_init(void)
     _state.orbit.azimuth = DIR_SE;
     _state.orbit.elevation = CAMERA_ELV_LOW;
 
-    _state.orbit.distance = 256.0f;
+    _state.orbit.frustum_scale = 256.0f;
     _state.orbit.znear = 0.01f;
     _state.orbit.zfar = 1000.0f;
 }
@@ -169,7 +169,7 @@ static void _orbit_camera_init(void)
 static void _orbit_camera_update(void)
 {
     float aspect = sapp_widthf() / sapp_heightf();
-    float w = _state.orbit.distance;
+    float w = _state.orbit.frustum_scale;
     float h = w / aspect;
 
     _orbit_camera_process_transitions();
@@ -194,10 +194,10 @@ static void _orbit_camera_update(void)
         -cosf(elevation_rad) * cosf(azimuth_rad),
     } };
 
-    vec3s scaled_position = glms_vec3_scale(position, _state.orbit.distance);
+    vec3s scaled_position = glms_vec3_scale(position, _state.orbit.frustum_scale);
 
-    _state.orbit.eye = glms_vec3_add(_state.orbit.target, scaled_position);
-    _state.orbit.view_mat = glms_lookat(_state.orbit.eye, _state.orbit.target, GLMS_YUP);
+    _state.orbit.position = glms_vec3_add(_state.orbit.target, scaled_position);
+    _state.orbit.view_mat = glms_lookat(_state.orbit.position, _state.orbit.target, GLMS_YUP);
 
     if (_state.orbit.use_perspective) {
         _state.orbit.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.orbit.znear, _state.orbit.zfar);

@@ -250,9 +250,9 @@ static void _draw_section_orbit_camera(struct nk_context* ctx)
     nk_checkbox_label(ctx, "Perspective", &orbitcam->use_perspective);
 
     nk_layout_row_dynamic(ctx, 25, 2);
-    nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", orbitcam->eye.x);
-    nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", orbitcam->eye.y);
-    nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", orbitcam->eye.z);
+    nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", orbitcam->position.x);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", orbitcam->position.y);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", orbitcam->position.z);
 
     nk_layout_row_dynamic(ctx, 25, 1);
 
@@ -262,8 +262,8 @@ static void _draw_section_orbit_camera(struct nk_context* ctx)
 
     nk_layout_row_dynamic(ctx, 25, 2);
 
-    nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", orbitcam->distance);
-    nk_slider_float(ctx, 0.001f, &orbitcam->distance, CAMERA_DIST_MAX, 0.1f);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", orbitcam->frustum_scale);
+    nk_slider_float(ctx, 0.001f, &orbitcam->frustum_scale, CAMERA_DIST_MAX, 0.1f);
 
     nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", orbitcam->znear);
     nk_slider_float(ctx, 0.01f, &orbitcam->znear, CAMERA_ZFAR_MAX, 0.1f);

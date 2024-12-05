@@ -40,10 +40,10 @@ typedef enum {
 
 typedef struct {
     mat4s proj_mat, view_mat;
-    vec3s eye, target;
+    vec3s position, target;
     float azimuth, elevation; // In degrees
     float znear, zfar;
-    float distance;
+    float frustum_scale;
     bool use_perspective;
     transition_t transition;
 } orbit_camera_t;
