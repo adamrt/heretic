@@ -40,10 +40,12 @@ void scene_shutdown(void)
 
 void scene_update(void)
 {
-    if (_state.center_model) {
-        _state.model.transform.translation = _state.model.transform.centered_translation;
-    } else {
-        _state.model.transform.translation = (vec3s) { { 0.0f, 0.0f, 0.0f } };
+    for (int i = 0; i < _state.model_count; i++) {
+        if (_state.center_model) {
+            _state.models[i].transform.translation = _state.models[i].transform.centered_translation;
+        } else {
+            _state.models[i].transform.translation = _state.models[i].transform.translation;
+        }
     }
 }
 
@@ -52,7 +54,9 @@ void scene_render(void)
     gfx_render_begin();
     {
         gfx_render_background(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
-        gfx_render_model(&_state.model, &_state.map->mesh.lighting);
+        for (int i = 0; i < _state.model_count; i++) {
+            gfx_render_model(&_state.models[i], &_state.map->mesh.lighting);
+        }
     }
     gfx_render_end();
 }
@@ -65,7 +69,7 @@ void scene_load_map(int num, map_state_t map_state)
     model_t model = gfx_map_to_model(map);
 
     _state.map = map;
-    _state.model = model;
+    _state.models[_state.model_count++] = model;
     _state.current_map = num;
 }
 
@@ -155,14 +159,17 @@ static void _scene_map_unload(void)
             free(_state.map->map_data);
         }
 
-        sg_destroy_image(_state.model.texture);
-        sg_destroy_image(_state.model.palette);
-        sg_destroy_buffer(_state.model.vbuf);
-        sg_destroy_buffer(_state.model.ibuf);
+        _state.model_count--;
+
+        sg_destroy_image(_state.models[_state.model_count].texture);
+        sg_destroy_image(_state.models[_state.model_count].palette);
+        sg_destroy_buffer(_state.models[_state.model_count].vbuf);
+        sg_destroy_buffer(_state.models[_state.model_count].ibuf);
 
         free(_state.map);
     }
 }
+
 static void _scene_scenario_unload(void)
 {
     if (_state.messages != NULL) {

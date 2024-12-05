@@ -139,12 +139,12 @@ static void _draw(void)
 static void _draw_section_camera(struct nk_context* ctx)
 {
     camera_t* cam = camera_get_internals();
-    scene_t* scene = scene_get_internals();
+    // scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "FPS", NK_MAXIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Model Y: %f", scene->model.transform.rotation.y);
-        nk_slider_float(ctx, -10.0f, &scene->model.transform.rotation.y, 10.0f, 0.0001f);
+        /* nk_labelf(ctx, NK_TEXT_LEFT, "Model Y: %f", scene->models.transform.rotation.y); */
+        /* nk_slider_float(ctx, -10.0f, &scene->models.transform.rotation.y, 10.0f, 0.0001f); */
 
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
@@ -386,7 +386,7 @@ static void _draw_window_messages(struct nk_context* ctx)
 
 static void _draw_window_instructions(struct nk_context* ctx)
 {
-    scene_t* scene = scene_get_internals();
+    // scene_t* scene = scene_get_internals();
     camera_t* cam = camera_get_internals();
     if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
@@ -426,10 +426,10 @@ static void _draw_window_instructions(struct nk_context* ctx)
                 float pitch = -(float)((int16_t)instruction.parameters[3].value.u16);
                 cam->pitch = (pitch / 1024.0f) * 90.0f;
 
-                float maprot = -(float)((int16_t)instruction.parameters[4].value.u16);
-                float maprot_scaled = (maprot * 360.0f) / 4096.0f;
-                float maprot_rad = glm_rad(maprot_scaled);
-                scene->model.transform.rotation.y = maprot_rad;
+                /* float maprot = -(float)((int16_t)instruction.parameters[4].value.u16); */
+                /* float maprot_scaled = (maprot * 360.0f) / 4096.0f; */
+                /* float maprot_rad = glm_rad(maprot_scaled); */
+                // scene->models.transform.rotation.y = maprot_rad;
             }
 
             if (opcode.name != NULL) {
