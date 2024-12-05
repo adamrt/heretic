@@ -120,8 +120,18 @@ void gfx_render_model(model_t* model, lighting_t* lighting)
     }
     fs_params.u_light_count = light_count;
 
+    sg_bindings bindings = {
+        .vertex_buffers[0] = model->vbuf,
+        .index_buffer = model->ibuf,
+        .samplers[SMP_u_sampler] = _state.sampler,
+        .images = {
+            [IMG_u_texture] = model->texture,
+            [IMG_u_palette] = model->palette,
+        },
+    };
+
     sg_apply_pipeline(_state.offscreen.pipeline);
-    sg_apply_bindings(&model->bindings);
+    sg_apply_bindings(&bindings);
     sg_apply_uniforms(0, &SG_RANGE(vs_params));
     sg_apply_uniforms(1, &SG_RANGE(fs_params));
     sg_draw(0, model->vertex_count, 1);
