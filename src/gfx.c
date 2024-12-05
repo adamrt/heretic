@@ -294,7 +294,7 @@ static void _init(void)
         .cull_mode = SG_CULLMODE_BACK,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
+            .compare = SG_COMPAREFUNC_LESS,
             .write_enabled = true,
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
@@ -317,8 +317,9 @@ static void _init(void)
         .cull_mode = SG_CULLMODE_NONE,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
-            .write_enabled = true,
+            // disable write and compre so the bg doesn't affect to the depth buffer.
+            // .compare = SG_COMPAREFUNC_LESS,
+            // .write_enabled = true,
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "background-pipeline",
@@ -348,17 +349,17 @@ static void _init(void)
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
             .attrs = {
-                [ATTR_quad_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_quad_a_position].offset = offsetof(vertex_t, position),
-                [ATTR_quad_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
-                [ATTR_quad_a_uv].offset = offsetof(vertex_t, uv),
+                [ATTR_display_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_display_a_position].offset = offsetof(vertex_t, position),
+                [ATTR_display_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+                [ATTR_display_a_uv].offset = offsetof(vertex_t, uv),
             },
         },
-        .shader = sg_make_shader(quad_shader_desc(sg_query_backend())),
+        .shader = sg_make_shader(display_shader_desc(sg_query_backend())),
         .index_type = SG_INDEXTYPE_UINT16,
         .cull_mode = SG_CULLMODE_NONE,
         .depth = {
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
+            .compare = SG_COMPAREFUNC_LESS,
             .write_enabled = true,
         },
         .label = "quad-pipeline",

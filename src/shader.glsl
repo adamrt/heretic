@@ -90,32 +90,6 @@ void main() {
 @end
 
 
-@vs quad_vs
-
-in vec3 a_position;
-in vec2 a_uv;
-
-out vec2 v_uv;
-
-void main() {
-    gl_Position = vec4(a_position.xy, 0.0, 1.0);
-    v_uv = a_uv;
-}
-@end
-
-@fs quad_fs
-layout(binding=0) uniform texture2D u_texture;
-layout(binding=0) uniform sampler u_sampler;
-
-in vec2 v_uv;
-
-out vec4 frag_color;
-
-void main() {
-    frag_color = texture(sampler2D(u_texture, u_sampler), v_uv);
-}
-@end
-
 @vs background_vs
 in vec3 a_position;
 
@@ -142,6 +116,31 @@ void main() {
 }
 @end
 
+@vs display_vs
+in vec3 a_position;
+in vec2 a_uv;
+
+out vec2 v_uv;
+
+void main() {
+    gl_Position = vec4(a_position.xy, 0.0, 1.0);
+    v_uv = a_uv;
+}
+@end
+
+@fs display_fs
+layout(binding=0) uniform texture2D u_texture;
+layout(binding=0) uniform sampler u_sampler;
+
+in vec2 v_uv;
+
+out vec4 frag_color;
+
+void main() {
+    frag_color = texture(sampler2D(u_texture, u_sampler), v_uv);
+}
+@end
+
 @program standard   standard_vs   standard_fs
 @program background background_vs background_fs
-@program quad       quad_vs       quad_fs
+@program display    display_vs    display_fs
