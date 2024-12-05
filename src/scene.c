@@ -26,7 +26,7 @@ static void _scene_scenario_unload(void);
 
 void scene_init(void)
 {
-    _state.center_model = false;
+    _state.center_model = true;
     _state.current_scenario = 78;
     _state.mode = MODE_SCENARIO;
     scene_load_scenario(_state.current_scenario);

@@ -63,7 +63,7 @@ camtype_e camera_get_type(void)
 
 void camera_init(void)
 {
-    _state.type = CAMTYPE_GAME;
+    _state.type = CAMTYPE_ORBIT;
 
     _game_camera_init();
     _orbit_camera_init();
@@ -119,20 +119,18 @@ orbit_camera_t* orbit_camera_get_internals(void) { return &_state.orbit; }
 
 static void _game_camera_init(void)
 {
-    _state.game.position = (vec3s) { { 0.0f, 0.0f, 0.0f } };
-    _state.game.yaw = 0.0f;
+    _state.game.position = (vec3s) { { 156.0f, 128.0f, 156.0f } };
     _state.game.pitch = -30.0f;
+    _state.game.yaw = -45.0f;
     _state.game.znear = 0.01f;
     _state.game.zfar = 2000.0f;
-    _state.game.frustum_scale = 128.0f;
+    _state.game.frustum_scale = 256.0f;
 }
 
 static void _game_camera_update(void)
 {
     float yaw_rad = glm_rad(_state.game.yaw);
     float pitch_rad = glm_rad(_state.game.pitch);
-
-    // pitch_rad = glm_clamp(pitch_rad, -89.1f, 89.1f);
 
     vec3s forward = glms_vec3_normalize((vec3s) { {
         cosf(pitch_rad) * sinf(yaw_rad),
@@ -163,7 +161,7 @@ static void _orbit_camera_init(void)
 
     _state.orbit.frustum_scale = 256.0f;
     _state.orbit.znear = 0.01f;
-    _state.orbit.zfar = 1000.0f;
+    _state.orbit.zfar = 2000.0f;
 }
 
 static void _orbit_camera_update(void)
