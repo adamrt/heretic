@@ -50,7 +50,7 @@ void game_update(void)
     scene_update();
     orbit_camera_update();
     camera_update();
-    gfx_update();
+    scene_render();
 }
 
 void game_input(const sapp_event* event)

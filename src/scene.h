@@ -30,6 +30,7 @@ typedef struct {
 void scene_init(void);
 void scene_shutdown(void);
 void scene_update(void);
+void scene_render(void);
 
 // Temporary
 scene_t* scene_get_internals(void);

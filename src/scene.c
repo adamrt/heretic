@@ -47,6 +47,16 @@ void scene_update(void)
     }
 }
 
+void scene_render(void)
+{
+    gfx_render_begin();
+    {
+        gfx_render_background(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
+        gfx_render_model(&_state.model, &_state.map->mesh.lighting);
+    }
+    gfx_render_end();
+}
+
 void scene_load_map(int num, map_state_t map_state)
 {
     _scene_map_unload();
@@ -74,6 +84,7 @@ void scene_load_map(int num, map_state_t map_state)
     });
 
     model_t model = {
+        .vertex_count = map->mesh.geometry.vertex_count,
         .transform.scale = { { 1.0f, 1.0f, 1.0f } },
         .bindings.vertex_buffers[0] = vbuf,
         .bindings.samplers[SMP_u_sampler] = gfx_get_sampler(),

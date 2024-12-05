@@ -3,6 +3,8 @@
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/vec4.h"
 
+#include "lighting.h"
+#include "mesh.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -13,7 +15,6 @@
 #include "camera.h"
 #include "gfx.h"
 #include "gui.h"
-#include "scene.h"
 
 // Global gfx state
 static gfx_t _state;
@@ -21,11 +22,7 @@ static gfx_t _state;
 // Forward declarations
 static void _init_images(void);
 static void _init(void);
-
-static void _render_offscreen(void);
-static void _render_background(void);
 static void _render_display(void);
-
 static mat4s model_matrix(transform_t);
 
 static sg_face_winding face_winding;
@@ -55,31 +52,35 @@ void gfx_init(void)
     _init();
 }
 
-void gfx_update(void)
+void gfx_render_begin(void)
 {
-    sg_pass_action pass_action = (sg_pass_action) {
-        .colors[0] = (sg_color_attachment_action) {
-            .load_action = SG_LOADACTION_CLEAR,
-            .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
-        },
-    };
-
     // Render the scene and background to an offscreen image
     sg_begin_pass(&(sg_pass) {
         .attachments = _state.offscreen.attachments,
-        .action = pass_action,
+        .action = {
+            .colors[0] = (sg_color_attachment_action) {
+                .load_action = SG_LOADACTION_CLEAR,
+                .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
+            },
+        },
         .label = "offscreen-pass",
     });
-    {
-        _render_background();
-        _render_offscreen();
-    }
+}
+
+void gfx_render_end(void)
+{
+    // End pass for user rendering
     sg_end_pass();
 
     // Display the offscreen image to a fullscreen quad and render the UI
     sg_begin_pass(&(sg_pass) {
         .swapchain = sglue_swapchain(),
-        .action = pass_action,
+        .action = {
+            .colors[0] = (sg_color_attachment_action) {
+                .load_action = SG_LOADACTION_CLEAR,
+                .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
+            },
+        },
         .label = "display-pass",
     });
     {
@@ -89,6 +90,58 @@ void gfx_update(void)
     sg_end_pass();
 
     sg_commit();
+}
+
+void gfx_render_model(model_t* model, lighting_t* lighting)
+{
+    mat4s model_mat = model_matrix(model->transform);
+
+    vs_standard_params_t vs_params = {
+        .u_proj = camera_get_proj(),
+        .u_view = camera_get_view(),
+        .u_model = model_mat,
+    };
+
+    fs_standard_params_t fs_params;
+    fs_params.u_ambient_color = lighting->ambient_color;
+    fs_params.u_ambient_strength = lighting->ambient_strength;
+
+    int light_count = 0;
+    for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
+
+        light_t light = lighting->lights[i];
+        if (!light.valid) {
+            continue;
+        }
+
+        fs_params.u_light_colors[light_count] = light.color;
+        fs_params.u_light_directions[light_count] = glms_vec4(light.direction, 1.0f);
+        light_count++;
+    }
+    fs_params.u_light_count = light_count;
+
+    sg_apply_pipeline(_state.offscreen.pipeline);
+    sg_apply_bindings(&model->bindings);
+    sg_apply_uniforms(0, &SG_RANGE(vs_params));
+    sg_apply_uniforms(1, &SG_RANGE(fs_params));
+    sg_draw(0, model->vertex_count, 1);
+}
+
+static void _render_background(void)
+{
+}
+void gfx_render_background(vec4s top_color, vec4s bottom_color)
+{
+    sg_apply_pipeline(_state.background.pipeline);
+
+    fs_background_params_t fs_params;
+    fs_params.u_top_color = top_color;
+    fs_params.u_bottom_color = bottom_color;
+
+    sg_apply_pipeline(_state.background.pipeline);
+    sg_apply_bindings(&_state.background.bindings);
+    sg_apply_uniforms(0, &SG_RANGE(fs_params));
+    sg_draw(0, 6, 1);
 }
 
 void gfx_scale_change(void)
@@ -287,58 +340,6 @@ static void _init(void)
     };
 }
 
-static void _render_offscreen(void)
-{
-    scene_t* scene = scene_get_internals();
-
-    mat4s model_mat = model_matrix(scene->model.transform);
-
-    vs_standard_params_t vs_params = {
-        .u_proj = camera_get_proj(),
-        .u_view = camera_get_view(),
-        .u_model = model_mat,
-    };
-
-    fs_standard_params_t fs_params;
-    fs_params.u_ambient_color = scene->map->mesh.lighting.ambient_color;
-    fs_params.u_ambient_strength = scene->map->mesh.lighting.ambient_strength;
-
-    int light_count = 0;
-    for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
-
-        light_t light = scene->map->mesh.lighting.lights[i];
-        if (!light.valid) {
-            continue;
-        }
-
-        fs_params.u_light_colors[light_count] = light.color;
-        fs_params.u_light_directions[light_count] = glms_vec4(light.direction, 1.0f);
-        light_count++;
-    }
-    fs_params.u_light_count = light_count;
-
-    sg_apply_pipeline(_state.offscreen.pipeline);
-    sg_apply_bindings(&scene->model.bindings);
-    sg_apply_uniforms(0, &SG_RANGE(vs_params));
-    sg_apply_uniforms(1, &SG_RANGE(fs_params));
-    sg_draw(0, scene->map->mesh.geometry.vertex_count, 1);
-}
-
-static void _render_background(void)
-{
-    scene_t* scene = scene_get_internals();
-
-    sg_apply_pipeline(_state.background.pipeline);
-
-    fs_background_params_t fs_params;
-    fs_params.u_top_color = scene->map->mesh.lighting.bg_top;
-    fs_params.u_bottom_color = scene->map->mesh.lighting.bg_bottom;
-
-    sg_apply_pipeline(_state.background.pipeline);
-    sg_apply_bindings(&_state.background.bindings);
-    sg_apply_uniforms(0, &SG_RANGE(fs_params));
-    sg_draw(0, 6, 1);
-}
 
 static void _render_display(void)
 {
