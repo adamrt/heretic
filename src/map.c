@@ -4,13 +4,10 @@
 
 map_t* read_map(int num, map_state_t map_state)
 {
-
     map_t* map = calloc(1, sizeof(map_t));
-
-    map_data_t* map_data = calloc(1, sizeof(map_data_t));
-    read_map_data(num, map_data);
-
     map->map_state = map_state;
+
+    map_data_t* map_data = read_map_data(num);
     map->map_data = map_data;
 
     if (map_data->primary_mesh.valid) {
@@ -50,36 +47,37 @@ map_t* read_map(int num, map_state_t map_state)
     return map;
 }
 
-void read_map_data(int num, map_data_t* map_data_out)
+map_data_t* read_map_data(int num)
 {
+    map_data_t* map_data = calloc(1, sizeof(map_data_t));
     buffer_t gns_file = read_file(map_list[num].sector, MAP_FILE_MAX_SIZE);
-    map_data_out->record_count = read_map_records(&gns_file, map_data_out->records);
+    map_data->record_count = read_map_records(&gns_file, map_data->records);
 
     free(gns_file.data);
 
-    for (int i = 0; i < map_data_out->record_count; i++) {
-        map_record_t record = map_data_out->records[i];
+    for (int i = 0; i < map_data->record_count; i++) {
+        map_record_t record = map_data->records[i];
         buffer_t file = read_file(record.sector, record.length);
 
         switch (record.type) {
         case FILETYPE_TEXTURE: {
             texture_t texture = read_texture(&file);
             texture.map_state = record.state;
-            map_data_out->textures[map_data_out->texture_count++] = texture;
+            map_data->textures[map_data->texture_count++] = texture;
             break;
         }
         case FILETYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
             ASSERT(map_state_default(record.state), "Primary mesh file has non-default state");
 
-            map_data_out->primary_mesh = read_mesh(&file);
-            ASSERT(map_data_out->primary_mesh.valid, "Primary mesh is invalid");
+            map_data->primary_mesh = read_mesh(&file);
+            ASSERT(map_data->primary_mesh.valid, "Primary mesh is invalid");
             break;
 
         case FILETYPE_MESH_ALT: {
             mesh_t alt_mesh = read_mesh(&file);
             alt_mesh.map_state = record.state;
-            map_data_out->alt_meshes[map_data_out->alt_mesh_count++] = alt_mesh;
+            map_data->alt_meshes[map_data->alt_mesh_count++] = alt_mesh;
             break;
         }
 
@@ -87,7 +85,7 @@ void read_map_data(int num, map_data_t* map_data_out)
             // If there is an override file, there is only one and it uses default state.
             ASSERT(map_state_default(record.state), "Oerride must be default map state");
 
-            map_data_out->override_mesh = read_mesh(&file);
+            map_data->override_mesh = read_mesh(&file);
             break;
         }
 
@@ -98,6 +96,8 @@ void read_map_data(int num, map_data_t* map_data_out)
 
         free(file.data);
     }
+
+    return map_data;
 }
 
 map_desc_t map_list[MAP_COUNT] = {
