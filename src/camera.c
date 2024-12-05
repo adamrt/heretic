@@ -34,11 +34,6 @@
 
 #define CAMERA_TRANS_FRAMES (45.0f)
 
-typedef enum {
-    CAMTYPE_GAME,
-    CAMTYPE_ORBIT,
-} camtype_e;
-
 static struct {
     camtype_e type;
 
@@ -56,13 +51,20 @@ static void _orbit_camera_azimuth(transition_dir_e);
 static void _orbit_camera_elevation(transition_dir_e);
 static void _orbit_camera_process_transitions(void);
 
-void camera_toggle_type(void)
+void camera_set_type(camtype_e type)
 {
-    _state.type = _state.type == CAMTYPE_GAME ? CAMTYPE_ORBIT : CAMTYPE_GAME;
+    _state.type = type;
+}
+
+camtype_e camera_get_type(void)
+{
+    return _state.type;
 }
 
 void camera_init(void)
 {
+    _state.type = CAMTYPE_GAME;
+
     _game_camera_init();
     _orbit_camera_init();
 }

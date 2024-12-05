@@ -51,6 +51,7 @@ static void _draw_window_instructions(struct nk_context* ctx);
 static void _draw_section_scenario(struct nk_context* ctx);
 static void _draw_section_map(struct nk_context* ctx);
 static void _draw_section_lights(struct nk_context* ctx);
+static void _draw_section_camera(struct nk_context* ctx);
 static void _draw_section_game_camera(struct nk_context* ctx);
 static void _draw_section_orbit_camera(struct nk_context* ctx);
 static void _draw_section_misc(struct nk_context* ctx);
@@ -115,9 +116,8 @@ static void _draw(void)
         }
 
         _draw_section_lights(ctx);
-        _draw_section_orbit_camera(ctx);
+        _draw_section_camera(ctx);
         _draw_section_misc(ctx);
-        _draw_section_game_camera(ctx);
     }
     nk_end(ctx);
 
@@ -136,55 +136,70 @@ static void _draw(void)
     return;
 }
 
-static void _draw_section_game_camera(struct nk_context* ctx)
+static void _draw_section_camera(struct nk_context* ctx)
 {
-    game_camera_t* gamecam = game_camera_get_internals();
-    // scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "FPS", NK_MAXIMIZED)) {
-        if (nk_button_label(ctx, "Toggle Camera")) {
-            camera_toggle_type();
-        };
-        nk_layout_row_dynamic(ctx, 25, 2);
+        nk_layout_row_static(ctx, 20, 80, 3);
+        nk_label(ctx, "Camera Type", NK_TEXT_LEFT);
 
-        /* nk_labelf(ctx, NK_TEXT_LEFT, "Model Y: %f", scene->models.transform.rotation.y); */
-        /* nk_slider_float(ctx, -10.0f, &scene->models.transform.rotation.y, 10.0f, 0.0001f); */
+        camtype_e current = camera_get_type();
+        camtype_e new_value = current;
+        new_value = nk_option_label(ctx, "Game", new_value == CAMTYPE_GAME) ? CAMTYPE_GAME : new_value;
+        new_value = nk_option_label(ctx, "Orbit", new_value == CAMTYPE_ORBIT) ? CAMTYPE_ORBIT : new_value;
+        if (new_value != current) {
+            camera_set_type(new_value);
+        }
 
-        nk_layout_row_dynamic(ctx, 25, 1);
-        nk_checkbox_label(ctx, "Perspective", &gamecam->use_perspective);
-
-        nk_layout_row_dynamic(ctx, 25, 2);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Frustum: %f", gamecam->frustum_scale);
-        nk_slider_float(ctx, -32.00f, &gamecam->frustum_scale, 512.0f, 0.1f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Yaw: %f", gamecam->yaw);
-        nk_slider_float(ctx, -256.0f, &gamecam->yaw, 256.0f, 0.1f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "XZ Scale: %f", _state.xz_scale);
-        nk_slider_float(ctx, 1.0f, &_state.xz_scale, 8.0f, 1.0f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Y Scale: %f", _state.y_scale);
-        nk_slider_float(ctx, 1.0f, &_state.y_scale, 8.0f, 1.0f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %f", gamecam->pitch);
-        nk_slider_float(ctx, -256.0f, &gamecam->pitch, 256.0f, 0.1f);
-
-        nk_layout_row_dynamic(ctx, 25, 2);
-        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", gamecam->position.x);
-        nk_slider_float(ctx, -640.00f, &gamecam->position.x, 640.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", gamecam->position.y);
-        nk_slider_float(ctx, -640.00f, &gamecam->position.y, 640.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", gamecam->position.z);
-        nk_slider_float(ctx, -640.00f, &gamecam->position.z, 640.0f, 0.1f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", gamecam->znear);
-        nk_slider_float(ctx, -100.01f, &gamecam->znear, CAMERA_ZFAR_MAX * 2, 0.1f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", gamecam->zfar);
-        nk_slider_float(ctx, -100.01f, &gamecam->zfar, CAMERA_ZFAR_MAX * 2, 0.1f);
+        if (current == CAMTYPE_GAME) {
+            _draw_section_game_camera(ctx);
+        } else if (current == CAMTYPE_ORBIT) {
+            _draw_section_orbit_camera(ctx);
+        }
 
         nk_tree_pop(ctx);
     }
+}
+static void _draw_section_game_camera(struct nk_context* ctx)
+{
+    game_camera_t* gamecam = game_camera_get_internals();
+    nk_layout_row_dynamic(ctx, 25, 2);
+
+    /* nk_labelf(ctx, NK_TEXT_LEFT, "Model Y: %f", scene->models.transform.rotation.y); */
+    /* nk_slider_float(ctx, -10.0f, &scene->models.transform.rotation.y, 10.0f, 0.0001f); */
+
+    nk_layout_row_dynamic(ctx, 25, 1);
+    nk_checkbox_label(ctx, "Perspective", &gamecam->use_perspective);
+
+    nk_layout_row_dynamic(ctx, 25, 2);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "Frustum: %f", gamecam->frustum_scale);
+    nk_slider_float(ctx, -32.00f, &gamecam->frustum_scale, 512.0f, 0.1f);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "Yaw: %f", gamecam->yaw);
+    nk_slider_float(ctx, -256.0f, &gamecam->yaw, 256.0f, 0.1f);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "XZ Scale: %f", _state.xz_scale);
+    nk_slider_float(ctx, 1.0f, &_state.xz_scale, 8.0f, 1.0f);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "Y Scale: %f", _state.y_scale);
+    nk_slider_float(ctx, 1.0f, &_state.y_scale, 8.0f, 1.0f);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %f", gamecam->pitch);
+    nk_slider_float(ctx, -256.0f, &gamecam->pitch, 256.0f, 0.1f);
+
+    nk_layout_row_dynamic(ctx, 25, 2);
+    nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", gamecam->position.x);
+    nk_slider_float(ctx, -640.00f, &gamecam->position.x, 640.0f, 0.1f);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", gamecam->position.y);
+    nk_slider_float(ctx, -640.00f, &gamecam->position.y, 640.0f, 0.1f);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", gamecam->position.z);
+    nk_slider_float(ctx, -640.00f, &gamecam->position.z, 640.0f, 0.1f);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", gamecam->znear);
+    nk_slider_float(ctx, -100.01f, &gamecam->znear, CAMERA_ZFAR_MAX * 2, 0.1f);
+
+    nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", gamecam->zfar);
+    nk_slider_float(ctx, -100.01f, &gamecam->zfar, CAMERA_ZFAR_MAX * 2, 0.1f);
 }
 
 static void _draw_mode_selector(struct nk_context* ctx)
@@ -231,34 +246,30 @@ static void _draw_section_map(struct nk_context* ctx)
 static void _draw_section_orbit_camera(struct nk_context* ctx)
 {
     orbit_camera_t* orbitcam = orbit_camera_get_internals();
-    if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
-        nk_layout_row_dynamic(ctx, 25, 1);
-        nk_checkbox_label(ctx, "Perspective", &orbitcam->use_perspective);
+    nk_layout_row_dynamic(ctx, 25, 1);
+    nk_checkbox_label(ctx, "Perspective", &orbitcam->use_perspective);
 
-        nk_layout_row_dynamic(ctx, 25, 2);
-        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", orbitcam->eye.x);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", orbitcam->eye.y);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", orbitcam->eye.z);
+    nk_layout_row_dynamic(ctx, 25, 2);
+    nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", orbitcam->eye.x);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", orbitcam->eye.y);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", orbitcam->eye.z);
 
-        nk_layout_row_dynamic(ctx, 25, 1);
+    nk_layout_row_dynamic(ctx, 25, 1);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", orbit_camera_cardinal_str());
-        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", orbitcam->azimuth);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", orbitcam->elevation);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", orbit_camera_cardinal_str());
+    nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", orbitcam->azimuth);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", orbitcam->elevation);
 
-        nk_layout_row_dynamic(ctx, 25, 2);
+    nk_layout_row_dynamic(ctx, 25, 2);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", orbitcam->distance);
-        nk_slider_float(ctx, 0.001f, &orbitcam->distance, CAMERA_DIST_MAX, 0.1f);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", orbitcam->distance);
+    nk_slider_float(ctx, 0.001f, &orbitcam->distance, CAMERA_DIST_MAX, 0.1f);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", orbitcam->znear);
-        nk_slider_float(ctx, 0.01f, &orbitcam->znear, CAMERA_ZFAR_MAX, 0.1f);
+    nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", orbitcam->znear);
+    nk_slider_float(ctx, 0.01f, &orbitcam->znear, CAMERA_ZFAR_MAX, 0.1f);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", orbitcam->zfar);
-        nk_slider_float(ctx, 0.01f, &orbitcam->zfar, CAMERA_ZFAR_MAX, 0.1f);
-
-        nk_tree_pop(ctx);
-    }
+    nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", orbitcam->zfar);
+    nk_slider_float(ctx, 0.01f, &orbitcam->zfar, CAMERA_ZFAR_MAX, 0.1f);
 }
 
 static void _draw_section_lights(struct nk_context* ctx)

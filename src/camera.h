@@ -33,6 +33,11 @@ typedef struct {
     bool valid;
 } transition_t;
 
+typedef enum {
+    CAMTYPE_GAME = 0,
+    CAMTYPE_ORBIT = 1,
+} camtype_e;
+
 typedef struct {
     mat4s proj_mat, view_mat;
     vec3s eye, target;
@@ -56,7 +61,8 @@ void camera_init(void);
 void camera_update(void);
 mat4s camera_get_view(void);
 mat4s camera_get_proj(void);
-void camera_toggle_type(void);
+camtype_e camera_get_type(void);
+void camera_set_type(camtype_e);
 
 void camera_mouse_movement(float, float);
 void camera_mouse_wheel(float);
