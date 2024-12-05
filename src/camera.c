@@ -34,12 +34,14 @@
 
 #define CAMERA_TRANS_FRAMES (45.0f)
 
-// FIXME: Add a type two switch between cameras.
-//
-// Rename camera_t to game_camera_t along with the functions and then add public
-// functions (camera_init(), camera_left(), etc) to switch between the two that
-// feeds input to both internally.
+typedef enum {
+    CAMTYPE_GAME,
+    CAMTYPE_ORBIT,
+} camtype_e;
+
 static struct {
+    camtype_e type;
+
     game_camera_t game;
     orbit_camera_t orbit;
 } _state;
@@ -48,6 +50,11 @@ static struct {
 static void _orbit_camera_azimuth(transition_dir_e);
 static void _orbit_camera_elevation(transition_dir_e);
 static void _orbit_camera_process_transitions(void);
+
+void camera_toggle_type(void)
+{
+    _state.type = _state.type == CAMTYPE_GAME ? CAMTYPE_ORBIT : CAMTYPE_GAME;
+}
 
 void game_camera_init(void)
 {
@@ -359,4 +366,26 @@ const char* orbit_camera_cardinal_str(void)
     default:
         return "Unknown";
     }
+}
+
+void camera_init(void)
+{
+    game_camera_init();
+    orbit_camera_init();
+}
+
+void camera_update(void)
+{
+    game_camera_update();
+    orbit_camera_update();
+}
+
+mat4s camera_get_view(void)
+{
+    return _state.type == CAMTYPE_GAME ? game_camera_get_view() : orbit_camera_get_view();
+}
+
+mat4s camera_get_proj(void)
+{
+    return _state.type == CAMTYPE_GAME ? game_camera_get_proj() : orbit_camera_get_proj();
 }

@@ -98,8 +98,8 @@ void gfx_render_model(model_t* model, lighting_t* lighting)
     mat4s model_mat = model_matrix(model->transform);
 
     vs_standard_params_t vs_params = {
-        .u_proj = game_camera_get_proj(),
-        .u_view = game_camera_get_view(),
+        .u_proj = camera_get_proj(),
+        .u_view = camera_get_view(),
         .u_model = model_mat,
     };
 

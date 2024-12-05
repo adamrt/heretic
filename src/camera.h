@@ -77,14 +77,14 @@ typedef enum {
     CARDINAL_UNKNOWN = 0x0,
 } cardinal_e;
 
-void game_camera_init(void);
-void game_camera_update(void);
-mat4s game_camera_get_view(void);
-mat4s game_camera_get_proj(void);
+void camera_init(void);
+void camera_update(void);
+mat4s camera_get_view(void);
+mat4s camera_get_proj(void);
+void camera_toggle_type(void);
+
 game_camera_t* game_camera_get_internals(void);
 
-void orbit_camera_init(void);
-void orbit_camera_update(void);
 void orbit_camera_orbit(float, float);
 void orbit_camera_zoom(float);
 
@@ -95,8 +95,6 @@ void orbit_camera_right(void);
 void orbit_camera_up(void);
 void orbit_camera_down(void);
 
-mat4s orbit_camera_get_view(void);
-mat4s orbit_camera_get_proj(void);
 orbit_camera_t* orbit_camera_get_internals(void);
 
 cardinal_e orbit_camera_cardinal(void);

@@ -51,7 +51,7 @@ static void _draw_window_instructions(struct nk_context* ctx);
 static void _draw_section_scenario(struct nk_context* ctx);
 static void _draw_section_map(struct nk_context* ctx);
 static void _draw_section_lights(struct nk_context* ctx);
-static void _draw_section_camera(struct nk_context* ctx);
+static void _draw_section_game_camera(struct nk_context* ctx);
 static void _draw_section_orbit_camera(struct nk_context* ctx);
 static void _draw_section_misc(struct nk_context* ctx);
 
@@ -117,7 +117,7 @@ static void _draw(void)
         _draw_section_lights(ctx);
         _draw_section_orbit_camera(ctx);
         _draw_section_misc(ctx);
-        _draw_section_camera(ctx);
+        _draw_section_game_camera(ctx);
     }
     nk_end(ctx);
 
@@ -136,11 +136,14 @@ static void _draw(void)
     return;
 }
 
-static void _draw_section_camera(struct nk_context* ctx)
+static void _draw_section_game_camera(struct nk_context* ctx)
 {
     game_camera_t* gamecam = game_camera_get_internals();
     // scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "FPS", NK_MAXIMIZED)) {
+        if (nk_button_label(ctx, "Toggle Camera")) {
+            camera_toggle_type();
+        };
         nk_layout_row_dynamic(ctx, 25, 2);
 
         /* nk_labelf(ctx, NK_TEXT_LEFT, "Model Y: %f", scene->models.transform.rotation.y); */
