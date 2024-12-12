@@ -1,11 +1,11 @@
-#include "scenario_record.h"
+#include "scenario.h"
 #include "bin.h"
 #include "event.h"
 
 #define SCENARIO_FILE_OFFSET (0x10938)
 #define SCENARIO_SIZE        (24)
 
-scenario_record_t scenario_get_record(int scenario_id)
+scenario_t scenario_get_record(int scenario_id)
 {
 
     buffer_t f = read_file_attack_out();
@@ -14,7 +14,7 @@ scenario_record_t scenario_get_record(int scenario_id)
     u8 bytes[SCENARIO_SIZE];
     read_bytes(&f, sizeof(bytes), bytes);
 
-    scenario_record_t record = {
+    scenario_t record = {
         .event_id = bytes[0] | (bytes[1] << 8),
         .map_id = bytes[2],
         .weather = bytes[3],

@@ -57,7 +57,7 @@ add_executable(heretic
     src/map.c
     src/map_record.c
     src/mesh.c
-    src/scenario_record.c
+    src/scenario.c
     src/scene.c
     src/texture.c
     src/time.c)

@@ -15,7 +15,7 @@ typedef struct {
     time_e time;
 
     bool valid;
-} scenario_record_t;
+} scenario_t;
 
 // Scenario descriptors
 typedef struct {
@@ -23,6 +23,6 @@ typedef struct {
     const char* name;
 } scenario_name_t;
 
-scenario_record_t scenario_get_record(int);
+scenario_t scenario_get_record(int);
 
 extern scenario_name_t scenario_name_list[];
