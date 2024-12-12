@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "defines.h"
 #include "mesh.h"
 
 // Fullscreen quad vertices.
@@ -19,7 +20,7 @@ vertex_t shape_quad_vertices[] = {
     { .position = {{  1.0f,  1.0f, 0.0f }}, .uv = {{ 1.0f, 0.0f }} }  // top-right
 };
 
-uint16_t shape_quad_indices[] = { 0, 1, 2, 1, 3, 2 };
+u16 shape_quad_indices[] = { 0, 1, 2, 1, 3, 2 };
 // clang-format on
 
 #endif // SHAPE_H_

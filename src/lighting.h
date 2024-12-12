@@ -6,6 +6,7 @@
 #include "cglm/types-struct.h"
 
 #include "bin.h"
+#include "defines.h"
 
 #define LIGHTING_MAX_LIGHTS (3)
 
@@ -22,7 +23,7 @@ typedef struct {
     light_t lights[LIGHTING_MAX_LIGHTS];
 
     vec4s ambient_color;
-    float ambient_strength;
+    f32 ambient_strength;
 
     vec4s bg_top;
     vec4s bg_bottom;

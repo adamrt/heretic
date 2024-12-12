@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "bin.h"
+#include "defines.h"
 
 #define MAP_FILE_MAX_SIZE  (2388)
 #define MAP_RECORD_MAX_NUM (100)
@@ -47,12 +48,12 @@ typedef struct {
 // These are also called GNS records.
 typedef struct {
     filetype_e type;
-    size_t sector;
-    size_t length;
+    usize sector;
+    usize length;
 
     map_state_t state;
 
-    uint8_t data[MAP_RECORD_SIZE];
+    u8 data[MAP_RECORD_SIZE];
 } map_record_t;
 
 static map_state_t default_map_state = (map_state_t) {

@@ -3,7 +3,7 @@
 #include "lighting.h"
 #include "mesh.h"
 
-static float read_light_color(buffer_t*);
+static f32 read_light_color(buffer_t*);
 static vec4s read_rgb8(buffer_t*);
 
 // read_light_color clamps the value between 0.0 and 1.0. These unclamped values
@@ -14,7 +14,7 @@ lighting_t read_lighting(buffer_t* f)
     lighting_t lighting = { 0 };
 
     f->offset = 0x64;
-    uint32_t intra_file_ptr = read_u32(f);
+    u32 intra_file_ptr = read_u32(f);
     if (intra_file_ptr == 0) {
         return lighting;
     }
@@ -67,8 +67,8 @@ static vec4s read_rgb8(buffer_t* f)
     return color;
 }
 
-static float read_light_color(buffer_t* f)
+static f32 read_light_color(buffer_t* f)
 {
-    float val = read_f1x3x12(f);
+    f32 val = read_f1x3x12(f);
     return glm_min(glm_max(0.0f, val), 1.0f);
 }

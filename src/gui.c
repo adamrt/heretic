@@ -31,8 +31,8 @@ static struct {
     bool show_instructions;
     int scale_divisor;
 
-    float xz_scale;
-    float y_scale;
+    f32 xz_scale;
+    f32 y_scale;
 
     // This is kinda hacky, but it works for now.
     struct {
@@ -427,21 +427,21 @@ static void _draw_window_instructions(struct nk_context* ctx)
 
             nk_layout_row_push(ctx, 60);
             if (nk_button_label(ctx, "MoveTo")) {
-                float x = (float)((int16_t)instruction.parameters[0].value.u16);
-                float y = -(float)((int16_t)instruction.parameters[1].value.u16);
-                float z = (float)((int16_t)instruction.parameters[2].value.u16);
+                f32 x = (f32)((i16)instruction.parameters[0].value.u16);
+                f32 y = -(f32)((i16)instruction.parameters[1].value.u16);
+                f32 z = (f32)((i16)instruction.parameters[2].value.u16);
 
                 cam->position.x = x / _state.xz_scale;
                 cam->position.y = y / _state.y_scale;
                 cam->position.z = z / _state.xz_scale;
                 printf("xz_scale: %f, y_scale: %f\n", _state.xz_scale, _state.y_scale);
 
-                float pitch = -(float)((int16_t)instruction.parameters[3].value.u16);
+                f32 pitch = -(f32)((i16)instruction.parameters[3].value.u16);
                 cam->pitch = (pitch / 1024.0f) * 90.0f;
 
-                /* float maprot = -(float)((int16_t)instruction.parameters[4].value.u16); */
-                /* float maprot_scaled = (maprot * 360.0f) / 4096.0f; */
-                /* float maprot_rad = glm_rad(maprot_scaled); */
+                /* f32 maprot = -(f32)((i16)instruction.parameters[4].value.u16); */
+                /* f32 maprot_scaled = (maprot * 360.0f) / 4096.0f; */
+                /* f32 maprot_rad = glm_rad(maprot_scaled); */
                 // scene->models.transform.rotation.y = maprot_rad;
             }
 
@@ -456,7 +456,7 @@ static void _draw_window_instructions(struct nk_context* ctx)
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%d", 0);
                 } else if (param.type == PARAMETER_TYPE_U16) {
 
-                    float value = (float)((int16_t)param.value.u16);
+                    f32 value = (f32)((i16)param.value.u16);
                     if (j == 1) {
                         value = -value;
                         value = value / 2.0f;
@@ -468,7 +468,7 @@ static void _draw_window_instructions(struct nk_context* ctx)
                     }
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%0.1f", value);
                 } else {
-                    float value = (float)(int8_t)param.value.u8;
+                    f32 value = (f32)(i8)param.value.u8;
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%0.1f", value);
                 }
             }

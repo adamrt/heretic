@@ -17,8 +17,8 @@ typedef struct {
     vec3s position;
     vec3s normal;
     vec2s uv;
-    float palette_index;
-    float is_textured;
+    f32 palette_index;
+    f32 is_textured;
 } vertex_t;
 
 typedef struct {
@@ -52,9 +52,9 @@ typedef struct {
     struct {
         vec3s vmin;
         vec3s vmax;
-        float vcount;
-        float tri_count;
-        float quad_count;
+        f32 vcount;
+        f32 tri_count;
+        f32 quad_count;
     } meta;
 
     bool valid;

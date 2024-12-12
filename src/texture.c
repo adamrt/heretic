@@ -1,5 +1,6 @@
 #include "cglm/types-struct.h"
 
+#include "defines.h"
 #include "texture.h"
 
 static vec4s read_rgb15(buffer_t*);
@@ -11,9 +12,9 @@ texture_t read_texture(buffer_t* f)
     texture_t texture = { 0 };
 
     for (int i = 0; i < TEXTURE_ON_DISK_SIZE * 8; i += 8) {
-        uint8_t raw_pixel = read_u8(f);
-        uint8_t right = ((raw_pixel & 0x0F));
-        uint8_t left = ((raw_pixel & 0xF0) >> 4);
+        u8 raw_pixel = read_u8(f);
+        u8 right = ((raw_pixel & 0x0F));
+        u8 left = ((raw_pixel & 0xF0) >> 4);
         texture.data[i + 0] = right;
         texture.data[i + 1] = right;
         texture.data[i + 2] = right;
@@ -33,7 +34,7 @@ palette_t read_palette(buffer_t* f)
     palette_t palette = { 0 };
 
     f->offset = 0x44;
-    uint32_t intra_file_ptr = read_u32(f);
+    u32 intra_file_ptr = read_u32(f);
     if (intra_file_ptr == 0) {
         return palette;
     }
@@ -54,7 +55,7 @@ palette_t read_palette(buffer_t* f)
 
 static vec4s read_rgb15(buffer_t* f)
 {
-    uint16_t val = read_u16(f);
+    u16 val = read_u16(f);
 
     vec4s color = { 0 };
     color.r = (val & 0x001F) << 3; // 0b0000000000011111

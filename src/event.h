@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "defines.h"
+
 #define EVENT_COUNT           (500)
 #define EVENT_TEXT_SIZE_MAX   (8141)
 #define EVENT_CODE_SIZE_MAX   (3647)
@@ -24,16 +26,16 @@
 // - code_section: Bytes 5 to text_offset is the code section.
 // - text_section: Bytes text_offset thru 8192 is the text section.
 typedef struct {
-    uint8_t text[EVENT_TEXT_SIZE_MAX];
-    uint8_t code[EVENT_CODE_SIZE_MAX];
-    int text_size;
-    int code_size;
+    u8 text[EVENT_TEXT_SIZE_MAX];
+    u8 code[EVENT_CODE_SIZE_MAX];
+    usize text_size;
+    usize code_size;
     bool valid;
 } event_t;
 
 typedef struct {
     char* cstr;
-    int len;
+    usize len;
 } message_t;
 
 typedef struct {
@@ -52,8 +54,8 @@ typedef enum {
 typedef struct {
     parameter_type_e type;
     union {
-        uint8_t u8;
-        uint16_t u16;
+        u8 u8;
+        u16 u16;
     } value;
 } parameter_t;
 

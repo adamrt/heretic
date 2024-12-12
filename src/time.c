@@ -1,6 +1,7 @@
-#include "time.h"
-
 #include "sokol_time.h"
+
+#include "defines.h"
+#include "time.h"
 
 static time_t state;
 
@@ -16,18 +17,18 @@ void time_init(void)
 void time_update(void)
 {
     state.frame_count++;
-    uint64_t current_time = stm_now();
-    uint64_t elapsed_ticks = stm_diff(current_time, state.last_time);
-    double elapsed_seconds = stm_sec(elapsed_ticks);
+    u64 current_time = stm_now();
+    u64 elapsed_ticks = stm_diff(current_time, state.last_time);
+    f64 elapsed_seconds = stm_sec(elapsed_ticks);
 
     if (elapsed_seconds >= 1.0) {
-        state.fps = state.frame_count / (float)elapsed_seconds;
+        state.fps = state.frame_count / (f32)elapsed_seconds;
         state.frame_count = 0;
         state.last_time = current_time;
     }
 }
 
-float time_get_fps(void)
+f32 time_get_fps(void)
 {
     return state.fps;
 }

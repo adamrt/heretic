@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "bin.h"
+#include "defines.h"
 #include "util.h"
 
 static struct {
@@ -48,22 +49,22 @@ void bin_shutdown(void)
 }
 
 // Forward declarations
-static void _read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE]);
+static void _read_sector(usize sector_num, u8 out_sector[static SECTOR_SIZE]);
 
-buffer_t read_file(int sector_num, int size)
+buffer_t read_file(usize sector_num, usize size)
 {
     buffer_t file = { .size = size };
     file.data = calloc(1, size);
 
-    int offset = 0;
-    uint32_t occupied_sectors = ceil((double)size / (double)SECTOR_SIZE);
+    usize offset = 0;
+    usize occupied_sectors = ceil((double)size / (double)SECTOR_SIZE);
 
-    for (uint32_t i = 0; i < occupied_sectors; i++) {
-        uint8_t sector[SECTOR_SIZE];
+    for (usize i = 0; i < occupied_sectors; i++) {
+        u8 sector[SECTOR_SIZE];
         _read_sector(sector_num + i, sector);
 
-        int remaining_size = size - offset;
-        int bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
+        usize remaining_size = size - offset;
+        usize bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
 
         memcpy(file.data + offset, sector, bytes_to_copy);
         offset += bytes_to_copy;
@@ -72,66 +73,66 @@ buffer_t read_file(int sector_num, int size)
     return file;
 }
 
-void read_bytes(buffer_t* f, int size, uint8_t* out_bytes)
+void read_bytes(buffer_t* f, usize size, u8* out_bytes)
 {
     ASSERT(size < FILE_SIZE_MAX, "File size too large");
-    for (int i = 0; i < size; i++) {
+    for (usize i = 0; i < size; i++) {
         out_bytes[i] = read_u8(f);
     }
     return;
 }
 
-uint8_t read_u8(buffer_t* f)
+u8 read_u8(buffer_t* f)
 {
-    uint8_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint8_t));
-    f->offset += sizeof(uint8_t);
+    u8 value;
+    memcpy(&value, &f->data[f->offset], sizeof(u8));
+    f->offset += sizeof(u8);
     return value;
 }
 
-uint16_t read_u16(buffer_t* f)
+u16 read_u16(buffer_t* f)
 {
-    uint16_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint16_t));
-    f->offset += sizeof(uint16_t);
+    u16 value;
+    memcpy(&value, &f->data[f->offset], sizeof(u16));
+    f->offset += sizeof(u16);
     return value;
 }
 
-uint32_t read_u32(buffer_t* f)
+u32 read_u32(buffer_t* f)
 {
-    uint32_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(uint32_t));
-    f->offset += sizeof(uint32_t);
+    u32 value;
+    memcpy(&value, &f->data[f->offset], sizeof(u32));
+    f->offset += sizeof(u32);
     return value;
 }
 
-int8_t read_i8(buffer_t* f)
+i8 read_i8(buffer_t* f)
 {
-    int8_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int8_t));
-    f->offset += sizeof(int8_t);
+    i8 value;
+    memcpy(&value, &f->data[f->offset], sizeof(i8));
+    f->offset += sizeof(i8);
     return value;
 }
 
-int16_t read_i16(buffer_t* f)
+i16 read_i16(buffer_t* f)
 {
-    int16_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int16_t));
-    f->offset += sizeof(int16_t);
+    i16 value;
+    memcpy(&value, &f->data[f->offset], sizeof(i16));
+    f->offset += sizeof(i16);
     return value;
 }
 
-int32_t read_i32(buffer_t* f)
+i32 read_i32(buffer_t* f)
 {
-    int32_t value;
-    memcpy(&value, &f->data[f->offset], sizeof(int32_t));
-    f->offset += sizeof(int32_t);
+    i32 value;
+    memcpy(&value, &f->data[f->offset], sizeof(i32));
+    f->offset += sizeof(i32);
     return value;
 }
 
-float read_f1x3x12(buffer_t* f)
+f32 read_f1x3x12(buffer_t* f)
 {
-    float value = read_i16(f);
+    f32 value = read_i16(f);
     return value / 4096.0f;
 }
 
@@ -159,12 +160,12 @@ buffer_t read_file_attack_out(void)
     return _state.attack_out;
 }
 
-static void _read_sector(int32_t sector_num, uint8_t out_sector[static SECTOR_SIZE])
+static void _read_sector(usize sector_num, u8 out_sector[static SECTOR_SIZE])
 {
-    int32_t seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    size_t n = fseek(_state.bin, seek_to, SEEK_SET);
+    usize seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
+    usize n = fseek(_state.bin, seek_to, SEEK_SET);
     ASSERT(n == 0, "Failed to seek to sector");
 
-    n = fread(out_sector, sizeof(uint8_t), SECTOR_SIZE, _state.bin);
+    n = fread(out_sector, sizeof(u8), SECTOR_SIZE, _state.bin);
     ASSERT(n == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
 }

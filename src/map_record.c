@@ -4,10 +4,10 @@
 
 map_record_t read_map_record(buffer_t* f)
 {
-    uint8_t bytes[MAP_RECORD_SIZE];
+    u8 bytes[MAP_RECORD_SIZE];
     read_bytes(f, MAP_RECORD_SIZE, bytes);
-    int sector = bytes[8] | bytes[9] << 8;
-    uint64_t length = (uint32_t)(bytes[12]) | ((uint32_t)(bytes[13]) << 8) | ((uint32_t)(bytes[14]) << 16) | ((uint32_t)(bytes[15]) << 24);
+    usize sector = bytes[8] | bytes[9] << 8;
+    usize length = (u32)(bytes[12]) | ((u32)(bytes[13]) << 8) | ((u32)(bytes[14]) << 16) | ((u32)(bytes[15]) << 24);
     filetype_e type = (bytes[4] | (bytes[5] << 8));
     time_e time = (bytes[3] >> 7) & 0x1;
     weather_e weather = (bytes[3] >> 4) & 0x7;

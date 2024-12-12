@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "bin.h"
+#include "defines.h"
 #include "event.h"
 #include "font.h"
 #include "util.h"
@@ -14,13 +15,13 @@ event_t event_get_event(int event_id)
     buffer_t f = read_file_test_evt();
     f.offset = event_id * EVENT_SIZE;
 
-    uint8_t bytes[EVENT_SIZE];
+    u8 bytes[EVENT_SIZE];
     read_bytes(&f, sizeof(bytes), bytes);
 
-    uint32_t text_offset = (uint32_t)((uint32_t)(bytes[0] & 0xFF)
-        | ((uint32_t)(bytes[1] & 0xFF) << 8)
-        | ((uint32_t)(bytes[2] & 0xFF) << 16)
-        | ((uint32_t)(bytes[3] & 0xFF) << 24));
+    u32 text_offset = (u32)((u32)(bytes[0] & 0xFF)
+        | ((u32)(bytes[1] & 0xFF) << 8)
+        | ((u32)(bytes[2] & 0xFF) << 16)
+        | ((u32)(bytes[3] & 0xFF) << 24));
 
     if (text_offset == 0xF2F2F2F2) {
         return (event_t) { 0 };
@@ -46,13 +47,13 @@ message_t* event_get_messages(event_t event, int* count)
     message_t* messages = calloc(EVENT_MESSAGE_MAX, sizeof(message_t));
     ASSERT(messages != NULL, "Failed to allocate memory for messages");
 
-    uint8_t delimiter = 0xFE;
-    int i = 0;
+    u8 delimiter = 0xFE;
     char event_text[EVENT_TEXT_SIZE_MAX * 2]; // Adjust size as needed
-    size_t event_text_len = 0;
+    usize event_text_len = 0;
 
+    usize i = 0;
     while (i < event.text_size) {
-        uint8_t byte = event.text[i];
+        u8 byte = event.text[i];
 
         // These are special characters. We need to handle them differently.
         // https://ffhacktics.com/wiki/Text_Format#Special_Characters
@@ -65,7 +66,7 @@ message_t* event_get_messages(event_t event, int* count)
         case 0xE0: {
             // Character name stored somewhere else. Hard coding for now.
             const char* name = "Ramza";
-            size_t len = strlen(name);
+            usize len = strlen(name);
             memcpy(&event_text[event_text_len], name, len);
             event_text_len += len;
             i++;
@@ -75,7 +76,7 @@ message_t* event_get_messages(event_t event, int* count)
             i++;
             if (i >= event.text_size)
                 break;
-            uint8_t delay = event.text[i];
+            u8 delay = event.text[i];
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Delay: %d}", (int)delay);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -87,7 +88,7 @@ message_t* event_get_messages(event_t event, int* count)
             i++;
             if (i >= event.text_size)
                 break;
-            uint8_t color = event.text[i];
+            u8 color = event.text[i];
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Color: %d}", (int)color);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -105,12 +106,12 @@ message_t* event_get_messages(event_t event, int* count)
             i++;
             if (i + 1 >= event.text_size)
                 break;
-            uint8_t second_byte = event.text[i];
-            uint8_t third_byte = event.text[i + 1];
+            u8 second_byte = event.text[i];
+            u8 third_byte = event.text[i + 1];
             (void)second_byte; // Unused
             (void)third_byte;  // Unused
             const char* text_jump = "{TextJump}";
-            size_t len = strlen(text_jump);
+            usize len = strlen(text_jump);
             memcpy(&event_text[event_text_len], text_jump, len);
             event_text_len += len;
             i += 2;
@@ -128,7 +129,7 @@ message_t* event_get_messages(event_t event, int* count)
             break;
         case 0xFF: {
             const char* close_str = "{Close}";
-            size_t len = strlen(close_str);
+            usize len = strlen(close_str);
             memcpy(&event_text[event_text_len], close_str, len);
             event_text_len += len;
             i++;
@@ -142,11 +143,11 @@ message_t* event_get_messages(event_t event, int* count)
                     i++;
                     break;
                 }
-                uint8_t second_byte = event.text[i + 1];
-                uint16_t combined = (second_byte | (byte << 8));
+                u8 second_byte = event.text[i + 1];
+                u16 combined = (second_byte | (byte << 8));
                 const char* font_str = font_get_char(combined);
                 if (font_str != NULL) {
-                    size_t len = strlen(font_str);
+                    usize len = strlen(font_str);
                     memcpy(&event_text[event_text_len], font_str, len);
                     event_text_len += len;
                     i += 2;
@@ -162,7 +163,7 @@ message_t* event_get_messages(event_t event, int* count)
                 /* Single-byte character */
                 const char* font_str = font_get_char(byte);
                 if (font_str != NULL) {
-                    size_t len = strlen(font_str);
+                    usize len = strlen(font_str);
                     memcpy(&event_text[event_text_len], font_str, len);
                     event_text_len += len;
                     i++;
@@ -187,7 +188,7 @@ message_t* event_get_messages(event_t event, int* count)
     while (start < end && *count < EVENT_MESSAGE_MAX) {
         /* Find next delimiter */
         char* delimiter_pos = memchr(start, (char)delimiter, end - start);
-        size_t len;
+        usize len;
         if (delimiter_pos != NULL) {
             len = delimiter_pos - start;
         } else {
@@ -220,10 +221,9 @@ instruction_t* event_get_instructions(event_t event, int* count)
     instruction_t* instructions = calloc(EVENT_INSTRUCTION_MAX, sizeof(instruction_t));
     ASSERT(instructions != NULL, "Failed to allocate memory for instructions");
 
-    int code_idx = 0;
-
+    usize code_idx = 0;
     while (code_idx < event.code_size) {
-        uint8_t code = event.code[code_idx++];
+        u8 code = event.code[code_idx++];
         opcode_t opcode = opcode_list[code];
 
         instruction_t instruction = { .code = code };

@@ -5,6 +5,8 @@
 
 #include "cglm/types-struct.h"
 
+#include "defines.h"
+
 #define CAMERA_DIST_MIN  (0.01f)
 #define CAMERA_DIST_MAX  (1000.0f)
 #define CAMERA_ZNEAR_MIN (0.01f)
@@ -21,14 +23,14 @@ typedef struct {
     vec3s start_position;
     vec3s end_position;
 
-    float start_azimuth;
-    float end_azimuth;
+    f32 start_azimuth;
+    f32 end_azimuth;
 
-    float start_elevation;
-    float end_elevation;
+    f32 start_elevation;
+    f32 end_elevation;
 
-    float current_frame;
-    float total_frames;
+    f32 current_frame;
+    f32 total_frames;
 
     bool valid;
 } transition_t;
@@ -41,9 +43,9 @@ typedef enum {
 typedef struct {
     mat4s proj_mat, view_mat;
     vec3s position, target;
-    float azimuth, elevation; // In degrees
-    float znear, zfar;
-    float frustum_scale;
+    f32 azimuth, elevation; // In degrees
+    f32 znear, zfar;
+    f32 frustum_scale;
     bool use_perspective;
     transition_t transition;
 } orbit_camera_t;
@@ -51,10 +53,10 @@ typedef struct {
 typedef struct {
     mat4s proj_mat, view_mat;
     vec3s position;
-    float yaw, pitch;
-    float znear, zfar;
+    f32 yaw, pitch;
+    f32 znear, zfar;
+    f32 frustum_scale;
     bool use_perspective;
-    float frustum_scale;
 } game_camera_t;
 
 void camera_init(void);
@@ -64,8 +66,8 @@ mat4s camera_get_proj(void);
 camtype_e camera_get_type(void);
 void camera_set_type(camtype_e);
 
-void camera_mouse_movement(float, float);
-void camera_mouse_wheel(float);
+void camera_mouse_movement(f32, f32);
+void camera_mouse_wheel(f32);
 void camera_key_left(void);
 void camera_key_right(void);
 void camera_key_up(void);

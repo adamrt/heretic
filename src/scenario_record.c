@@ -11,7 +11,7 @@ scenario_record_t scenario_get_record(int scenario_id)
     buffer_t f = read_file_attack_out();
     f.offset = SCENARIO_FILE_OFFSET + (scenario_id * SCENARIO_SIZE);
 
-    uint8_t bytes[SCENARIO_SIZE];
+    u8 bytes[SCENARIO_SIZE];
     read_bytes(&f, sizeof(bytes), bytes);
 
     scenario_record_t record = {

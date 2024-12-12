@@ -1,8 +1,7 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-#include "cglm/types-struct.h"
-
+#include "defines.h"
 #include "map_record.h"
 #include "mesh.h"
 #include "texture.h"
@@ -37,8 +36,8 @@ typedef struct {
 } map_t;
 
 typedef struct {
-    uint8_t id;
-    uint16_t sector;
+    u8 id;
+    u16 sector;
     bool valid;
     const char* name;
 } map_desc_t;

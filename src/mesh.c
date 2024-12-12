@@ -3,6 +3,7 @@
 #include "cglm/types-struct.h"
 #include "cglm/util.h"
 
+#include "defines.h"
 #include "lighting.h"
 #include "mesh.h"
 #include "texture.h"
@@ -10,7 +11,7 @@
 
 static vec3s read_normal(buffer_t*);
 static geometry_t read_geometry(buffer_t*);
-static vec2s process_tex_coords(float u, float v, uint8_t page);
+static vec2s process_tex_coords(f32 u, f32 v, u8 page);
 
 mesh_t read_mesh(buffer_t* f)
 {
@@ -39,10 +40,10 @@ static geometry_t read_geometry(buffer_t* f)
     }
 
     // The number of each type of polygon.
-    int N = read_u16(f); // Textured triangles
-    int P = read_u16(f); // Textured quads
-    int Q = read_u16(f); // Untextured triangles
-    int R = read_u16(f); // Untextured quads
+    u16 N = read_u16(f); // Textured triangles
+    u16 P = read_u16(f); // Textured quads
+    u16 Q = read_u16(f); // Untextured triangles
+    u16 R = read_u16(f); // Untextured quads
 
     // Validate maximum values
     ASSERT(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS, "Mesh polygon count exceeded");
@@ -100,16 +101,16 @@ static geometry_t read_geometry(buffer_t* f)
 
     // Triangle UV
     for (int i = 0; i < N; i++) {
-        float au = read_u8(f);
-        float av = read_u8(f);
-        float palette = read_u8(f);
+        f32 au = read_u8(f);
+        f32 av = read_u8(f);
+        f32 palette = read_u8(f);
         (void)read_u8(f); // padding
-        float bu = read_u8(f);
-        float bv = read_u8(f);
-        float page = (read_u8(f) & 0x03); // 0b00000011
-        (void)read_u8(f);                 // padding
-        float cu = read_u8(f);
-        float cv = read_u8(f);
+        f32 bu = read_u8(f);
+        f32 bv = read_u8(f);
+        f32 page = (read_u8(f) & 0x03); // 0b00000011
+        (void)read_u8(f);               // padding
+        f32 cu = read_u8(f);
+        f32 cv = read_u8(f);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -128,18 +129,18 @@ static geometry_t read_geometry(buffer_t* f)
 
     // Quad UV
     for (int i = 0; i < P; i++) {
-        float au = read_u8(f);
-        float av = read_u8(f);
-        float palette = read_u8(f);
+        f32 au = read_u8(f);
+        f32 av = read_u8(f);
+        f32 palette = read_u8(f);
         (void)read_u8(f); // padding
-        float bu = read_u8(f);
-        float bv = read_u8(f);
-        float page = (read_u8(f) & 0x03); // 0b00000011
-        (void)read_u8(f);                 // padding
-        float cu = read_u8(f);
-        float cv = read_u8(f);
-        float du = read_u8(f);
-        float dv = read_u8(f);
+        f32 bu = read_u8(f);
+        f32 bv = read_u8(f);
+        f32 page = (read_u8(f) & 0x03); // 0b00000011
+        (void)read_u8(f);               // padding
+        f32 cu = read_u8(f);
+        f32 cv = read_u8(f);
+        f32 du = read_u8(f);
+        f32 dv = read_u8(f);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -166,9 +167,9 @@ static geometry_t read_geometry(buffer_t* f)
 
 vec3s read_position(buffer_t* f)
 {
-    float x = read_i16(f);
-    float y = read_i16(f);
-    float z = read_i16(f);
+    f32 x = read_i16(f);
+    f32 y = read_i16(f);
+    f32 z = read_i16(f);
 
     y = -y;
     z = -z;
@@ -178,9 +179,9 @@ vec3s read_position(buffer_t* f)
 
 static vec3s read_normal(buffer_t* f)
 {
-    float x = read_f1x3x12(f);
-    float y = read_f1x3x12(f);
-    float z = read_f1x3x12(f);
+    f32 x = read_f1x3x12(f);
+    f32 y = read_f1x3x12(f);
+    f32 z = read_f1x3x12(f);
 
     y = -y;
     z = -z;
@@ -264,12 +265,12 @@ vertices_t geometry_to_vertices(geometry_t* geometry)
 
 vec3s vertices_centered(vertices_t* vertices)
 {
-    float min_x = FLT_MAX;
-    float max_x = -FLT_MAX;
-    float min_y = FLT_MAX;
-    float max_y = -FLT_MAX;
-    float min_z = FLT_MAX;
-    float max_z = -FLT_MAX;
+    f32 min_x = FLT_MAX;
+    f32 max_x = -FLT_MAX;
+    f32 min_y = FLT_MAX;
+    f32 max_y = -FLT_MAX;
+    f32 min_z = FLT_MAX;
+    f32 max_z = -FLT_MAX;
 
     for (int i = 0; i < vertices->count; i++) {
         const vertex_t vertex = vertices->vertices[i];
@@ -283,9 +284,9 @@ vec3s vertices_centered(vertices_t* vertices)
         max_z = glm_max(vertex.position.z, max_z);
     }
 
-    float x = -(max_x + min_x) / 2.0f;
-    float y = -(max_y + min_y) / 2.0f;
-    float z = -(max_z + min_z) / 2.0f;
+    f32 x = -(max_x + min_x) / 2.0f;
+    f32 y = -(max_y + min_y) / 2.0f;
+    f32 z = -(max_z + min_z) / 2.0f;
 
     return (vec3s) { { x, y, z } };
 }
@@ -299,7 +300,7 @@ vec3s vertices_centered(vertices_t* vertices)
 //    of a single page (256).
 // 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
 //    divide them by their max to get a 0.0-1.0 value.
-static vec2s process_tex_coords(float u, float v, uint8_t page)
+static vec2s process_tex_coords(f32 u, f32 v, u8 page)
 {
     u = u / 255.0f;
     v = (v + (page * 256)) / 1023.0f;

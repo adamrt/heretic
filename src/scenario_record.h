@@ -1,6 +1,7 @@
 #ifndef SCENARIO_RECORD_H_
 #define SCENARIO_RECORD_H_
 
+#include "defines.h"
 #include "map_record.h"
 
 #define SCENARIO_COUNT (490)
@@ -19,7 +20,7 @@ typedef struct {
 
 // Scenario descriptors
 typedef struct {
-    uint16_t id;
+    u16 id;
     const char* name;
 } scenario_name_t;
 

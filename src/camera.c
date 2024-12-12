@@ -84,14 +84,14 @@ mat4s camera_get_proj(void)
 {
     return _state.type == CAMTYPE_GAME ? _state.game.proj_mat : _state.orbit.proj_mat;
 }
-void camera_mouse_movement(float dx_deg, float dy_deg)
+void camera_mouse_movement(f32 dx_deg, f32 dy_deg)
 {
     _state.orbit.azimuth += dx_deg;
     _state.orbit.elevation += dy_deg;
     _state.orbit.elevation = glm_clamp(_state.orbit.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
 }
 
-void camera_mouse_wheel(float delta)
+void camera_mouse_wheel(f32 delta)
 {
     _state.orbit.frustum_scale -= delta * SENSITIVITY;
     _state.orbit.frustum_scale = glm_clamp(_state.orbit.frustum_scale, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
@@ -129,8 +129,8 @@ static void _game_camera_init(void)
 
 static void _game_camera_update(void)
 {
-    float yaw_rad = glm_rad(_state.game.yaw);
-    float pitch_rad = glm_rad(_state.game.pitch);
+    f32 yaw_rad = glm_rad(_state.game.yaw);
+    f32 pitch_rad = glm_rad(_state.game.pitch);
 
     vec3s forward = glms_vec3_normalize((vec3s) { {
         cosf(pitch_rad) * sinf(yaw_rad),
@@ -141,9 +141,9 @@ static void _game_camera_update(void)
     vec3s target = glms_vec3_add(_state.game.position, forward);
     _state.game.view_mat = glms_lookat(_state.game.position, target, GLMS_YUP);
 
-    float aspect = sapp_widthf() / sapp_heightf();
-    float w = _state.game.frustum_scale;
-    float h = w / aspect;
+    f32 aspect = sapp_widthf() / sapp_heightf();
+    f32 w = _state.game.frustum_scale;
+    f32 h = w / aspect;
 
     if (_state.game.use_perspective) {
         _state.game.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.game.znear, _state.game.zfar);
@@ -166,9 +166,9 @@ static void _orbit_camera_init(void)
 
 static void _orbit_camera_update(void)
 {
-    float aspect = sapp_widthf() / sapp_heightf();
-    float w = _state.orbit.frustum_scale;
-    float h = w / aspect;
+    f32 aspect = sapp_widthf() / sapp_heightf();
+    f32 w = _state.orbit.frustum_scale;
+    f32 h = w / aspect;
 
     _orbit_camera_process_transitions();
 
@@ -183,8 +183,8 @@ static void _orbit_camera_update(void)
         }
     }
 
-    float azimuth_rad = glm_rad(_state.orbit.azimuth);
-    float elevation_rad = glm_rad(_state.orbit.elevation);
+    f32 azimuth_rad = glm_rad(_state.orbit.azimuth);
+    f32 elevation_rad = glm_rad(_state.orbit.elevation);
 
     vec3s position = { {
         cosf(elevation_rad) * sinf(azimuth_rad),
@@ -220,8 +220,8 @@ static void _orbit_camera_azimuth(transition_dir_e dir)
 
     bool move_left = dir == TRANS_DIR_LEFT;
 
-    float degrees = _state.orbit.azimuth;
-    float end_degrees = 0.0f;
+    f32 degrees = _state.orbit.azimuth;
+    f32 end_degrees = 0.0f;
 
     if (degrees == DIR_NE) {
         end_degrees = move_left ? DIR_SE : DIR_NW - 360.0f;
@@ -281,7 +281,7 @@ static void _orbit_camera_process_transitions(void)
         return;
     }
 
-    float t = trans->current_frame / trans->total_frames;
+    f32 t = trans->current_frame / trans->total_frames;
 
     if (trans->start_azimuth != trans->end_azimuth) {
         _state.orbit.azimuth = glm_lerp(trans->start_azimuth, trans->end_azimuth, t);
@@ -306,7 +306,7 @@ static void _orbit_camera_process_transitions(void)
 
 cardinal_e orbit_camera_cardinal(void)
 {
-    float azimuth = _state.orbit.azimuth;
+    f32 azimuth = _state.orbit.azimuth;
     int corner_width = 15;
 
     if (azimuth > 345.0f || azimuth < 15.0f) {
