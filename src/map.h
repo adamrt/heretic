@@ -1,5 +1,4 @@
-#ifndef MAP_H_
-#define MAP_H_
+#pragma once
 
 #include "defines.h"
 #include "map_record.h"
@@ -46,5 +45,3 @@ map_t* read_map(int, map_state_t);
 map_data_t* read_map_data(int);
 
 extern map_desc_t map_list[];
-
-#endif // MAP_H_

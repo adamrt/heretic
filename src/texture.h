@@ -1,5 +1,4 @@
-#ifndef TEXTURE_H_
-#define TEXTURE_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,5 +30,3 @@ typedef struct {
 
 texture_t read_texture(buffer_t*);
 palette_t read_palette(buffer_t*);
-
-#endif // TEXTURE_H_

@@ -1,5 +1,4 @@
-#ifndef CAMERA_H_
-#define CAMERA_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -103,5 +102,3 @@ typedef enum {
 
 cardinal_e orbit_camera_cardinal(void);
 const char* orbit_camera_cardinal_str(void);
-
-#endif // CAMERA_H_

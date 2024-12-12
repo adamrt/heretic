@@ -1,5 +1,4 @@
-#ifndef GFX_H_
-#define GFX_H_
+#pragma once
 
 #include "cglm/types-struct.h"
 #include "lighting.h"
@@ -63,5 +62,3 @@ typedef struct {
         sg_bindings bindings;
     } display;
 } gfx_t;
-
-#endif // GFX_H_

@@ -1,5 +1,4 @@
-#ifndef MESH_H_
-#define MESH_H_
+#pragma once
 
 #include "cglm/types-struct.h"
 
@@ -76,5 +75,3 @@ mesh_t read_mesh(buffer_t*);
 void merge_meshes(mesh_t*, mesh_t*);
 vec3s vertices_centered(vertices_t* vertices);
 vertices_t geometry_to_vertices(geometry_t*);
-
-#endif // MESH_H_

@@ -1,5 +1,4 @@
-#ifndef TYPES_H_
-#define TYPES_H_
+#pragma once
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -20,5 +19,3 @@ typedef float f32;
 typedef double f64;
 
 typedef size_t usize;
-
-#endif // TYPES_H_

@@ -1,5 +1,4 @@
-#ifndef LIGHTING_H_
-#define LIGHTING_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -32,5 +31,3 @@ typedef struct {
 } lighting_t;
 
 lighting_t read_lighting(buffer_t*);
-
-#endif // LIGHTING_H_

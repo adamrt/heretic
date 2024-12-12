@@ -1,5 +1,4 @@
-#ifndef MAP_RECORD_H_
-#define MAP_RECORD_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -72,5 +71,3 @@ bool map_record_state_unique(map_record_t*, int, map_record_t);
 const char* time_str(time_e);
 const char* weather_str(weather_e);
 const char* filetype_str(filetype_e);
-
-#endif // MAP_RECORD_H_

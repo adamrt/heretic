@@ -1,5 +1,4 @@
-#ifndef EVENT_H_
-#define EVENT_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -69,5 +68,3 @@ instruction_t* event_get_instructions(event_t, int*);
 message_t* event_get_messages(event_t, int*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];
-
-#endif // EVENT_H_

@@ -1,5 +1,4 @@
-#ifndef SCENARIO_RECORD_H_
-#define SCENARIO_RECORD_H_
+#pragma once
 
 #include "defines.h"
 #include "map_record.h"
@@ -27,5 +26,3 @@ typedef struct {
 scenario_record_t scenario_get_record(int);
 
 extern scenario_name_t scenario_name_list[];
-
-#endif // SCENARIO_RECORD_H_

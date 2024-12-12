@@ -1,5 +1,4 @@
-#ifndef BIN_H_
-#define BIN_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -32,5 +31,3 @@ f32 read_f1x3x12(buffer_t*);
 
 buffer_t read_file_test_evt(void);
 buffer_t read_file_attack_out(void);
-
-#endif // BIN_H_

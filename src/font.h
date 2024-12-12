@@ -1,5 +1,4 @@
-#ifndef FONT_H_
-#define FONT_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -13,5 +12,3 @@ typedef struct {
 } font_char_t;
 
 const char* font_get_char(u16 id);
-
-#endif // FONT_H_

@@ -1,5 +1,4 @@
-#ifndef SCENE_H_
-#define SCENE_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -47,5 +46,3 @@ int scene_get_instruction_count(void);
 
 void scene_prev(void);
 void scene_next(void);
-
-#endif // SCENE_H_

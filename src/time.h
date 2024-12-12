@@ -1,5 +1,4 @@
-#ifndef TIME_H_
-#define TIME_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -14,5 +13,3 @@ typedef struct {
 void time_init(void);
 void time_update(void);
 f32 time_get_fps(void);
-
-#endif // TIME_H_

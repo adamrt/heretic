@@ -1,5 +1,4 @@
-#ifndef SHAPE_H_
-#define SHAPE_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -22,5 +21,3 @@ vertex_t shape_quad_vertices[] = {
 
 u16 shape_quad_indices[] = { 0, 1, 2, 1, 3, 2 };
 // clang-format on
-
-#endif // SHAPE_H_
