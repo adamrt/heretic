@@ -30,11 +30,6 @@ void bin_init(void)
     _state.attack_out = read_file_attack_out();
 }
 
-bool bin_is_loaded(void)
-{
-    return _state.bin != NULL;
-}
-
 void bin_shutdown(void)
 {
     fclose(_state.bin);

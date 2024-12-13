@@ -41,10 +41,6 @@ void game_shutdown(void)
 
 void game_update(void)
 {
-    if (!bin_is_loaded()) {
-        return;
-    }
-
     time_update();
     scene_update();
     camera_update();

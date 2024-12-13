@@ -16,7 +16,6 @@ typedef struct {
 
 void bin_init(void);
 void bin_shutdown(void);
-bool bin_is_loaded(void);
 
 buffer_t read_file(usize, usize);
 
