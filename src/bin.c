@@ -9,9 +9,8 @@
 void read_bytes(buffer_t* f, usize size, u8* out_bytes)
 {
     ASSERT(size < FILE_SIZE_MAX, "File size too large");
-    for (usize i = 0; i < size; i++) {
-        out_bytes[i] = read_u8(f);
-    }
+    memcpy(out_bytes, &f->data[f->offset], size);
+    f->offset += size;
     return;
 }
 
