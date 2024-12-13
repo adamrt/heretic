@@ -6,6 +6,7 @@
 #include "defines.h"
 #include "event.h"
 #include "font.h"
+#include "io.h"
 #include "util.h"
 
 #define EVENT_SIZE (8192)

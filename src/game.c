@@ -1,8 +1,8 @@
 #include "game.h"
-#include "bin.h"
 #include "camera.h"
 #include "gfx.h"
 #include "gui.h"
+#include "io.h"
 #include "scene.h"
 #include "time.h"
 

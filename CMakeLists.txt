@@ -53,6 +53,7 @@ add_executable(heretic
     src/game.c
     src/gfx.c
     src/gui.c
+    src/io.c
     src/lighting.c
     src/map.c
     src/map_record.c

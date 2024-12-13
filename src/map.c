@@ -1,4 +1,5 @@
 #include "map.h"
+#include "io.h"
 #include "texture.h"
 #include "util.h"
 
