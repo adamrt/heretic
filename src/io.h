@@ -1,11 +1,18 @@
 #pragma once
 
-#include "bin.h"
 #include "defines.h"
+
+// file_t just wraps data. This is only useful so we can pass back the size with
+// the data.
+typedef struct {
+    u8* data;
+    usize size;
+} file_t;
 
 void io_init(void);
 void io_shutdown(void);
-buffer_t io_read_file(usize, usize);
+void io_read_file(usize, usize, u8*);
 
-buffer_t read_file_test_evt(void);
-buffer_t read_file_attack_out(void);
+// Return preloaded files.
+file_t io_file_test_evt(void);
+file_t io_file_attack_out(void);

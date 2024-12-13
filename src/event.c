@@ -13,11 +13,15 @@
 
 event_t event_get_event(int event_id)
 {
-    buffer_t f = read_file_test_evt();
-    f.offset = event_id * EVENT_SIZE;
+    file_t f = io_file_test_evt();
+    buffer_t buf = {
+        .data = f.data,
+        .size = f.size,
+        .offset = event_id * EVENT_SIZE,
+    };
 
     u8 bytes[EVENT_SIZE];
-    read_bytes(&f, sizeof(bytes), bytes);
+    read_bytes(&buf, sizeof(bytes), bytes);
 
     u32 text_offset = (u32)((u32)(bytes[0] & 0xFF)
         | ((u32)(bytes[1] & 0xFF) << 8)

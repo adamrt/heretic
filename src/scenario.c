@@ -8,12 +8,15 @@
 
 scenario_t scenario_get_record(int scenario_id)
 {
-
-    buffer_t f = read_file_attack_out();
-    f.offset = SCENARIO_FILE_OFFSET + (scenario_id * SCENARIO_SIZE);
+    file_t f = io_file_attack_out();
+    buffer_t buf = {
+        .data = f.data,
+        .size = f.size,
+        .offset = SCENARIO_FILE_OFFSET + (scenario_id * SCENARIO_SIZE),
+    };
 
     u8 bytes[SCENARIO_SIZE];
-    read_bytes(&f, sizeof(bytes), bytes);
+    read_bytes(&buf, sizeof(bytes), bytes);
 
     scenario_t record = {
         .event_id = bytes[0] | (bytes[1] << 8),
