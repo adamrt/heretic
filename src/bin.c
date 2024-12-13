@@ -48,20 +48,22 @@ void bin_shutdown(void)
     }
 }
 
-// Forward declarations
-static void _read_sector(usize sector_num, u8 out_sector[static SECTOR_SIZE]);
-
 buffer_t read_file(usize sector_num, usize size)
 {
     buffer_t file = { .size = size };
     file.data = calloc(1, size);
 
     usize offset = 0;
-    usize occupied_sectors = ceil((double)size / (double)SECTOR_SIZE);
+    usize occupied_sectors = ceil(size / (f64)SECTOR_SIZE);
 
     for (usize i = 0; i < occupied_sectors; i++) {
+        usize seek_to = ((sector_num + i) * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
+        usize sn = fseek(_state.bin, seek_to, SEEK_SET);
+        ASSERT(sn == 0, "Failed to seek to sector");
+
         u8 sector[SECTOR_SIZE];
-        _read_sector(sector_num + i, sector);
+        usize rn = fread(sector, sizeof(u8), SECTOR_SIZE, _state.bin);
+        ASSERT(rn == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
 
         usize remaining_size = size - offset;
         usize bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
@@ -158,14 +160,4 @@ buffer_t read_file_attack_out(void)
         _state.attack_out = read_file(attack_out_sector, attack_out_size);
     }
     return _state.attack_out;
-}
-
-static void _read_sector(usize sector_num, u8 out_sector[static SECTOR_SIZE])
-{
-    usize seek_to = (sector_num * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-    usize n = fseek(_state.bin, seek_to, SEEK_SET);
-    ASSERT(n == 0, "Failed to seek to sector");
-
-    n = fread(out_sector, sizeof(u8), SECTOR_SIZE, _state.bin);
-    ASSERT(n == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
 }
