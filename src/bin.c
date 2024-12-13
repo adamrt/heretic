@@ -24,6 +24,25 @@ FN_READ(i8)
 FN_READ(i16)
 FN_READ(i32)
 
+// FN_READ_AT is a macro that generates a read function for a specific type at a
+// specified offset. It reads the value, returns it and sets the offset to the
+// givin offset plus the size of the type.
+#define FN_READ_AT(type)                                \
+    type read_##type##_at(buffer_t* f, usize offset)    \
+    {                                                   \
+        type value;                                     \
+        memcpy(&value, &f->data[offset], sizeof(type)); \
+        f->offset = offset + sizeof(type);              \
+        return value;                                   \
+    }
+
+FN_READ_AT(u8)
+FN_READ_AT(u16)
+FN_READ_AT(u32)
+FN_READ_AT(i8)
+FN_READ_AT(i16)
+FN_READ_AT(i32)
+
 void read_bytes(buffer_t* f, usize size, u8* out_bytes)
 {
     ASSERT(size < FILE_SIZE_MAX, "File size too large");
