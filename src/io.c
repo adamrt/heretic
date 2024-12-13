@@ -1,7 +1,9 @@
 #include <math.h>
 #include <string.h>
 
+#include "event.h"
 #include "io.h"
+#include "scenario.h"
 #include "util.h"
 
 #define SECTOR_HEADER_SIZE (24)
@@ -9,14 +11,18 @@
 #define SECTOR_SIZE_RAW    (2352)
 
 // Individual file lengths
-#define ATTACK_OUT_LEN (125956)
-#define TEST_EVT_LEN   (4096000)
+#define ATTACK_OUT_LEN             (125956)
+#define ATTACK_OUT_SCENARIO_OFFSET (0x10938)
+#define TEST_EVT_LEN               (4096000)
 
 static struct {
     FILE* bin;
 
     u8* test_evt;
     u8* attack_out;
+
+    scenario_t* scenarios;
+    event_t* events;
 } _state;
 
 void io_init(void)
@@ -24,11 +30,38 @@ void io_init(void)
     _state.bin = fopen("../fft.bin", "rb");
     ASSERT(_state.bin != NULL, "Failed to open fft.bin");
 
-    // Read files into memory.
-    _state.test_evt = calloc(1, TEST_EVT_LEN);
+    // Allocate for all io resources
     _state.attack_out = calloc(1, ATTACK_OUT_LEN);
+    _state.test_evt = calloc(1, TEST_EVT_LEN);
+    _state.scenarios = calloc(SCENARIO_COUNT, sizeof(scenario_t));
+    _state.events = calloc(EVENT_COUNT, sizeof(event_t));
+    ASSERT(_state.attack_out != NULL, "Failed to allocate memory for attack_out");
+    ASSERT(_state.test_evt != NULL, "Failed to allocate memory for test_evt");
+    ASSERT(_state.scenarios != NULL, "Failed to allocate memory for scenarios");
+    ASSERT(_state.events != NULL, "Failed to allocate memory for events");
+
+    // Read all files
     io_read_file(2448, ATTACK_OUT_LEN, _state.attack_out);
     io_read_file(3707, TEST_EVT_LEN, _state.test_evt);
+
+    // Read all scenarios and events
+    for (usize i = 0; i < SCENARIO_COUNT; i++) {
+        buffer_t buf = {
+            .data = _state.attack_out + ATTACK_OUT_SCENARIO_OFFSET + (i * SCENARIO_SIZE),
+            .size = SCENARIO_SIZE,
+            .offset = 0,
+        };
+        _state.scenarios[i] = read_scenario(&buf);
+    }
+
+    for (usize i = 0; i < EVENT_COUNT; i++) {
+        buffer_t buf = {
+            .data = _state.test_evt + (i * EVENT_SIZE),
+            .size = EVENT_SIZE,
+            .offset = 0,
+        };
+        _state.events[i] = read_event(&buf);
+    }
 }
 
 void io_shutdown(void)
@@ -36,6 +69,8 @@ void io_shutdown(void)
     fclose(_state.bin);
     free(_state.test_evt);
     free(_state.attack_out);
+    free(_state.scenarios);
+    free(_state.events);
 }
 
 void io_read_file(usize sector_num, usize size, u8* out_bytes)
@@ -62,5 +97,19 @@ void io_read_file(usize sector_num, usize size, u8* out_bytes)
     return;
 }
 
+// Getters for resources
+event_t io_read_event(int id)
+{
+    ASSERT(id < EVENT_COUNT, "Event id %d out of bounds", id);
+    return _state.events[id];
+}
+
+scenario_t io_read_scenario(int id)
+{
+    ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
+    return _state.scenarios[id];
+}
+
+// Return preloaded files
 file_t io_file_test_evt(void) { return (file_t) { _state.test_evt, TEST_EVT_LEN }; }
 file_t io_file_attack_out(void) { return (file_t) { _state.attack_out, ATTACK_OUT_LEN }; }

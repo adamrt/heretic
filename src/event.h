@@ -3,8 +3,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "bin.h"
 #include "defines.h"
 
+#define EVENT_SIZE            (8192)
 #define EVENT_COUNT           (500)
 #define EVENT_TEXT_SIZE_MAX   (8141)
 #define EVENT_CODE_SIZE_MAX   (3647)
@@ -29,6 +31,8 @@ typedef struct {
     u8 code[EVENT_CODE_SIZE_MAX];
     usize text_size;
     usize code_size;
+
+    u8 data[EVENT_SIZE];
     bool valid;
 } event_t;
 
@@ -63,7 +67,7 @@ typedef struct {
     parameter_t parameters[EVENT_PARAMETER_MAX];
 } instruction_t;
 
-event_t event_get_event(int);
+event_t read_event(buffer_t*);
 instruction_t* event_get_instructions(event_t, int*);
 message_t* event_get_messages(event_t, int*);
 

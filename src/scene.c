@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "cglm/types-struct.h"
+#include "io.h"
 #include "sokol_gfx.h"
 
 #include "shader.glsl.h"
@@ -76,7 +77,7 @@ void scene_load_map(int num, map_state_t map_state)
 void scene_load_scenario(int scenario_id)
 {
     _scene_scenario_unload();
-    scenario_t scenario = scenario_get_record(scenario_id);
+    scenario_t scenario = io_read_scenario(scenario_id);
     map_state_t scenario_state = {
         .time = scenario.time,
         .weather = scenario.weather,
@@ -84,7 +85,7 @@ void scene_load_scenario(int scenario_id)
     };
 
     // Load scenario data
-    event_t event = event_get_event(scenario.event_id);
+    event_t event = io_read_event(scenario.event_id);
     _state.messages = event_get_messages(event, &_state.message_count);
     _state.instructions = event_get_instructions(event, &_state.instruction_count);
 
@@ -121,8 +122,8 @@ static void _scene_switch(switch_e dir)
             if (_state.current_scenario > SCENARIO_COUNT - 1) {
                 _state.current_scenario = 0;
             }
-            scenario_t scenario = scenario_get_record(_state.current_scenario);
-            event_t event = event_get_event(scenario.event_id);
+            scenario_t scenario = io_read_scenario(_state.current_scenario);
+            event_t event = io_read_event(scenario.event_id);
             if (!event.valid) {
                 _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
                 continue;

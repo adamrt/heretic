@@ -1,40 +1,18 @@
 #include "scenario.h"
 #include "bin.h"
-#include "event.h"
-#include "io.h"
+#include <string.h>
 
-#define SCENARIO_FILE_OFFSET (0x10938)
-#define SCENARIO_SIZE        (24)
-
-scenario_t scenario_get_record(int scenario_id)
+scenario_t read_scenario(buffer_t* buf)
 {
-    file_t f = io_file_attack_out();
-    buffer_t buf = {
-        .data = f.data,
-        .size = f.size,
-        .offset = SCENARIO_FILE_OFFSET + (scenario_id * SCENARIO_SIZE),
-    };
-
-    u8 bytes[SCENARIO_SIZE];
-    read_bytes(&buf, sizeof(bytes), bytes);
-
-    scenario_t record = {
-        .event_id = bytes[0] | (bytes[1] << 8),
-        .map_id = bytes[2],
-        .weather = bytes[3],
-        .time = bytes[4],
-        .entd_id = bytes[7] | (bytes[8] << 8),
-        .next_scenario_id = bytes[18] | (bytes[19] << 8),
-    };
-
-    event_t event = event_get_event(record.event_id);
-    if (!event.valid) {
-        return record;
-    }
-
-    record.valid = true;
-
-    return record;
+    scenario_t scenario = { 0 };
+    scenario.event_id = read_u16_at(buf, 0);
+    scenario.map_id = read_u8_at(buf, 2);
+    scenario.weather = read_u8_at(buf, 3);
+    scenario.time = read_u8_at(buf, 4);
+    scenario.entd_id = read_u16_at(buf, 7);
+    scenario.next_scenario_id = read_u16_at(buf, 18);
+    memcpy(&scenario.data, &buf->data[0], SCENARIO_SIZE);
+    return scenario;
 }
 
 // Thanks to FFTPAtcher for the scenario name list.

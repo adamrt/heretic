@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "cglm/util.h"
+#include "io.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -33,12 +34,6 @@ static struct {
 
     f32 xz_scale;
     f32 y_scale;
-
-    // This is kinda hacky, but it works for now.
-    struct {
-        scenario_t scenarios[SCENARIO_COUNT];
-        event_t events[EVENT_COUNT];
-    } cache;
 } _state;
 
 static void _draw(void);
@@ -71,16 +66,6 @@ void gui_init(void)
     _state.show_messages = false;
     _state.xz_scale = 4.0f;
     _state.y_scale = 2.0f;
-}
-
-void gui_cache(void)
-{
-    for (int i = 0; i < SCENARIO_COUNT; i++) {
-        _state.cache.scenarios[i] = scenario_get_record(i);
-    }
-    for (int i = 0; i < EVENT_COUNT; i++) {
-        _state.cache.events[i] = event_get_event(i);
-    }
 }
 
 void gui_update(void)
@@ -246,7 +231,7 @@ static void _draw_section_scenario(struct nk_context* ctx)
         _draw_dropdown_scenario(ctx);
 
         scene_t* scene = scene_get_internals();
-        scenario_t scenario = _state.cache.scenarios[scene->current_scenario];
+        scenario_t scenario = io_read_scenario(scene->current_scenario);
         map_desc_t map = map_list[scenario.map_id];
 
         nk_layout_row_dynamic(ctx, 25, 1);
@@ -371,7 +356,7 @@ static void _draw_window_scenarios(struct nk_context* ctx)
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
-            scenario_t scenario = _state.cache.scenarios[i];
+            scenario_t scenario = io_read_scenario(i);
 
             nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_name_list[scenario.event_id].name);
             nk_labelf(ctx, NK_TEXT_LEFT, "Weather: %s, Time: %s, ENTD: %d", weather_str(scenario.weather), time_str(scenario.time), scenario.entd_id);
@@ -553,7 +538,7 @@ static void _draw_dropdown_map(struct nk_context* ctx)
 static void _draw_dropdown_scenario(struct nk_context* ctx)
 {
     scene_t* scene = scene_get_internals();
-    scenario_t selected_scenario = _state.cache.scenarios[scene->current_scenario];
+    scenario_t selected_scenario = io_read_scenario(scene->current_scenario);
 
     nk_layout_row_begin(ctx, NK_STATIC, 25, 2);
     nk_layout_row_push(ctx, 50);
@@ -567,9 +552,10 @@ static void _draw_dropdown_scenario(struct nk_context* ctx)
         nk_layout_row_dynamic(ctx, 25, 1);
 
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
-            scenario_t scenario = _state.cache.scenarios[i];
-            event_t event = _state.cache.events[scenario.event_id];
-
+            // We only want to show scenarios that have valid events.
+            // The others are for load out screens and such.
+            scenario_t scenario = io_read_scenario(i);
+            event_t event = io_read_event(scenario.event_id);
             if (!event.valid) {
                 continue;
             }

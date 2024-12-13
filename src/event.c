@@ -6,43 +6,29 @@
 #include "defines.h"
 #include "event.h"
 #include "font.h"
-#include "io.h"
 #include "util.h"
 
-#define EVENT_SIZE (8192)
-
-event_t event_get_event(int event_id)
+// FIXME: This should be improved by parsing the instructions here as well.
+event_t read_event(buffer_t* buf)
 {
-    file_t f = io_file_test_evt();
-    buffer_t buf = {
-        .data = f.data,
-        .size = f.size,
-        .offset = event_id * EVENT_SIZE,
-    };
-
-    u8 bytes[EVENT_SIZE];
-    read_bytes(&buf, sizeof(bytes), bytes);
-
-    u32 text_offset = (u32)((u32)(bytes[0] & 0xFF)
-        | ((u32)(bytes[1] & 0xFF) << 8)
-        | ((u32)(bytes[2] & 0xFF) << 16)
-        | ((u32)(bytes[3] & 0xFF) << 24));
-
-    if (text_offset == 0xF2F2F2F2) {
+    u32 text_offset = read_u32(buf);
+    bool valid = text_offset != 0xF2F2F2F2;
+    if (!valid) {
         return (event_t) { 0 };
     }
 
-    event_t event = {
-        .text_size = 8192 - text_offset,
-        .code_size = text_offset - 4,
-        .valid = true,
-    };
+    usize code_size = text_offset - 4;
+    usize text_size = 8192 - text_offset;
+    ASSERT(code_size <= EVENT_CODE_SIZE_MAX, "Event code size exceeded");
+    ASSERT(text_size <= EVENT_TEXT_SIZE_MAX, "Event text size exceeded");
 
-    ASSERT(event.text_size <= EVENT_TEXT_SIZE_MAX, "Event text size exceeded");
-    ASSERT(event.code_size <= EVENT_CODE_SIZE_MAX, "Event code size exceeded");
-
-    memcpy(event.text, bytes + text_offset, event.text_size);
-    memcpy(event.code, bytes + 4, event.code_size);
+    event_t event = { 0 };
+    event.valid = valid;
+    event.code_size = code_size;
+    event.text_size = text_size;
+    memcpy(event.data, buf->data, EVENT_SIZE);
+    memcpy(event.code, buf->data + 4, code_size);
+    memcpy(event.text, buf->data + text_offset, text_size);
 
     return event;
 }

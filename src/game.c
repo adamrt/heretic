@@ -15,7 +15,6 @@
 void data_init(void)
 {
     io_init();
-    gui_cache();
     scene_init();
 }
 
