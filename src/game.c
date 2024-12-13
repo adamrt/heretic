@@ -14,7 +14,7 @@
 // during game_init() for native builds, and after file upload on a wasm build.
 void data_init(void)
 {
-    bin_init();
+    io_init();
     gui_cache();
     scene_init();
 }
@@ -34,7 +34,7 @@ void game_init(void)
 void game_shutdown(void)
 {
     scene_shutdown();
-    bin_shutdown();
+    io_shutdown();
     gui_shutdown();
     gfx_shutdown();
 }

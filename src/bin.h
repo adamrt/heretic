@@ -14,10 +14,10 @@ typedef struct {
     usize size;
 } buffer_t;
 
-void bin_init(void);
-void bin_shutdown(void);
+void io_init(void);
+void io_shutdown(void);
 
-buffer_t read_file(usize, usize);
+buffer_t io_read_file(usize, usize);
 
 void read_bytes(buffer_t*, usize, u8*);
 u8 read_u8(buffer_t*);

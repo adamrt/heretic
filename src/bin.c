@@ -20,7 +20,7 @@ static struct {
 
 #define FILE_SIZE_MAX (131072)
 
-void bin_init(void)
+void io_init(void)
 {
     _state.bin = fopen("../fft.bin", "rb");
     ASSERT(_state.bin != NULL, "Failed to open fft.bin");
@@ -30,7 +30,7 @@ void bin_init(void)
     _state.attack_out = read_file_attack_out();
 }
 
-void bin_shutdown(void)
+void io_shutdown(void)
 {
     fclose(_state.bin);
     _state.bin = NULL;
@@ -43,7 +43,7 @@ void bin_shutdown(void)
     }
 }
 
-buffer_t read_file(usize sector_num, usize size)
+buffer_t io_read_file(usize sector_num, usize size)
 {
     buffer_t file = { .size = size };
     file.data = calloc(1, size);
@@ -140,7 +140,7 @@ buffer_t read_file_test_evt(void)
     const int test_evt_size = 4096000;
 
     if (_state.test_evt.data == NULL) {
-        _state.test_evt = read_file(test_evt_sector, test_evt_size);
+        _state.test_evt = io_read_file(test_evt_sector, test_evt_size);
     }
     return _state.test_evt;
 }
@@ -152,7 +152,7 @@ buffer_t read_file_attack_out(void)
     const int attack_out_size = 125956;
 
     if (_state.attack_out.data == NULL) {
-        _state.attack_out = read_file(attack_out_sector, attack_out_size);
+        _state.attack_out = io_read_file(attack_out_sector, attack_out_size);
     }
     return _state.attack_out;
 }
