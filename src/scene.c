@@ -155,18 +155,18 @@ static void _scene_switch(switch_e dir)
 
 static void _scene_map_unload(void)
 {
-    if (_state.map != NULL) {
-        memory_free(_state.map->map_data);
-
-        _state.model_count--;
-
-        sg_destroy_image(_state.models[_state.model_count].texture);
-        sg_destroy_image(_state.models[_state.model_count].palette);
-        sg_destroy_buffer(_state.models[_state.model_count].vbuf);
-        sg_destroy_buffer(_state.models[_state.model_count].ibuf);
-
-        memory_free(_state.map);
+    if (_state.map == NULL) {
+        return;
     }
+
+    memory_free(_state.map->map_data);
+    memory_free(_state.map);
+
+    _state.model_count--;
+    sg_destroy_image(_state.models[_state.model_count].texture);
+    sg_destroy_image(_state.models[_state.model_count].palette);
+    sg_destroy_buffer(_state.models[_state.model_count].vbuf);
+    sg_destroy_buffer(_state.models[_state.model_count].ibuf);
 }
 
 static void _scene_scenario_unload(void)
