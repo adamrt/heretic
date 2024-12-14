@@ -4,8 +4,8 @@
 
 #include "cglm/types-struct.h"
 
-#include "bin.h"
 #include "defines.h"
+#include "span.h"
 
 #define LIGHTING_MAX_LIGHTS (3)
 

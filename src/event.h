@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "bin.h"
 #include "defines.h"
+#include "span.h"
 
 #define EVENT_SIZE            (8192)
 #define EVENT_COUNT           (500)

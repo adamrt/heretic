@@ -46,7 +46,6 @@ add_shared_library(nuklear lib/nuklear.c)
 # Add Heretic executable
 add_executable(heretic
     src/main.c
-    src/bin.c
     src/camera.c
     src/event.c
     src/font.c
@@ -61,6 +60,7 @@ add_executable(heretic
     src/mesh.c
     src/scenario.c
     src/scene.c
+    src/span.c
     src/texture.c
     src/time.c)
 

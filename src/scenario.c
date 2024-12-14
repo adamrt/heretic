@@ -1,6 +1,7 @@
-#include "scenario.h"
-#include "bin.h"
 #include <string.h>
+
+#include "scenario.h"
+#include "span.h"
 
 scenario_t read_scenario(span_t* span)
 {

@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bin.h"
 #include "defines.h"
 #include "event.h"
 #include "font.h"
 #include "memory.h"
+#include "span.h"
 #include "util.h"
 
 // FIXME: This should be improved by parsing the instructions here as well.

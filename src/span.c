@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include "bin.h"
 #include "defines.h"
+#include "span.h"
 #include "util.h"
 
 #define FILE_SIZE_MAX (131072)

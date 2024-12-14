@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "bin.h"
 #include "defines.h"
 #include "map_record.h"
+#include "span.h"
 
 #define TEXTURE_WIDTH     (256)
 #define TEXTURE_HEIGHT    (1024)

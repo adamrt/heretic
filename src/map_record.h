@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "bin.h"
 #include "defines.h"
+#include "span.h"
 
 #define MAP_FILE_MAX_SIZE  (2388)
 #define MAP_RECORD_MAX_NUM (100)

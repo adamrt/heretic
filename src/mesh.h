@@ -2,8 +2,8 @@
 
 #include "cglm/types-struct.h"
 
-#include "bin.h"
 #include "lighting.h"
+#include "span.h"
 #include "texture.h"
 
 #define MESH_MAX_TEX_TRIS    (512)
