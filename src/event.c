@@ -9,7 +9,6 @@
 #include "span.h"
 #include "util.h"
 
-// FIXME: This should be improved by parsing the instructions here as well.
 event_t read_event(span_t* span) {
     event_t event = { 0 };
 

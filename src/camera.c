@@ -104,7 +104,7 @@ void camera_key_down(void) { _camera_elevation(TRANS_DIR_DOWN); }
 
 camera_t* camera_get_internals(void) { return &_state; }
 
-// Move camera to the next intercardinal direction to the left.
+// Move camera to the next intercardinal direction in either direction.
 //
 // Compensate for the orbital camera free movement by moving the camera to the
 // nearest intercardinal direction.
