@@ -9,11 +9,11 @@
 #include "texture.h"
 #include "util.h"
 
-static vec3s read_normal(buffer_t*);
-static geometry_t read_geometry(buffer_t*);
+static vec3s read_normal(span_t*);
+static geometry_t read_geometry(span_t*);
 static vec2s process_tex_coords(f32 u, f32 v, u8 page);
 
-mesh_t read_mesh(buffer_t* f)
+mesh_t read_mesh(span_t* f)
 {
     mesh_t mesh = { 0 };
 
@@ -27,23 +27,23 @@ mesh_t read_mesh(buffer_t* f)
     return mesh;
 }
 
-static geometry_t read_geometry(buffer_t* f)
+static geometry_t read_geometry(span_t* f)
 {
     geometry_t geometry = { 0 };
 
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
     f->offset = 0x40;
-    f->offset = read_u32(f);
+    f->offset = span_read_u32(f);
     if (f->offset == 0) {
         return geometry;
     }
 
     // The number of each type of polygon.
-    u16 N = read_u16(f); // Textured triangles
-    u16 P = read_u16(f); // Textured quads
-    u16 Q = read_u16(f); // Untextured triangles
-    u16 R = read_u16(f); // Untextured quads
+    u16 N = span_read_u16(f); // Textured triangles
+    u16 P = span_read_u16(f); // Textured quads
+    u16 Q = span_read_u16(f); // Untextured triangles
+    u16 R = span_read_u16(f); // Untextured quads
 
     // Validate maximum values
     ASSERT(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS, "Mesh polygon count exceeded");
@@ -101,16 +101,16 @@ static geometry_t read_geometry(buffer_t* f)
 
     // Triangle UV
     for (int i = 0; i < N; i++) {
-        f32 au = read_u8(f);
-        f32 av = read_u8(f);
-        f32 palette = read_u8(f);
-        (void)read_u8(f); // padding
-        f32 bu = read_u8(f);
-        f32 bv = read_u8(f);
-        f32 page = (read_u8(f) & 0x03); // 0b00000011
-        (void)read_u8(f);               // padding
-        f32 cu = read_u8(f);
-        f32 cv = read_u8(f);
+        f32 au = span_read_u8(f);
+        f32 av = span_read_u8(f);
+        f32 palette = span_read_u8(f);
+        (void)span_read_u8(f); // padding
+        f32 bu = span_read_u8(f);
+        f32 bv = span_read_u8(f);
+        f32 page = (span_read_u8(f) & 0x03); // 0b00000011
+        (void)span_read_u8(f);               // padding
+        f32 cu = span_read_u8(f);
+        f32 cv = span_read_u8(f);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -129,18 +129,18 @@ static geometry_t read_geometry(buffer_t* f)
 
     // Quad UV
     for (int i = 0; i < P; i++) {
-        f32 au = read_u8(f);
-        f32 av = read_u8(f);
-        f32 palette = read_u8(f);
-        (void)read_u8(f); // padding
-        f32 bu = read_u8(f);
-        f32 bv = read_u8(f);
-        f32 page = (read_u8(f) & 0x03); // 0b00000011
-        (void)read_u8(f);               // padding
-        f32 cu = read_u8(f);
-        f32 cv = read_u8(f);
-        f32 du = read_u8(f);
-        f32 dv = read_u8(f);
+        f32 au = span_read_u8(f);
+        f32 av = span_read_u8(f);
+        f32 palette = span_read_u8(f);
+        (void)span_read_u8(f); // padding
+        f32 bu = span_read_u8(f);
+        f32 bv = span_read_u8(f);
+        f32 page = (span_read_u8(f) & 0x03); // 0b00000011
+        (void)span_read_u8(f);               // padding
+        f32 cu = span_read_u8(f);
+        f32 cv = span_read_u8(f);
+        f32 du = span_read_u8(f);
+        f32 dv = span_read_u8(f);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -165,11 +165,11 @@ static geometry_t read_geometry(buffer_t* f)
     return geometry;
 }
 
-vec3s read_position(buffer_t* f)
+vec3s read_position(span_t* f)
 {
-    f32 x = read_i16(f);
-    f32 y = read_i16(f);
-    f32 z = read_i16(f);
+    f32 x = span_read_i16(f);
+    f32 y = span_read_i16(f);
+    f32 z = span_read_i16(f);
 
     y = -y;
     z = -z;
@@ -177,11 +177,11 @@ vec3s read_position(buffer_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s read_normal(buffer_t* f)
+static vec3s read_normal(span_t* f)
 {
-    f32 x = read_f1x3x12(f);
-    f32 y = read_f1x3x12(f);
-    f32 z = read_f1x3x12(f);
+    f32 x = span_read_f1x3x12(f);
+    f32 y = span_read_f1x3x12(f);
+    f32 z = span_read_f1x3x12(f);
 
     y = -y;
     z = -z;

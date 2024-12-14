@@ -48,20 +48,20 @@ map_t* read_map(int num, map_state_t map_state)
 
 map_data_t* read_map_data(int num)
 {
-    u8* gns_file = memory_allocate(MAP_FILE_MAX_SIZE);
-    io_read_file(map_list[num].sector, MAP_FILE_MAX_SIZE, gns_file);
-    buffer_t gns_buf = { gns_file, 0 };
+    u8* gnsfile = memory_allocate(MAP_FILE_MAX_SIZE);
+    io_read_file(map_list[num].sector, MAP_FILE_MAX_SIZE, gnsfile);
+    span_t gnsspan = { gnsfile, 0 };
 
     map_data_t* map_data = memory_allocate(sizeof(map_data_t));
-    map_data->record_count = read_map_records(&gns_buf, map_data->records);
-    memory_free(gns_file);
+    map_data->record_count = read_map_records(&gnsspan, map_data->records);
+    memory_free(gnsfile);
 
     for (int i = 0; i < map_data->record_count; i++) {
         map_record_t record = map_data->records[i];
 
         u8* file_contents = memory_allocate(record.length);
         io_read_file(record.sector, record.length, file_contents);
-        buffer_t file = { file_contents, 0 };
+        span_t file = { file_contents, 0 };
 
         switch (record.type) {
         case FILETYPE_TEXTURE: {

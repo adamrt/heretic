@@ -6,26 +6,26 @@
 
 #include "defines.h"
 
-// Simple buffer struct to allow incremental reading of different types.
-// Typically useful for reading files from the original PSX bin.
+// Span/view struct to simplify reading of binary data.
 typedef struct {
     const u8* data;
     usize offset;
-} buffer_t;
+} span_t;
 
-void read_bytes(buffer_t*, usize, u8*);
-u8 read_u8(buffer_t*);
-u16 read_u16(buffer_t*);
-u32 read_u32(buffer_t*);
-i8 read_i8(buffer_t*);
-i16 read_i16(buffer_t*);
-i32 read_i32(buffer_t*);
-f32 read_f1x3x12(buffer_t*);
+void span_read_bytes(span_t*, usize, u8*);
 
-u8 read_u8_at(buffer_t*, usize);
-u16 read_u16_at(buffer_t*, usize);
-u32 read_u32_at(buffer_t*, usize);
-i8 read_i8_at(buffer_t*, usize);
-i16 read_i16_at(buffer_t*, usize);
-i32 read_i32_at(buffer_t*, usize);
-f32 read_f1x3x12_at(buffer_t*, usize);
+u8 span_read_u8(span_t*);
+u16 span_read_u16(span_t*);
+u32 span_read_u32(span_t*);
+i8 span_read_i8(span_t*);
+i16 span_read_i16(span_t*);
+i32 span_read_i32(span_t*);
+f32 span_read_f1x3x12(span_t*);
+
+u8 span_readat_u8(span_t*, usize);
+u16 span_readat_u16(span_t*, usize);
+u32 span_readat_u32(span_t*, usize);
+i8 span_readat_i8(span_t*, usize);
+i16 span_readat_i16(span_t*, usize);
+i32 span_readat_i32(span_t*, usize);
+f32 span_readat_f1x3x12(span_t*, usize);

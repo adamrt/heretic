@@ -28,5 +28,5 @@ typedef struct {
     bool valid;
 } palette_t;
 
-texture_t read_texture(buffer_t*);
-palette_t read_palette(buffer_t*);
+texture_t read_texture(span_t*);
+palette_t read_palette(span_t*);

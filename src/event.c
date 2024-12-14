@@ -10,41 +10,41 @@
 #include "util.h"
 
 // FIXME: This should be improved by parsing the instructions here as well.
-event_t read_event(buffer_t* buf)
+event_t read_event(span_t* span)
 {
     event_t event = { 0 };
 
-    u32 text_offset = read_u32(buf);
+    u32 text_offset = span_read_u32(span);
     bool valid = text_offset != 0xF2F2F2F2;
     if (!valid) {
         return event;
     }
 
     event.valid = valid;
-    memcpy(event.data, buf->data, EVENT_SIZE);
+    memcpy(event.data, span->data, EVENT_SIZE);
 
     event.messages = memory_allocate(EVENT_MESSAGES_LEN);
     event.instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
 
-    buffer_t msgbuf = { event.data, 0 };
-    read_messages(&msgbuf, event.messages, &event.messages_len);
+    span_t msgspan = { event.data, 0 };
+    read_messages(&msgspan, event.messages, &event.messages_len);
 
-    buffer_t instbuf = { event.data, 0 };
-    read_instructions(&instbuf, event.instructions, &event.instruction_count);
+    span_t instspan = { event.data, 0 };
+    read_instructions(&instspan, event.instructions, &event.instruction_count);
 
     return event;
 }
 
-void read_messages(buffer_t* buf, char* event_text, int* out_len)
+void read_messages(span_t* span, char* event_text, int* out_len)
 {
     usize event_text_len = 0;
 
-    usize text_offset = read_u32(buf);
+    usize text_offset = span_read_u32(span);
     usize text_size = 8192 - text_offset;
 
     usize i = 0;
     while (i < text_size) {
-        u8 byte = read_u8_at(buf, text_offset + i);
+        u8 byte = span_readat_u8(span, text_offset + i);
 
         // These are special characters. We need to handle them differently.
         // https://ffhacktics.com/wiki/Text_Format#Special_Characters
@@ -67,7 +67,7 @@ void read_messages(buffer_t* buf, char* event_text, int* out_len)
             i++;
             if (i >= text_size)
                 break;
-            u8 delay = read_u8_at(buf, text_offset + i);
+            u8 delay = span_readat_u8(span, text_offset + i);
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Delay: %d}", (int)delay);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -79,7 +79,7 @@ void read_messages(buffer_t* buf, char* event_text, int* out_len)
             i++;
             if (i >= text_size)
                 break;
-            u8 color = read_u8_at(buf, text_offset + i);
+            u8 color = span_readat_u8(span, text_offset + i);
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Color: %d}", (int)color);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -97,8 +97,8 @@ void read_messages(buffer_t* buf, char* event_text, int* out_len)
             i++;
             if (i + 1 >= text_size)
                 break;
-            u8 second_byte = read_u8_at(buf, text_offset + i);
-            u8 third_byte = read_u8_at(buf, text_offset + i + 1);
+            u8 second_byte = span_readat_u8(span, text_offset + i);
+            u8 third_byte = span_readat_u8(span, text_offset + i + 1);
             (void)second_byte; // Unused
             (void)third_byte;  // Unused
             const char* text_jump = "{TextJump}";
@@ -134,7 +134,7 @@ void read_messages(buffer_t* buf, char* event_text, int* out_len)
                     i++;
                     break;
                 }
-                u8 second_byte = read_u8_at(buf, text_offset + i + 1);
+                u8 second_byte = span_readat_u8(span, text_offset + i + 1);
                 u16 combined = (second_byte | (byte << 8));
                 const char* font_str = font_get_char(combined);
                 if (font_str != NULL) {
@@ -173,15 +173,15 @@ void read_messages(buffer_t* buf, char* event_text, int* out_len)
     *out_len = event_text_len;
 }
 
-void read_instructions(buffer_t* buf, instruction_t* instructions, int* out_count)
+void read_instructions(span_t* span, instruction_t* instructions, int* out_count)
 {
-    usize text_offset = read_u32(buf);
+    usize text_offset = span_read_u32(span);
     usize code_offset = 4;
     usize code_size = text_offset - 4;
 
     usize i = 0;
     while (i < code_size) {
-        u8 code = read_u8_at(buf, code_offset + i);
+        u8 code = span_readat_u8(span, code_offset + i);
         i++;
         opcode_t opcode = opcode_list[code];
 
@@ -191,11 +191,11 @@ void read_instructions(buffer_t* buf, instruction_t* instructions, int* out_coun
             parameter_t parameter = { 0 };
             if (opcode.param_sizes[j] == 2) {
                 parameter.type = PARAMETER_TYPE_U16;
-                parameter.value.u16 = read_u16_at(buf, code_offset + 1);
+                parameter.value.u16 = span_readat_u16(span, code_offset + 1);
                 i += 2;
             } else {
                 parameter.type = PARAMETER_TYPE_U8;
-                parameter.value.u8 = read_u8_at(buf, code_offset + 1);
+                parameter.value.u8 = span_readat_u8(span, code_offset + 1);
                 i += 1;
             }
 

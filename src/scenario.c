@@ -2,16 +2,16 @@
 #include "bin.h"
 #include <string.h>
 
-scenario_t read_scenario(buffer_t* buf)
+scenario_t read_scenario(span_t* span)
 {
     scenario_t scenario = { 0 };
-    scenario.event_id = read_u16_at(buf, 0);
-    scenario.map_id = read_u8_at(buf, 2);
-    scenario.weather = read_u8_at(buf, 3);
-    scenario.time = read_u8_at(buf, 4);
-    scenario.entd_id = read_u16_at(buf, 7);
-    scenario.next_scenario_id = read_u16_at(buf, 18);
-    memcpy(&scenario.data, &buf->data[0], SCENARIO_SIZE);
+    scenario.event_id = span_readat_u16(span, 0);
+    scenario.map_id = span_readat_u8(span, 2);
+    scenario.weather = span_readat_u8(span, 3);
+    scenario.time = span_readat_u8(span, 4);
+    scenario.entd_id = span_readat_u16(span, 7);
+    scenario.next_scenario_id = span_readat_u16(span, 18);
+    memcpy(&scenario.data, &span->data[0], SCENARIO_SIZE);
     return scenario;
 }
 

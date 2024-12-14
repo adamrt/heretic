@@ -30,4 +30,4 @@ typedef struct {
     bool valid;
 } lighting_t;
 
-lighting_t read_lighting(buffer_t*);
+lighting_t read_lighting(span_t*);

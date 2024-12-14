@@ -3,16 +3,16 @@
 #include "defines.h"
 #include "texture.h"
 
-static vec4s read_rgb15(buffer_t*);
+static vec4s read_rgb15(span_t*);
 
-texture_t read_texture(buffer_t* f)
+texture_t read_texture(span_t* f)
 {
     const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2); // Each pixel stored as 1/2 a byte
 
     texture_t texture = { 0 };
 
     for (int i = 0; i < TEXTURE_ON_DISK_SIZE * 8; i += 8) {
-        u8 raw_pixel = read_u8(f);
+        u8 raw_pixel = span_read_u8(f);
         u8 right = ((raw_pixel & 0x0F));
         u8 left = ((raw_pixel & 0xF0) >> 4);
         texture.data[i + 0] = right;
@@ -29,12 +29,12 @@ texture_t read_texture(buffer_t* f)
     return texture;
 }
 
-palette_t read_palette(buffer_t* f)
+palette_t read_palette(span_t* f)
 {
     palette_t palette = { 0 };
 
     f->offset = 0x44;
-    u32 intra_file_ptr = read_u32(f);
+    u32 intra_file_ptr = span_read_u32(f);
     if (intra_file_ptr == 0) {
         return palette;
     }
@@ -53,9 +53,9 @@ palette_t read_palette(buffer_t* f)
     return palette;
 }
 
-static vec4s read_rgb15(buffer_t* f)
+static vec4s read_rgb15(span_t* f)
 {
-    u16 val = read_u16(f);
+    u16 val = span_read_u16(f);
 
     vec4s color = { 0 };
     color.r = (val & 0x001F) << 3; // 0b0000000000011111

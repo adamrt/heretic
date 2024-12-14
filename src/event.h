@@ -61,8 +61,8 @@ typedef struct {
     bool valid;
 } event_t;
 
-event_t read_event(buffer_t*);
-void read_messages(buffer_t*, char*, int*);
-void read_instructions(buffer_t*, instruction_t*, int*);
+event_t read_event(span_t*);
+void read_messages(span_t*, char*, int*);
+void read_instructions(span_t*, instruction_t*, int*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];

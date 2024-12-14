@@ -43,19 +43,19 @@ void io_init(void)
 
     // Read all scenarios and events
     for (usize i = 0; i < SCENARIO_COUNT; i++) {
-        buffer_t buf = {
+        span_t span = {
             .data = _state.attack_out + ATTACK_OUT_SCENARIO_OFFSET + (i * SCENARIO_SIZE),
             .offset = 0,
         };
-        _state.scenarios[i] = read_scenario(&buf);
+        _state.scenarios[i] = read_scenario(&span);
     }
 
     for (usize i = 0; i < EVENT_COUNT; i++) {
-        buffer_t buf = {
+        span_t span = {
             .data = _state.test_evt + (i * EVENT_SIZE),
             .offset = 0,
         };
-        _state.events[i] = read_event(&buf);
+        _state.events[i] = read_event(&span);
     }
 }
 

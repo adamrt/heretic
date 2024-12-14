@@ -2,10 +2,10 @@
 
 #include <string.h>
 
-map_record_t read_map_record(buffer_t* f)
+map_record_t read_map_record(span_t* f)
 {
     u8 bytes[MAP_RECORD_SIZE];
-    read_bytes(f, MAP_RECORD_SIZE, bytes);
+    span_read_bytes(f, MAP_RECORD_SIZE, bytes);
     usize sector = bytes[8] | bytes[9] << 8;
     usize length = (u32)(bytes[12]) | ((u32)(bytes[13]) << 8) | ((u32)(bytes[14]) << 16) | ((u32)(bytes[15]) << 24);
     filetype_e type = (bytes[4] | (bytes[5] << 8));
@@ -27,7 +27,7 @@ map_record_t read_map_record(buffer_t* f)
     return record;
 }
 
-int read_map_records(buffer_t* f, map_record_t* out_records)
+int read_map_records(span_t* f, map_record_t* out_records)
 {
     int count = 0;
     while (true) {
