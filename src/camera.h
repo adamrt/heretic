@@ -35,7 +35,6 @@ typedef struct {
 } transition_t;
 
 typedef struct {
-    mat4s proj_mat, view_mat;
     vec3s position, target;
     f32 azimuth, elevation; // In degrees
     f32 znear, zfar;

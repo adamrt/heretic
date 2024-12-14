@@ -53,10 +53,6 @@ void camera_init(void)
 
 void camera_update(void)
 {
-    f32 aspect = sapp_widthf() / sapp_heightf();
-    f32 w = _state.frustum_scale;
-    f32 h = w / aspect;
-
     _camera_process_transitions();
 
     // Transitions work with negative degrees sometimes so don't keep camera
@@ -82,23 +78,24 @@ void camera_update(void)
     vec3s scaled_position = glms_vec3_scale(position, _state.frustum_scale);
 
     _state.position = glms_vec3_add(_state.target, scaled_position);
-    _state.view_mat = glms_lookat(_state.position, _state.target, GLMS_YUP);
-
-    if (_state.use_perspective) {
-        _state.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.znear, _state.zfar);
-    } else {
-        _state.proj_mat = glms_ortho(-w, w, -h, h, _state.znear, _state.zfar);
-    }
 }
 
 mat4s camera_get_view(void)
 {
-    return _state.view_mat;
+    return glms_lookat(_state.position, _state.target, GLMS_YUP);
 }
 
 mat4s camera_get_proj(void)
 {
-    return _state.proj_mat;
+    f32 aspect = sapp_widthf() / sapp_heightf();
+    f32 w = _state.frustum_scale;
+    f32 h = w / aspect;
+
+    if (_state.use_perspective) {
+        return glms_perspective(glm_rad(60.0f), aspect, _state.znear, _state.zfar);
+    } else {
+        return glms_ortho(-w, w, -h, h, _state.znear, _state.zfar);
+    }
 }
 
 void camera_mouse_movement(f32 dx_deg, f32 dy_deg)
