@@ -145,8 +145,8 @@ static void _draw_section_camera(struct nk_context* ctx)
 
         nk_layout_row_dynamic(ctx, 25, 2);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Frustum/Distance: %f", cam->frustum_scale);
-        nk_slider_float(ctx, -32.00f, &cam->frustum_scale, 512.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Frustum/Distance: %f", cam->distance);
+        nk_slider_float(ctx, -32.00f, &cam->distance, 512.0f, 0.1f);
 
         nk_labelf(ctx, NK_TEXT_LEFT, "Elevation: %f", cam->elevation);
         nk_slider_float(ctx, -256.0f, &cam->elevation, 256.0f, 0.1f);

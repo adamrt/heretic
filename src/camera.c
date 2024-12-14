@@ -46,7 +46,7 @@ void camera_init(void)
     _state.azimuth = DIR_SE;
     _state.elevation = CAMERA_ELV_LOW;
 
-    _state.frustum_scale = 256.0f;
+    _state.distance = 256.0f;
     _state.znear = 0.01f;
     _state.zfar = 2000.0f;
 }
@@ -69,15 +69,11 @@ void camera_update(void)
     f32 azimuth_rad = glm_rad(_state.azimuth);
     f32 elevation_rad = glm_rad(_state.elevation);
 
-    vec3s position = { {
-        cosf(elevation_rad) * sinf(azimuth_rad),
-        sinf(elevation_rad),
-        -cosf(elevation_rad) * cosf(azimuth_rad),
-    } };
+    _state.position.x = _state.distance * cosf(elevation_rad) * sinf(azimuth_rad);
+    _state.position.y = _state.distance * sinf(elevation_rad);
+    _state.position.z = _state.distance * -cosf(elevation_rad) * cosf(azimuth_rad);
 
-    vec3s scaled_position = glms_vec3_scale(position, _state.frustum_scale);
-
-    _state.position = glms_vec3_add(_state.target, scaled_position);
+    _state.position = glms_vec3_add(_state.target, _state.position);
 }
 
 mat4s camera_get_view(void)
@@ -88,7 +84,7 @@ mat4s camera_get_view(void)
 mat4s camera_get_proj(void)
 {
     f32 aspect = sapp_widthf() / sapp_heightf();
-    f32 w = _state.frustum_scale;
+    f32 w = _state.distance;
     f32 h = w / aspect;
 
     if (_state.use_perspective) {
@@ -107,8 +103,8 @@ void camera_mouse_movement(f32 dx_deg, f32 dy_deg)
 
 void camera_mouse_wheel(f32 delta)
 {
-    _state.frustum_scale -= delta * SENSITIVITY;
-    _state.frustum_scale = glm_clamp(_state.frustum_scale, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+    _state.distance -= delta * SENSITIVITY;
+    _state.distance = glm_clamp(_state.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 }
 
 void camera_key_left(void)

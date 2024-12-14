@@ -38,7 +38,7 @@ typedef struct {
     vec3s position, target;
     f32 azimuth, elevation; // In degrees
     f32 znear, zfar;
-    f32 frustum_scale;
+    f32 distance;
     bool use_perspective;
     transition_t transition;
 } camera_t;
