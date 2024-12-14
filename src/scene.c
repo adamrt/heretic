@@ -25,7 +25,6 @@ typedef enum {
 
 static void _scene_switch(switch_e dir);
 static void _scene_map_unload(void);
-static void _scene_scenario_unload(void);
 
 void scene_init(void)
 {
@@ -38,7 +37,6 @@ void scene_init(void)
 void scene_shutdown(void)
 {
     _scene_map_unload();
-    _scene_scenario_unload();
 }
 
 void scene_update(void)
@@ -78,7 +76,6 @@ void scene_load_map(int num, map_state_t map_state)
 
 void scene_load_scenario(int scenario_id)
 {
-    _scene_scenario_unload();
     scenario_t scenario = io_read_scenario(scenario_id);
     map_state_t scenario_state = {
         .time = scenario.time,
@@ -86,10 +83,7 @@ void scene_load_scenario(int scenario_id)
         .layout = 0,
     };
 
-    // Load event data
     _state.event = io_read_event(scenario.event_id);
-
-    // Load map data
     scene_load_map(scenario.map_id, scenario_state);
 }
 
@@ -163,8 +157,4 @@ static void _scene_map_unload(void)
     sg_destroy_image(_state.models[_state.model_count].palette);
     sg_destroy_buffer(_state.models[_state.model_count].vbuf);
     sg_destroy_buffer(_state.models[_state.model_count].ibuf);
-}
-
-static void _scene_scenario_unload(void)
-{
 }
