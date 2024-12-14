@@ -47,7 +47,9 @@ void* memory_allocate(usize size)
 }
 void memory_free(void* ptr)
 {
-    ASSERT(ptr != NULL, "Attempted to free NULL pointer");
+    if (ptr == NULL) {
+        return;
+    }
 
     allocation_header_t* header = ((allocation_header_t*)ptr) - 1;
 
