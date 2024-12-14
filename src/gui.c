@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include <string.h>
 
-#include "cglm/util.h"
 #include "io.h"
 #include "memory.h"
 #include "sokol_app.h"
@@ -339,7 +339,6 @@ static void _draw_section_memory(struct nk_context* ctx)
         nk_labelf(ctx, NK_TEXT_LEFT, "Peak Usage: %zu (%0.2fMB)", memory_state.usage_peak, BYTES_TO_MB(memory_state.usage_peak));
         nk_labelf(ctx, NK_TEXT_LEFT, "Total Usage: %zu (%0.2fMB)", memory_state.usage_total, BYTES_TO_MB(memory_state.usage_total));
         nk_labelf(ctx, NK_TEXT_LEFT, "Current Usage: %zu (%0.2fMB)", memory_state.usage_current, BYTES_TO_MB(memory_state.usage_current));
-
         nk_tree_pop(ctx);
     }
 }
@@ -387,14 +386,23 @@ static void _draw_window_messages(struct nk_context* ctx)
 {
     if (nk_begin(ctx, "Messages", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 20, 1);
-        event_t event = scene_get_event();
-        for (int i = 0; i < EVENT_MESSAGE_MAX; i++) {
-            message_t message = event.messages[i];
-            if (message.cstr == NULL) {
-                break; // maybe continue?
-            }
+        const event_t event = scene_get_event();
+        const char* start = event.messages;
+        const char* end = event.messages + event.messages_len;
 
-            nk_labelf(ctx, NK_TEXT_LEFT, "%s", message.cstr);
+        char delimiter = 0xFE;
+
+        while (start < end) {
+            const char* delimiter_pos = memchr(start, delimiter, end - start);
+            const usize len = delimiter_pos ? (delimiter_pos - start) : (end - start);
+
+            nk_labelf(ctx, NK_TEXT_LEFT, "%.*s", (int)len, start);
+
+            if (delimiter_pos) {
+                start = delimiter_pos + 1;
+            } else {
+                break; // No more delimiters
+            }
         }
     }
     nk_end(ctx);

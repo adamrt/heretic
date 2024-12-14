@@ -1,13 +1,13 @@
 #include <stdio.h>
 
-#include "cglm/types-struct.h"
-#include "io.h"
-#include "memory.h"
 #include "sokol_gfx.h"
 
+#include "cglm/types-struct.h"
 #include "shader.glsl.h"
 
 #include "event.h"
+#include "io.h"
+#include "memory.h"
 #include "scenario.h"
 #include "scene.h"
 #include "util.h"

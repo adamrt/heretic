@@ -23,11 +23,11 @@ event_t read_event(buffer_t* buf)
     event.valid = valid;
     memcpy(event.data, buf->data, EVENT_SIZE);
 
-    event.messages = memory_allocate(EVENT_MESSAGE_MAX * sizeof(message_t));
+    event.messages = memory_allocate(EVENT_MESSAGES_LEN);
     event.instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
 
     buffer_t msgbuf = { event.data, 0 };
-    read_messages(&msgbuf, event.messages, &event.message_count);
+    read_messages(&msgbuf, event.messages, &event.messages_len);
 
     buffer_t instbuf = { event.data, 0 };
     read_instructions(&instbuf, event.instructions, &event.instruction_count);
@@ -35,10 +35,8 @@ event_t read_event(buffer_t* buf)
     return event;
 }
 
-void read_messages(buffer_t* buf, message_t* out_messages, int* out_count)
+void read_messages(buffer_t* buf, char* event_text, int* out_len)
 {
-    u8 delimiter = 0xFE;
-    char event_text[EVENT_TEXT_SIZE_MAX * 2]; // Adjust size as needed
     usize event_text_len = 0;
 
     usize text_offset = read_u32(buf);
@@ -53,7 +51,7 @@ void read_messages(buffer_t* buf, message_t* out_messages, int* out_count)
         switch (byte) {
         case 0xFE:
             // This is the message delimiter.
-            event_text[event_text_len++] = (char)delimiter;
+            event_text[event_text_len++] = 0xFE;
             i++;
             break;
         case 0xE0: {
@@ -172,39 +170,7 @@ void read_messages(buffer_t* buf, message_t* out_messages, int* out_count)
     }
 
     event_text[event_text_len] = '\0';
-
-    // Split the text into messages
-
-    const char* start = event_text;
-    char* end = event_text + event_text_len;
-
-    while (start < end && *out_count < EVENT_MESSAGE_MAX) {
-        /* Find next delimiter */
-        char* delimiter_pos = memchr(start, (char)delimiter, end - start);
-        usize len;
-        if (delimiter_pos != NULL) {
-            len = delimiter_pos - start;
-        } else {
-            len = end - start;
-        }
-
-        /* Allocate memory for the message */
-        message_t message = {
-            .len = len + 1, // +1 for null terminator
-        };
-        message.cstr = memory_allocate(message.len);
-
-        memcpy(message.cstr, start, len);
-        message.cstr[len] = '\0'; // not using message.len
-
-        out_messages[(*out_count)++] = message;
-
-        if (delimiter_pos != NULL) {
-            start = delimiter_pos + 1;
-        } else {
-            break;
-        }
-    }
+    *out_len = event_text_len;
 }
 
 void read_instructions(buffer_t* buf, instruction_t* instructions, int* out_count)

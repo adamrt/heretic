@@ -8,20 +8,13 @@
 
 #define EVENT_SIZE            (8192)
 #define EVENT_COUNT           (500)
-#define EVENT_TEXT_SIZE_MAX   (8141)
-#define EVENT_CODE_SIZE_MAX   (3647)
-#define EVENT_MESSAGE_MAX     (1024)
+#define EVENT_MESSAGES_LEN    (16384)
 #define EVENT_INSTRUCTION_MAX (768)
 #define EVENT_PARAMETER_MAX   (14)
 
 // There are 126 opcodes in the game. The highest opcode id is 242.
 #define OPCODE_COUNT  (126)
 #define OPCODE_ID_MAX (243)
-
-typedef struct {
-    char* cstr;
-    usize len;
-} message_t;
 
 typedef struct {
     int id;
@@ -58,8 +51,8 @@ typedef struct {
 // - code_section: Bytes 5 to text_offset is the code section.
 // - text_section: Bytes text_offset thru 8192 is the text section.
 typedef struct {
-    message_t* messages;
-    int message_count;
+    char* messages;
+    int messages_len;
 
     instruction_t* instructions;
     int instruction_count;
@@ -69,7 +62,7 @@ typedef struct {
 } event_t;
 
 event_t read_event(buffer_t*);
-void read_messages(buffer_t*, message_t*, int*);
+void read_messages(buffer_t*, char*, int*);
 void read_instructions(buffer_t*, instruction_t*, int*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];

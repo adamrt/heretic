@@ -68,13 +68,8 @@ void io_shutdown(void)
 
     for (usize i = 0; i < EVENT_COUNT; i++) {
         event_t* event = &_state.events[i];
-
-        // Free event messages
-        for (int j = 0; j < event->message_count; j++) {
-            memory_free(event->messages[j].cstr);
-        }
         memory_free(event->messages);
-        event->message_count = 0;
+        event->messages_len = 0;
 
         // Free event instructions
         memory_free(event->instructions);
