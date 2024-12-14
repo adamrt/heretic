@@ -13,12 +13,12 @@ static vec3s read_normal(span_t*);
 static geometry_t read_geometry(span_t*);
 static vec2s process_tex_coords(f32 u, f32 v, u8 page);
 
-mesh_t read_mesh(span_t* f) {
+mesh_t read_mesh(span_t* span) {
     mesh_t mesh = { 0 };
 
-    mesh.geometry = read_geometry(f);
-    mesh.palette = read_palette(f);
-    mesh.lighting = read_lighting(f);
+    mesh.geometry = read_geometry(span);
+    mesh.palette = read_palette(span);
+    mesh.lighting = read_lighting(span);
 
     bool is_valid = mesh.geometry.valid || mesh.palette.valid || mesh.lighting.valid;
     mesh.valid = is_valid;
@@ -26,22 +26,21 @@ mesh_t read_mesh(span_t* f) {
     return mesh;
 }
 
-static geometry_t read_geometry(span_t* f) {
+static geometry_t read_geometry(span_t* span) {
     geometry_t geometry = { 0 };
 
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
-    f->offset = 0x40;
-    f->offset = span_read_u32(f);
-    if (f->offset == 0) {
+    span->offset = span_readat_u32(span, 0x40);
+    if (span->offset == 0) {
         return geometry;
     }
 
     // The number of each type of polygon.
-    u16 N = span_read_u16(f); // Textured triangles
-    u16 P = span_read_u16(f); // Textured quads
-    u16 Q = span_read_u16(f); // Untextured triangles
-    u16 R = span_read_u16(f); // Untextured quads
+    u16 N = span_read_u16(span); // Textured triangles
+    u16 P = span_read_u16(span); // Textured quads
+    u16 Q = span_read_u16(span); // Untextured triangles
+    u16 R = span_read_u16(span); // Untextured quads
 
     // Validate maximum values
     ASSERT(N < MESH_MAX_TEX_TRIS && P < MESH_MAX_TEX_QUADS && Q < MESH_MAX_UNTEX_TRIS && R < MESH_MAX_TEX_QUADS, "Mesh polygon count exceeded");
@@ -54,61 +53,61 @@ static geometry_t read_geometry(span_t* f) {
 
     // Textured triangle
     for (int i = 0; i < N; i++) {
-        geometry.tex_tris[i].a.position = read_position(f);
-        geometry.tex_tris[i].b.position = read_position(f);
-        geometry.tex_tris[i].c.position = read_position(f);
+        geometry.tex_tris[i].a.position = read_position(span);
+        geometry.tex_tris[i].b.position = read_position(span);
+        geometry.tex_tris[i].c.position = read_position(span);
     }
 
     // Textured quads
     for (int i = 0; i < P; i++) {
-        geometry.tex_quads[i].a.position = read_position(f);
-        geometry.tex_quads[i].b.position = read_position(f);
-        geometry.tex_quads[i].c.position = read_position(f);
-        geometry.tex_quads[i].d.position = read_position(f);
+        geometry.tex_quads[i].a.position = read_position(span);
+        geometry.tex_quads[i].b.position = read_position(span);
+        geometry.tex_quads[i].c.position = read_position(span);
+        geometry.tex_quads[i].d.position = read_position(span);
     }
 
     // Untextured triangle
     for (int i = 0; i < Q; i++) {
-        geometry.untex_tris[i].a.position = read_position(f);
-        geometry.untex_tris[i].b.position = read_position(f);
-        geometry.untex_tris[i].c.position = read_position(f);
+        geometry.untex_tris[i].a.position = read_position(span);
+        geometry.untex_tris[i].b.position = read_position(span);
+        geometry.untex_tris[i].c.position = read_position(span);
     }
 
     // Untextured quads
     for (int i = 0; i < R; i++) {
-        geometry.untex_quads[i].a.position = read_position(f);
-        geometry.untex_quads[i].b.position = read_position(f);
-        geometry.untex_quads[i].c.position = read_position(f);
-        geometry.untex_quads[i].d.position = read_position(f);
+        geometry.untex_quads[i].a.position = read_position(span);
+        geometry.untex_quads[i].b.position = read_position(span);
+        geometry.untex_quads[i].c.position = read_position(span);
+        geometry.untex_quads[i].d.position = read_position(span);
     }
 
     // Triangle normals
     for (int i = 0; i < N; i++) {
-        geometry.tex_tris[i].a.normal = read_normal(f);
-        geometry.tex_tris[i].b.normal = read_normal(f);
-        geometry.tex_tris[i].c.normal = read_normal(f);
+        geometry.tex_tris[i].a.normal = read_normal(span);
+        geometry.tex_tris[i].b.normal = read_normal(span);
+        geometry.tex_tris[i].c.normal = read_normal(span);
     };
 
     // Quad normals
     for (int i = 0; i < P; i++) {
-        geometry.tex_quads[i].a.normal = read_normal(f);
-        geometry.tex_quads[i].b.normal = read_normal(f);
-        geometry.tex_quads[i].c.normal = read_normal(f);
-        geometry.tex_quads[i].d.normal = read_normal(f);
+        geometry.tex_quads[i].a.normal = read_normal(span);
+        geometry.tex_quads[i].b.normal = read_normal(span);
+        geometry.tex_quads[i].c.normal = read_normal(span);
+        geometry.tex_quads[i].d.normal = read_normal(span);
     };
 
     // Triangle UV
     for (int i = 0; i < N; i++) {
-        f32 au = span_read_u8(f);
-        f32 av = span_read_u8(f);
-        f32 palette = span_read_u8(f);
-        (void)span_read_u8(f); // padding
-        f32 bu = span_read_u8(f);
-        f32 bv = span_read_u8(f);
-        f32 page = (span_read_u8(f) & 0x03); // 0b00000011
-        (void)span_read_u8(f);               // padding
-        f32 cu = span_read_u8(f);
-        f32 cv = span_read_u8(f);
+        f32 au = span_read_u8(span);
+        f32 av = span_read_u8(span);
+        f32 palette = span_read_u8(span);
+        (void)span_read_u8(span); // padding
+        f32 bu = span_read_u8(span);
+        f32 bv = span_read_u8(span);
+        f32 page = (span_read_u8(span) & 0x03); // 0b00000011
+        (void)span_read_u8(span);               // padding
+        f32 cu = span_read_u8(span);
+        f32 cv = span_read_u8(span);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -127,18 +126,18 @@ static geometry_t read_geometry(span_t* f) {
 
     // Quad UV
     for (int i = 0; i < P; i++) {
-        f32 au = span_read_u8(f);
-        f32 av = span_read_u8(f);
-        f32 palette = span_read_u8(f);
-        (void)span_read_u8(f); // padding
-        f32 bu = span_read_u8(f);
-        f32 bv = span_read_u8(f);
-        f32 page = (span_read_u8(f) & 0x03); // 0b00000011
-        (void)span_read_u8(f);               // padding
-        f32 cu = span_read_u8(f);
-        f32 cv = span_read_u8(f);
-        f32 du = span_read_u8(f);
-        f32 dv = span_read_u8(f);
+        f32 au = span_read_u8(span);
+        f32 av = span_read_u8(span);
+        f32 palette = span_read_u8(span);
+        (void)span_read_u8(span); // padding
+        f32 bu = span_read_u8(span);
+        f32 bv = span_read_u8(span);
+        f32 page = (span_read_u8(span) & 0x03); // 0b00000011
+        (void)span_read_u8(span);               // padding
+        f32 cu = span_read_u8(span);
+        f32 cv = span_read_u8(span);
+        f32 du = span_read_u8(span);
+        f32 dv = span_read_u8(span);
 
         vec2s a = process_tex_coords(au, av, page);
         vec2s b = process_tex_coords(bu, bv, page);
@@ -163,10 +162,10 @@ static geometry_t read_geometry(span_t* f) {
     return geometry;
 }
 
-vec3s read_position(span_t* f) {
-    f32 x = span_read_i16(f);
-    f32 y = span_read_i16(f);
-    f32 z = span_read_i16(f);
+vec3s read_position(span_t* span) {
+    f32 x = span_read_i16(span);
+    f32 y = span_read_i16(span);
+    f32 z = span_read_i16(span);
 
     y = -y;
     z = -z;
@@ -174,10 +173,10 @@ vec3s read_position(span_t* f) {
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s read_normal(span_t* f) {
-    f32 x = span_read_f1x3x12(f);
-    f32 y = span_read_f1x3x12(f);
-    f32 z = span_read_f1x3x12(f);
+static vec3s read_normal(span_t* span) {
+    f32 x = span_read_f1x3x12(span);
+    f32 y = span_read_f1x3x12(span);
+    f32 z = span_read_f1x3x12(span);
 
     y = -y;
     z = -z;

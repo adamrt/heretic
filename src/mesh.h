@@ -70,8 +70,8 @@ typedef struct {
     bool valid;
 } mesh_t;
 
-vec3s read_position(span_t* f);
+vec3s read_position(span_t*);
 mesh_t read_mesh(span_t*);
 void merge_meshes(mesh_t*, mesh_t*);
-vec3s vertices_centered(vertices_t* vertices);
+vec3s vertices_centered(vertices_t*);
 vertices_t geometry_to_vertices(geometry_t*);
