@@ -22,9 +22,8 @@ typedef struct {
     int current_scenario;
     int current_map;
 
-    message_t* messages;
+    event_t event;
     instruction_t* instructions;
-    int message_count;
     int instruction_count;
 } scene_t;
 
@@ -39,9 +38,8 @@ scene_t* scene_get_internals(void);
 void scene_load_map(int num, map_state_t state);
 void scene_load_scenario(int num);
 
-message_t* scene_get_messages(void);
+event_t scene_get_event(void);
 instruction_t* scene_get_instructions(void);
-int scene_get_message_count(void);
 int scene_get_instruction_count(void);
 
 void scene_prev(void);

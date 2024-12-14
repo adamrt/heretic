@@ -19,32 +19,33 @@ event_t read_event(buffer_t* buf)
     }
 
     usize code_size = text_offset - 4;
-    usize text_size = 8192 - text_offset;
     ASSERT(code_size <= EVENT_CODE_SIZE_MAX, "Event code size exceeded");
-    ASSERT(text_size <= EVENT_TEXT_SIZE_MAX, "Event text size exceeded");
 
     event_t event = { 0 };
     event.valid = valid;
     event.code_size = code_size;
-    event.text_size = text_size;
     memcpy(event.data, buf->data, EVENT_SIZE);
     memcpy(event.code, buf->data + 4, code_size);
-    memcpy(event.text, buf->data + text_offset, text_size);
+
+    buffer_t msgbuf = { event.data, 0 };
+    event.messages = memory_allocate(EVENT_MESSAGE_MAX * sizeof(message_t));
+    read_messages(&msgbuf, event.messages, &event.message_count);
 
     return event;
 }
 
-message_t* event_get_messages(event_t event, int* count)
+void read_messages(buffer_t* buf, message_t* out_messages, int* out_count)
 {
-    message_t* messages = memory_allocate(EVENT_MESSAGE_MAX * sizeof(message_t));
-
     u8 delimiter = 0xFE;
     char event_text[EVENT_TEXT_SIZE_MAX * 2]; // Adjust size as needed
     usize event_text_len = 0;
 
+    usize text_offset = read_u32(buf);
+    usize text_size = 8192 - text_offset;
+
     usize i = 0;
-    while (i < event.text_size) {
-        u8 byte = event.text[i];
+    while (i < text_size) {
+        u8 byte = read_u8_at(buf, text_offset + i);
 
         // These are special characters. We need to handle them differently.
         // https://ffhacktics.com/wiki/Text_Format#Special_Characters
@@ -65,9 +66,9 @@ message_t* event_get_messages(event_t event, int* count)
         }
         case 0xE2: {
             i++;
-            if (i >= event.text_size)
+            if (i >= text_size)
                 break;
-            u8 delay = event.text[i];
+            u8 delay = read_u8_at(buf, text_offset + i);
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Delay: %d}", (int)delay);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -77,9 +78,9 @@ message_t* event_get_messages(event_t event, int* count)
         }
         case 0xE3: {
             i++;
-            if (i >= event.text_size)
+            if (i >= text_size)
                 break;
-            u8 color = event.text[i];
+            u8 color = read_u8_at(buf, text_offset + i);
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Color: %d}", (int)color);
             memcpy(&event_text[event_text_len], buffer, len);
@@ -95,10 +96,10 @@ message_t* event_get_messages(event_t event, int* count)
             // The next 2 bytes are the jump location and how many bytes to read.
             // https://gomtuu.org/fft/trans/compression/
             i++;
-            if (i + 1 >= event.text_size)
+            if (i + 1 >= text_size)
                 break;
-            u8 second_byte = event.text[i];
-            u8 third_byte = event.text[i + 1];
+            u8 second_byte = read_u8_at(buf, text_offset + i);
+            u8 third_byte = read_u8_at(buf, text_offset + i + 1);
             (void)second_byte; // Unused
             (void)third_byte;  // Unused
             const char* text_jump = "{TextJump}";
@@ -129,12 +130,12 @@ message_t* event_get_messages(event_t event, int* count)
         default: {
             if (byte > 0xCF) {
                 /* Two-byte character */
-                if (i + 1 >= event.text_size) {
+                if (i + 1 >= text_size) {
                     /* Can't read second byte */
                     i++;
                     break;
                 }
-                u8 second_byte = event.text[i + 1];
+                u8 second_byte = read_u8_at(buf, text_offset + i + 1);
                 u16 combined = (second_byte | (byte << 8));
                 const char* font_str = font_get_char(combined);
                 if (font_str != NULL) {
@@ -176,7 +177,7 @@ message_t* event_get_messages(event_t event, int* count)
     const char* start = event_text;
     char* end = event_text + event_text_len;
 
-    while (start < end && *count < EVENT_MESSAGE_MAX) {
+    while (start < end && *out_count < EVENT_MESSAGE_MAX) {
         /* Find next delimiter */
         char* delimiter_pos = memchr(start, (char)delimiter, end - start);
         usize len;
@@ -195,7 +196,7 @@ message_t* event_get_messages(event_t event, int* count)
         memcpy(message.cstr, start, len);
         message.cstr[len] = '\0'; // not using message.len
 
-        messages[(*count)++] = message;
+        out_messages[(*out_count)++] = message;
 
         if (delimiter_pos != NULL) {
             start = delimiter_pos + 1;
@@ -203,7 +204,6 @@ message_t* event_get_messages(event_t event, int* count)
             break;
         }
     }
-    return messages;
 }
 
 instruction_t* event_get_instructions(event_t event, int* count)

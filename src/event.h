@@ -18,6 +18,11 @@
 #define OPCODE_COUNT  (126)
 #define OPCODE_ID_MAX (243)
 
+typedef struct {
+    char* cstr;
+    usize len;
+} message_t;
+
 // An event is a list of text and instructions for a particular scenario.
 //
 // Events are alway 8192 (0x2000) bytes long. There are 3 components.
@@ -27,19 +32,15 @@
 // - code_section: Bytes 5 to text_offset is the code section.
 // - text_section: Bytes text_offset thru 8192 is the text section.
 typedef struct {
-    u8 text[EVENT_TEXT_SIZE_MAX];
     u8 code[EVENT_CODE_SIZE_MAX];
-    usize text_size;
     usize code_size;
+
+    message_t* messages;
+    int message_count;
 
     u8 data[EVENT_SIZE];
     bool valid;
 } event_t;
-
-typedef struct {
-    char* cstr;
-    usize len;
-} message_t;
 
 typedef struct {
     int id;
@@ -68,7 +69,7 @@ typedef struct {
 } instruction_t;
 
 event_t read_event(buffer_t*);
+void read_messages(buffer_t*, message_t*, int*);
 instruction_t* event_get_instructions(event_t, int*);
-message_t* event_get_messages(event_t, int*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];

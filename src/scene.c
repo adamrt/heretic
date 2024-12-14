@@ -86,17 +86,15 @@ void scene_load_scenario(int scenario_id)
     };
 
     // Load scenario data
-    event_t event = io_read_event(scenario.event_id);
-    _state.messages = event_get_messages(event, &_state.message_count);
-    _state.instructions = event_get_instructions(event, &_state.instruction_count);
+    _state.event = io_read_event(scenario.event_id);
+    _state.instructions = event_get_instructions(_state.event, &_state.instruction_count);
 
     // Load map data
     scene_load_map(scenario.map_id, scenario_state);
 }
 
-message_t* scene_get_messages(void) { return _state.messages; }
+event_t scene_get_event(void) { return _state.event; }
 instruction_t* scene_get_instructions(void) { return _state.instructions; }
-int scene_get_message_count(void) { return _state.message_count; }
 int scene_get_instruction_count(void) { return _state.instruction_count; }
 
 void scene_prev(void)
@@ -171,13 +169,6 @@ static void _scene_map_unload(void)
 
 static void _scene_scenario_unload(void)
 {
-    for (int i = 0; i < _state.message_count; i++) {
-        memory_free(_state.messages[i].cstr);
-    }
-
-    memory_free(_state.messages);
-    _state.message_count = 0;
-
     memory_free(_state.instructions);
     _state.instruction_count = 0;
 }

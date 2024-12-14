@@ -65,6 +65,15 @@ void io_shutdown(void)
     memory_free(_state.test_evt);
     memory_free(_state.attack_out);
     memory_free(_state.scenarios);
+
+    for (usize i = 0; i < EVENT_COUNT; i++) {
+        event_t* event = &_state.events[i];
+        for (int j = 0; j < event->message_count; j++) {
+            memory_free(event->messages[j].cstr);
+        }
+        memory_free(event->messages);
+        event->message_count = 0;
+    }
     memory_free(_state.events);
 }
 
