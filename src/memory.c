@@ -1,13 +1,7 @@
 #include "memory.h"
 #include "util.h"
 
-static struct {
-    usize memory_usage_peak;
-    usize memory_usage_total;
-    usize memory_usage_current;
-    usize memory_allocations_total;
-    usize memory_allocations_current;
-} _state;
+memory_stats_t memory_state;
 
 typedef struct {
     usize size;
@@ -16,25 +10,24 @@ typedef struct {
 
 void memory_init(void)
 {
-    // Useless due to static allocation, but nothing else to go here :)
-    _state.memory_usage_peak = 0;
-    _state.memory_usage_total = 0;
-    _state.memory_usage_current = 0;
-    _state.memory_allocations_total = 0;
-    _state.memory_allocations_current = 0;
+    memory_state.usage_peak = 0;
+    memory_state.usage_total = 0;
+    memory_state.usage_current = 0;
+    memory_state.allocations_total = 0;
+    memory_state.allocations_current = 0;
 }
 
 void memory_shutdown(void)
 {
-    if (_state.memory_allocations_current != 0) {
-        printf("Memory leak detected: %zu allocations remaining\n", _state.memory_allocations_current);
+    if (memory_state.allocations_current != 0) {
+        printf("Memory leak detected: %zu allocations remaining\n", memory_state.allocations_current);
     }
-    if (_state.memory_usage_current != 0) {
-        printf("Memory leak detected: %zu bytes remaining\n", _state.memory_usage_current);
+    if (memory_state.usage_current != 0) {
+        printf("Memory leak detected: %zu bytes remaining\n", memory_state.usage_current);
     }
-    printf("Memory usage peak: %0.2fMB\n", BYTES_TO_MB(_state.memory_usage_peak));
-    printf("Memory usage total: %0.2fMB\n", BYTES_TO_MB(_state.memory_usage_total));
-    printf("Memory allocations: %zu\n", _state.memory_allocations_total);
+    printf("Memory usage peak: %0.2fMB\n", BYTES_TO_MB(memory_state.usage_peak));
+    printf("Memory usage total: %0.2fMB\n", BYTES_TO_MB(memory_state.usage_total));
+    printf("Memory allocations: %zu\n", memory_state.allocations_total);
 }
 
 void* memory_allocate(usize size)
@@ -44,11 +37,11 @@ void* memory_allocate(usize size)
 
     header->size = size;
 
-    _state.memory_usage_current += size;
-    _state.memory_usage_peak = MAX(_state.memory_usage_peak, _state.memory_usage_current);
-    _state.memory_usage_total += size;
-    _state.memory_allocations_total++;
-    _state.memory_allocations_current++;
+    memory_state.usage_current += size;
+    memory_state.usage_peak = MAX(memory_state.usage_peak, memory_state.usage_current);
+    memory_state.usage_total += size;
+    memory_state.allocations_total++;
+    memory_state.allocations_current++;
 
     return (void*)(header + 1);
 }
@@ -58,8 +51,8 @@ void memory_free(void* ptr)
 
     allocation_header_t* header = ((allocation_header_t*)ptr) - 1;
 
-    _state.memory_allocations_current--;
-    _state.memory_usage_current -= header->size;
+    memory_state.allocations_current--;
+    memory_state.usage_current -= header->size;
 
     free(header);
 }

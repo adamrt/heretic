@@ -2,9 +2,11 @@
 
 #include "cglm/util.h"
 #include "io.h"
+#include "memory.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
+#include "util.h"
 
 // If these are changed, update the libs.c file as well.
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
@@ -49,6 +51,7 @@ static void _draw_section_lights(struct nk_context* ctx);
 static void _draw_section_camera(struct nk_context* ctx);
 static void _draw_section_game_camera(struct nk_context* ctx);
 static void _draw_section_orbit_camera(struct nk_context* ctx);
+static void _draw_section_memory(struct nk_context* ctx);
 static void _draw_section_misc(struct nk_context* ctx);
 
 static void _draw_dropdown_map(struct nk_context* ctx);
@@ -102,6 +105,7 @@ static void _draw(void)
 
         _draw_section_lights(ctx);
         _draw_section_camera(ctx);
+        _draw_section_memory(ctx);
         _draw_section_misc(ctx);
     }
     nk_end(ctx);
@@ -322,6 +326,20 @@ static void _draw_section_lights(struct nk_context* ctx)
                 nk_combo_end(ctx);
             }
         }
+        nk_tree_pop(ctx);
+    }
+}
+
+static void _draw_section_memory(struct nk_context* ctx)
+{
+    if (nk_tree_push(ctx, NK_TREE_TAB, "Memory", NK_MINIMIZED)) {
+        nk_layout_row_dynamic(ctx, 20, 1);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Current Allocations: %zu", memory_state.allocations_current);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Total Allocations: %zu", memory_state.allocations_total);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Peak Usage: %zu (%0.2fMB)", memory_state.usage_peak, BYTES_TO_MB(memory_state.usage_peak));
+        nk_labelf(ctx, NK_TEXT_LEFT, "Total Usage: %zu (%0.2fMB)", memory_state.usage_total, BYTES_TO_MB(memory_state.usage_total));
+        nk_labelf(ctx, NK_TEXT_LEFT, "Current Usage: %zu (%0.2fMB)", memory_state.usage_current, BYTES_TO_MB(memory_state.usage_current));
+
         nk_tree_pop(ctx);
     }
 }
