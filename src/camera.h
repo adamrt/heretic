@@ -6,10 +6,8 @@
 
 #include "defines.h"
 
-#define CAMERA_DIST_MIN  (0.01f)
-#define CAMERA_DIST_MAX  (1000.0f)
-#define CAMERA_ZNEAR_MIN (0.01f)
-#define CAMERA_ZFAR_MAX  (2000.0f)
+#define CAMERA_DIST_MIN (0.01f)
+#define CAMERA_DIST_MAX (1000.0f)
 
 typedef enum {
     TRANS_DIR_LEFT,
@@ -35,9 +33,9 @@ typedef struct {
 } transition_t;
 
 typedef struct {
-    vec3s position, target;
+    vec3s position;
+    vec3s target;
     f32 azimuth, elevation; // In degrees
-    f32 znear, zfar;
     f32 distance;
     bool use_perspective;
     transition_t transition;

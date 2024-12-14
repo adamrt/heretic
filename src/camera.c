@@ -47,8 +47,6 @@ void camera_init(void)
     _state.elevation = CAMERA_ELV_LOW;
 
     _state.distance = 256.0f;
-    _state.znear = 0.01f;
-    _state.zfar = 2000.0f;
 }
 
 void camera_update(void)
@@ -88,9 +86,9 @@ mat4s camera_get_proj(void)
     f32 h = w / aspect;
 
     if (_state.use_perspective) {
-        return glms_perspective(glm_rad(60.0f), aspect, _state.znear, _state.zfar);
+        return glms_perspective(glm_rad(60.0f), aspect, 0.01f, 2000.0f);
     } else {
-        return glms_ortho(-w, w, -h, h, _state.znear, _state.zfar);
+        return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
     }
 }
 

@@ -128,12 +128,11 @@ static void _draw(void)
 static void _draw_section_camera(struct nk_context* ctx)
 {
     if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
-        nk_layout_row_static(ctx, 20, 80, 3);
-
         camera_t* cam = camera_get_internals();
 
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
 
         nk_layout_row_dynamic(ctx, 25, 2);
         nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", cam->position.x);
@@ -143,28 +142,13 @@ static void _draw_section_camera(struct nk_context* ctx)
         nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", cam->position.z);
         nk_slider_float(ctx, -640.00f, &cam->position.z, 640.0f, 0.1f);
 
-        nk_layout_row_dynamic(ctx, 25, 2);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Frustum/Distance: %f", cam->distance);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", cam->distance);
         nk_slider_float(ctx, -32.00f, &cam->distance, 512.0f, 0.1f);
-
         nk_labelf(ctx, NK_TEXT_LEFT, "Elevation: %f", cam->elevation);
-        nk_slider_float(ctx, -256.0f, &cam->elevation, 256.0f, 0.1f);
-
+        nk_slider_float(ctx, -360.0f, &cam->elevation, 360.0f, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth: %f", cam->azimuth);
-        nk_slider_float(ctx, -256.0f, &cam->azimuth, 256.0f, 0.1f);
+        nk_slider_float(ctx, 0.0f, &cam->azimuth, 360.0f, 0.1f);
 
-        nk_labelf(ctx, NK_TEXT_LEFT, "Near: %f", cam->znear);
-        nk_slider_float(ctx, -100.01f, &cam->znear, CAMERA_ZFAR_MAX * 2, 0.1f);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Far: %f", cam->zfar);
-        nk_slider_float(ctx, -100.01f, &cam->zfar, CAMERA_ZFAR_MAX * 2, 0.1f);
-
-        nk_layout_row_dynamic(ctx, 25, 1);
-
-        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
-        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth Degrees: %f", cam->azimuth);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation Degrees: %f", cam->elevation);
         nk_tree_pop(ctx);
     }
 }
