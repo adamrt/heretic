@@ -34,157 +34,44 @@
 
 #define CAMERA_TRANS_FRAMES (45.0f)
 
-static struct {
-    camtype_e type;
-
-    game_camera_t game;
-    orbit_camera_t orbit;
-} _state;
-
-// Forward declarations
-static void _game_camera_init(void);
-static void _game_camera_update(void);
-
-static void _orbit_camera_init(void);
-static void _orbit_camera_update(void);
-static void _orbit_camera_azimuth(transition_dir_e);
-static void _orbit_camera_elevation(transition_dir_e);
-static void _orbit_camera_process_transitions(void);
-
-void camera_set_type(camtype_e type)
-{
-    _state.type = type;
-}
-
-camtype_e camera_get_type(void)
-{
-    return _state.type;
-}
+static void _camera_azimuth(transition_dir_e);
+static void _camera_elevation(transition_dir_e);
+static void _camera_process_transitions(void);
+static camera_t _state;
 
 void camera_init(void)
 {
-    _state.type = CAMTYPE_ORBIT;
+    _state.target = glms_vec3_zero();
 
-    _game_camera_init();
-    _orbit_camera_init();
+    _state.azimuth = DIR_SE;
+    _state.elevation = CAMERA_ELV_LOW;
+
+    _state.frustum_scale = 256.0f;
+    _state.znear = 0.01f;
+    _state.zfar = 2000.0f;
 }
 
 void camera_update(void)
 {
-    _game_camera_update();
-    _orbit_camera_update();
-}
-
-mat4s camera_get_view(void)
-{
-    return _state.type == CAMTYPE_GAME ? _state.game.view_mat : _state.orbit.view_mat;
-}
-
-mat4s camera_get_proj(void)
-{
-    return _state.type == CAMTYPE_GAME ? _state.game.proj_mat : _state.orbit.proj_mat;
-}
-void camera_mouse_movement(f32 dx_deg, f32 dy_deg)
-{
-    _state.orbit.azimuth += dx_deg;
-    _state.orbit.elevation += dy_deg;
-    _state.orbit.elevation = glm_clamp(_state.orbit.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
-}
-
-void camera_mouse_wheel(f32 delta)
-{
-    _state.orbit.frustum_scale -= delta * SENSITIVITY;
-    _state.orbit.frustum_scale = glm_clamp(_state.orbit.frustum_scale, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
-}
-
-void camera_key_left(void)
-{
-    _orbit_camera_azimuth(TRANS_DIR_LEFT);
-}
-void camera_key_right(void)
-{
-    _orbit_camera_azimuth(TRANS_DIR_RIGHT);
-}
-void camera_key_up(void)
-{
-    _orbit_camera_elevation(TRANS_DIR_UP);
-}
-void camera_key_down(void)
-{
-    _orbit_camera_elevation(TRANS_DIR_DOWN);
-}
-
-game_camera_t* game_camera_get_internals(void) { return &_state.game; }
-orbit_camera_t* orbit_camera_get_internals(void) { return &_state.orbit; }
-
-static void _game_camera_init(void)
-{
-    _state.game.position = (vec3s) { { 156.0f, 128.0f, 156.0f } };
-    _state.game.pitch = -30.0f;
-    _state.game.yaw = -45.0f;
-    _state.game.znear = 0.01f;
-    _state.game.zfar = 2000.0f;
-    _state.game.frustum_scale = 256.0f;
-}
-
-static void _game_camera_update(void)
-{
-    f32 yaw_rad = glm_rad(_state.game.yaw);
-    f32 pitch_rad = glm_rad(_state.game.pitch);
-
-    vec3s forward = glms_vec3_normalize((vec3s) { {
-        cosf(pitch_rad) * sinf(yaw_rad),
-        sinf(pitch_rad),
-        -cosf(pitch_rad) * cosf(yaw_rad),
-    } });
-
-    vec3s target = glms_vec3_add(_state.game.position, forward);
-    _state.game.view_mat = glms_lookat(_state.game.position, target, GLMS_YUP);
-
     f32 aspect = sapp_widthf() / sapp_heightf();
-    f32 w = _state.game.frustum_scale;
+    f32 w = _state.frustum_scale;
     f32 h = w / aspect;
 
-    if (_state.game.use_perspective) {
-        _state.game.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.game.znear, _state.game.zfar);
-    } else {
-        _state.game.proj_mat = glms_ortho(-w, w, -h, h, _state.game.znear, _state.game.zfar);
-    }
-}
-
-static void _orbit_camera_init(void)
-{
-    _state.orbit.target = glms_vec3_zero();
-
-    _state.orbit.azimuth = DIR_SE;
-    _state.orbit.elevation = CAMERA_ELV_LOW;
-
-    _state.orbit.frustum_scale = 256.0f;
-    _state.orbit.znear = 0.01f;
-    _state.orbit.zfar = 2000.0f;
-}
-
-static void _orbit_camera_update(void)
-{
-    f32 aspect = sapp_widthf() / sapp_heightf();
-    f32 w = _state.orbit.frustum_scale;
-    f32 h = w / aspect;
-
-    _orbit_camera_process_transitions();
+    _camera_process_transitions();
 
     // Transitions work with negative degrees sometimes so don't keep camera
     // position degrees positive mid-transition.
-    if (!_state.orbit.transition.valid) {
-        if (_state.orbit.azimuth >= 360.0f) {
-            _state.orbit.azimuth -= 360.0f;
+    if (!_state.transition.valid) {
+        if (_state.azimuth >= 360.0f) {
+            _state.azimuth -= 360.0f;
         }
-        if (_state.orbit.azimuth < 0.0f) {
-            _state.orbit.azimuth += 360.0f;
+        if (_state.azimuth < 0.0f) {
+            _state.azimuth += 360.0f;
         }
     }
 
-    f32 azimuth_rad = glm_rad(_state.orbit.azimuth);
-    f32 elevation_rad = glm_rad(_state.orbit.elevation);
+    f32 azimuth_rad = glm_rad(_state.azimuth);
+    f32 elevation_rad = glm_rad(_state.elevation);
 
     vec3s position = { {
         cosf(elevation_rad) * sinf(azimuth_rad),
@@ -192,17 +79,59 @@ static void _orbit_camera_update(void)
         -cosf(elevation_rad) * cosf(azimuth_rad),
     } };
 
-    vec3s scaled_position = glms_vec3_scale(position, _state.orbit.frustum_scale);
+    vec3s scaled_position = glms_vec3_scale(position, _state.frustum_scale);
 
-    _state.orbit.position = glms_vec3_add(_state.orbit.target, scaled_position);
-    _state.orbit.view_mat = glms_lookat(_state.orbit.position, _state.orbit.target, GLMS_YUP);
+    _state.position = glms_vec3_add(_state.target, scaled_position);
+    _state.view_mat = glms_lookat(_state.position, _state.target, GLMS_YUP);
 
-    if (_state.orbit.use_perspective) {
-        _state.orbit.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.orbit.znear, _state.orbit.zfar);
+    if (_state.use_perspective) {
+        _state.proj_mat = glms_perspective(glm_rad(60.0f), aspect, _state.znear, _state.zfar);
     } else {
-        _state.orbit.proj_mat = glms_ortho(-w, w, -h, h, _state.orbit.znear, _state.orbit.zfar);
+        _state.proj_mat = glms_ortho(-w, w, -h, h, _state.znear, _state.zfar);
     }
 }
+
+mat4s camera_get_view(void)
+{
+    return _state.view_mat;
+}
+
+mat4s camera_get_proj(void)
+{
+    return _state.proj_mat;
+}
+
+void camera_mouse_movement(f32 dx_deg, f32 dy_deg)
+{
+    _state.azimuth += dx_deg;
+    _state.elevation += dy_deg;
+    _state.elevation = glm_clamp(_state.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
+}
+
+void camera_mouse_wheel(f32 delta)
+{
+    _state.frustum_scale -= delta * SENSITIVITY;
+    _state.frustum_scale = glm_clamp(_state.frustum_scale, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+}
+
+void camera_key_left(void)
+{
+    _camera_azimuth(TRANS_DIR_LEFT);
+}
+void camera_key_right(void)
+{
+    _camera_azimuth(TRANS_DIR_RIGHT);
+}
+void camera_key_up(void)
+{
+    _camera_elevation(TRANS_DIR_UP);
+}
+void camera_key_down(void)
+{
+    _camera_elevation(TRANS_DIR_DOWN);
+}
+
+camera_t* camera_get_internals(void) { return &_state; }
 
 // Move camera to the next intercardinal direction to the left.
 //
@@ -212,15 +141,15 @@ static void _orbit_camera_update(void)
 // Camera transitions deal with values < 0.0f and > 360.0f to simplify
 // calculations. When a transition finishes, the camera_update() will bring the
 // values back within 0.0f-360.0f range.
-static void _orbit_camera_azimuth(transition_dir_e dir)
+static void _camera_azimuth(transition_dir_e dir)
 {
-    if (_state.orbit.transition.valid) {
+    if (_state.transition.valid) {
         return;
     }
 
     bool move_left = dir == TRANS_DIR_LEFT;
 
-    f32 degrees = _state.orbit.azimuth;
+    f32 degrees = _state.azimuth;
     f32 end_degrees = 0.0f;
 
     if (degrees == DIR_NE) {
@@ -245,38 +174,38 @@ static void _orbit_camera_azimuth(transition_dir_e dir)
         ASSERT(false, "Invalid azimuth %f", degrees);
     }
 
-    _state.orbit.transition = (transition_t) {
-        .start_azimuth = _state.orbit.azimuth,
+    _state.transition = (transition_t) {
+        .start_azimuth = _state.azimuth,
         .end_azimuth = end_degrees,
         .total_frames = CAMERA_TRANS_FRAMES,
         .valid = true,
     };
 }
 
-static void _orbit_camera_elevation(transition_dir_e dir)
+static void _camera_elevation(transition_dir_e dir)
 {
-    if (_state.orbit.transition.valid) {
+    if (_state.transition.valid) {
         return;
     }
 
-    if ((dir == TRANS_DIR_DOWN && _state.orbit.elevation == CAMERA_ELV_LOW)
-        || (dir == TRANS_DIR_UP && _state.orbit.elevation == CAMERA_ELV_HIGH)) {
+    if ((dir == TRANS_DIR_DOWN && _state.elevation == CAMERA_ELV_LOW)
+        || (dir == TRANS_DIR_UP && _state.elevation == CAMERA_ELV_HIGH)) {
         return;
     }
 
     bool move_up = dir == TRANS_DIR_UP;
 
-    _state.orbit.transition = (transition_t) {
-        .start_elevation = _state.orbit.elevation,
+    _state.transition = (transition_t) {
+        .start_elevation = _state.elevation,
         .end_elevation = move_up ? CAMERA_ELV_HIGH : CAMERA_ELV_LOW,
         .total_frames = CAMERA_TRANS_FRAMES,
         .valid = true,
     };
 }
 
-static void _orbit_camera_process_transitions(void)
+static void _camera_process_transitions(void)
 {
-    transition_t* trans = &_state.orbit.transition;
+    transition_t* trans = &_state.transition;
     if (!trans->valid) {
         return;
     }
@@ -284,19 +213,19 @@ static void _orbit_camera_process_transitions(void)
     f32 t = trans->current_frame / trans->total_frames;
 
     if (trans->start_azimuth != trans->end_azimuth) {
-        _state.orbit.azimuth = glm_lerp(trans->start_azimuth, trans->end_azimuth, t);
+        _state.azimuth = glm_lerp(trans->start_azimuth, trans->end_azimuth, t);
     }
 
     if (trans->start_elevation != trans->end_elevation) {
-        _state.orbit.elevation = glm_lerp(trans->start_elevation, trans->end_elevation, t);
+        _state.elevation = glm_lerp(trans->start_elevation, trans->end_elevation, t);
     }
 
     if (trans->current_frame >= trans->total_frames) {
         if (trans->start_azimuth != trans->end_azimuth) {
-            _state.orbit.azimuth = trans->end_azimuth;
+            _state.azimuth = trans->end_azimuth;
         }
         if (trans->start_elevation != trans->end_elevation) {
-            _state.orbit.elevation = trans->end_elevation;
+            _state.elevation = trans->end_elevation;
         }
         trans->valid = false;
     }
@@ -304,9 +233,9 @@ static void _orbit_camera_process_transitions(void)
     trans->current_frame++;
 }
 
-cardinal_e orbit_camera_cardinal(void)
+cardinal_e camera_cardinal(void)
 {
-    f32 azimuth = _state.orbit.azimuth;
+    f32 azimuth = _state.azimuth;
     int corner_width = 15;
 
     if (azimuth > 345.0f || azimuth < 15.0f) {
@@ -360,9 +289,9 @@ cardinal_e orbit_camera_cardinal(void)
     return CARDINAL_UNKNOWN;
 }
 
-const char* orbit_camera_cardinal_str(void)
+const char* camera_cardinal_str(void)
 {
-    cardinal_e dir = orbit_camera_cardinal();
+    cardinal_e dir = camera_cardinal();
     switch (dir) {
     case CARDINAL_S:
         return "South";

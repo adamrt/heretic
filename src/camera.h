@@ -34,11 +34,6 @@ typedef struct {
     bool valid;
 } transition_t;
 
-typedef enum {
-    CAMTYPE_GAME = 0,
-    CAMTYPE_ORBIT = 1,
-} camtype_e;
-
 typedef struct {
     mat4s proj_mat, view_mat;
     vec3s position, target;
@@ -47,23 +42,12 @@ typedef struct {
     f32 frustum_scale;
     bool use_perspective;
     transition_t transition;
-} orbit_camera_t;
-
-typedef struct {
-    mat4s proj_mat, view_mat;
-    vec3s position;
-    f32 yaw, pitch;
-    f32 znear, zfar;
-    f32 frustum_scale;
-    bool use_perspective;
-} game_camera_t;
+} camera_t;
 
 void camera_init(void);
 void camera_update(void);
 mat4s camera_get_view(void);
 mat4s camera_get_proj(void);
-camtype_e camera_get_type(void);
-void camera_set_type(camtype_e);
 
 void camera_mouse_movement(f32, f32);
 void camera_mouse_wheel(f32);
@@ -72,8 +56,7 @@ void camera_key_right(void);
 void camera_key_up(void);
 void camera_key_down(void);
 
-game_camera_t* game_camera_get_internals(void);
-orbit_camera_t* orbit_camera_get_internals(void);
+camera_t* camera_get_internals(void);
 
 // These are listed clockwise to match the FFT data storage. We might change
 // later since we use counter-clockwise for the camera since we are RHS. These
@@ -100,5 +83,5 @@ typedef enum {
     CARDINAL_UNKNOWN = 0x0,
 } cardinal_e;
 
-cardinal_e orbit_camera_cardinal(void);
-const char* orbit_camera_cardinal_str(void);
+cardinal_e camera_cardinal(void);
+const char* camera_cardinal_str(void);
