@@ -9,7 +9,7 @@
 // Simple buffer struct to allow incremental reading of different types.
 // Typically useful for reading files from the original PSX bin.
 typedef struct {
-    u8* data;
+    const u8* data;
     usize offset;
     usize size;
 } buffer_t;

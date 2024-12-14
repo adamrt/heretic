@@ -94,11 +94,11 @@ map_data_t* read_map_data(int num)
         }
 
         default:
-            memory_free(file.data);
+            memory_free(file_contents);
             ASSERT(false, "Unknown map file type");
         }
 
-        memory_free(file.data);
+        memory_free(file_contents);
     }
 
     return map_data;
