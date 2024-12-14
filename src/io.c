@@ -45,7 +45,6 @@ void io_init(void)
     for (usize i = 0; i < SCENARIO_COUNT; i++) {
         buffer_t buf = {
             .data = _state.attack_out + ATTACK_OUT_SCENARIO_OFFSET + (i * SCENARIO_SIZE),
-            .size = SCENARIO_SIZE,
             .offset = 0,
         };
         _state.scenarios[i] = read_scenario(&buf);
@@ -54,7 +53,6 @@ void io_init(void)
     for (usize i = 0; i < EVENT_COUNT; i++) {
         buffer_t buf = {
             .data = _state.test_evt + (i * EVENT_SIZE),
-            .size = EVENT_SIZE,
             .offset = 0,
         };
         _state.events[i] = read_event(&buf);

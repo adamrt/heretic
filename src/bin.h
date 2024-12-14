@@ -11,7 +11,6 @@
 typedef struct {
     const u8* data;
     usize offset;
-    usize size;
 } buffer_t;
 
 void read_bytes(buffer_t*, usize, u8*);
