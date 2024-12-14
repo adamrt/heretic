@@ -4,8 +4,7 @@
 #include "texture.h"
 #include "util.h"
 
-map_t* read_map(int num, map_state_t map_state)
-{
+map_t* read_map(int num, map_state_t map_state) {
     map_t* map = memory_allocate(sizeof(map_t));
     map->map_state = map_state;
 
@@ -46,8 +45,7 @@ map_t* read_map(int num, map_state_t map_state)
     return map;
 }
 
-map_data_t* read_map_data(int num)
-{
+map_data_t* read_map_data(int num) {
     u8* gnsfile = memory_allocate(MAP_FILE_MAX_SIZE);
     io_read_file(map_list[num].sector, MAP_FILE_MAX_SIZE, gnsfile);
     span_t gnsspan = { gnsfile, 0 };

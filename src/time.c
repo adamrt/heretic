@@ -5,8 +5,7 @@
 
 static time_t state;
 
-void time_init(void)
-{
+void time_init(void) {
     stm_setup();
 
     state.frame_count = 0;
@@ -14,8 +13,7 @@ void time_init(void)
     state.last_time = stm_now();
 }
 
-void time_update(void)
-{
+void time_update(void) {
     state.frame_count++;
     u64 current_time = stm_now();
     u64 elapsed_ticks = stm_diff(current_time, state.last_time);
@@ -28,7 +26,6 @@ void time_update(void)
     }
 }
 
-f32 time_get_fps(void)
-{
+f32 time_get_fps(void) {
     return state.fps;
 }

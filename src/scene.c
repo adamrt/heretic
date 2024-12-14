@@ -26,21 +26,18 @@ typedef enum {
 static void _scene_switch(switch_e dir);
 static void _scene_map_unload(void);
 
-void scene_init(void)
-{
+void scene_init(void) {
     _state.center_model = true;
     _state.current_scenario = 78;
     _state.mode = MODE_SCENARIO;
     scene_load_scenario(_state.current_scenario);
 }
 
-void scene_shutdown(void)
-{
+void scene_shutdown(void) {
     _scene_map_unload();
 }
 
-void scene_update(void)
-{
+void scene_update(void) {
     for (int i = 0; i < _state.model_count; i++) {
         if (_state.center_model) {
             _state.models[i].transform.translation = _state.models[i].transform.centered_translation;
@@ -50,8 +47,7 @@ void scene_update(void)
     }
 }
 
-void scene_render(void)
-{
+void scene_render(void) {
     gfx_render_begin();
     {
         gfx_render_background(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
@@ -62,8 +58,7 @@ void scene_render(void)
     gfx_render_end();
 }
 
-void scene_load_map(int num, map_state_t map_state)
-{
+void scene_load_map(int num, map_state_t map_state) {
     _scene_map_unload();
 
     map_t* map = read_map(num, map_state);
@@ -74,8 +69,7 @@ void scene_load_map(int num, map_state_t map_state)
     _state.current_map = num;
 }
 
-void scene_load_scenario(int scenario_id)
-{
+void scene_load_scenario(int scenario_id) {
     scenario_t scenario = io_read_scenario(scenario_id);
     map_state_t scenario_state = {
         .time = scenario.time,
@@ -89,18 +83,15 @@ void scene_load_scenario(int scenario_id)
 
 event_t scene_get_event(void) { return _state.event; }
 
-void scene_prev(void)
-{
+void scene_prev(void) {
     _scene_switch(SWITCH_PREV);
 }
 
-void scene_next(void)
-{
+void scene_next(void) {
     _scene_switch(SWITCH_NEXT);
 }
 
-static void _scene_switch(switch_e dir)
-{
+static void _scene_switch(switch_e dir) {
     bool is_prev = dir == SWITCH_PREV;
 
     switch (_state.mode) {
@@ -143,8 +134,7 @@ static void _scene_switch(switch_e dir)
     }
 }
 
-static void _scene_map_unload(void)
-{
+static void _scene_map_unload(void) {
     if (_state.map == NULL) {
         return;
     }

@@ -10,8 +10,7 @@
 static const font_char_t _font[FONT_CHAR_COUNT];
 static int _compare_font_chars(const void* a, const void* b);
 
-const char* font_get_char(u16 id)
-{
+const char* font_get_char(u16 id) {
     font_char_t key = { id, NULL };
     const font_char_t* result = bsearch(&key, _font, FONT_CHAR_COUNT, sizeof(font_char_t), _compare_font_chars);
     if (result == NULL) {
@@ -20,8 +19,7 @@ const char* font_get_char(u16 id)
     return result->data;
 }
 
-static int _compare_font_chars(const void* a, const void* b)
-{
+static int _compare_font_chars(const void* a, const void* b) {
     u16 id_a = ((const font_char_t*)a)->id;
     u16 id_b = ((const font_char_t*)b)->id;
     return (id_a > id_b) - (id_a < id_b);

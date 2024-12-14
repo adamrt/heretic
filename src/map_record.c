@@ -2,8 +2,7 @@
 
 #include <string.h>
 
-map_record_t read_map_record(span_t* f)
-{
+map_record_t read_map_record(span_t* f) {
     u8 bytes[MAP_RECORD_SIZE];
     span_read_bytes(f, MAP_RECORD_SIZE, bytes);
     usize sector = bytes[8] | bytes[9] << 8;
@@ -27,8 +26,7 @@ map_record_t read_map_record(span_t* f)
     return record;
 }
 
-int read_map_records(span_t* f, map_record_t* out_records)
-{
+int read_map_records(span_t* f, map_record_t* out_records) {
     int count = 0;
     while (true) {
         map_record_t record = read_map_record(f);
@@ -41,8 +39,7 @@ int read_map_records(span_t* f, map_record_t* out_records)
     return count;
 }
 
-const char* time_str(time_e value)
-{
+const char* time_str(time_e value) {
     switch (value) {
     case TIME_DAY:
         return "Day";
@@ -53,8 +50,7 @@ const char* time_str(time_e value)
     }
 }
 
-const char* weather_str(weather_e value)
-{
+const char* weather_str(weather_e value) {
     switch (value) {
     case WEATHER_NONE:
         return "None";
@@ -71,8 +67,7 @@ const char* weather_str(weather_e value)
     }
 }
 
-const char* filetype_str(filetype_e value)
-{
+const char* filetype_str(filetype_e value) {
     switch (value) {
     case FILETYPE_MESH_PRIMARY:
         return "Primary";
@@ -89,18 +84,15 @@ const char* filetype_str(filetype_e value)
     }
 }
 
-bool map_state_default(map_state_t a)
-{
+bool map_state_default(map_state_t a) {
     return a.time == TIME_DAY && a.weather == WEATHER_NONE && a.layout == 0;
 }
 
-bool map_state_eq(map_state_t a, map_state_t b)
-{
+bool map_state_eq(map_state_t a, map_state_t b) {
     return a.time == b.time && a.weather == b.weather && a.layout == b.layout;
 }
 
-bool map_record_state_unique(map_record_t* unique_records, int unique_record_count, map_record_t record)
-{
+bool map_record_state_unique(map_record_t* unique_records, int unique_record_count, map_record_t record) {
     for (int i = 0; i < unique_record_count; i++) {
         if (map_state_eq(unique_records[i].state, record.state)) {
             return false;

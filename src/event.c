@@ -10,8 +10,7 @@
 #include "util.h"
 
 // FIXME: This should be improved by parsing the instructions here as well.
-event_t read_event(span_t* span)
-{
+event_t read_event(span_t* span) {
     event_t event = { 0 };
 
     u32 text_offset = span_read_u32(span);
@@ -35,8 +34,7 @@ event_t read_event(span_t* span)
     return event;
 }
 
-void read_messages(span_t* span, char* event_text, int* out_len)
-{
+void read_messages(span_t* span, char* event_text, int* out_len) {
     usize event_text_len = 0;
 
     usize text_offset = span_read_u32(span);
@@ -173,8 +171,7 @@ void read_messages(span_t* span, char* event_text, int* out_len)
     *out_len = event_text_len;
 }
 
-void read_instructions(span_t* span, instruction_t* instructions, int* out_count)
-{
+void read_instructions(span_t* span, instruction_t* instructions, int* out_count) {
     usize text_offset = span_read_u32(span);
     usize code_offset = 4;
     usize code_size = text_offset - 4;

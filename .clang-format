@@ -3,3 +3,6 @@ BasedOnStyle: WebKit
 AlignTrailingComments: true
 AlignConsecutiveMacros: true
 IndentPPDirectives: AfterHash
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: false

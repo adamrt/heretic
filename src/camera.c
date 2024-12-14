@@ -39,18 +39,14 @@ static void _camera_elevation(transition_dir_e);
 static void _camera_process_transitions(void);
 static camera_t _state;
 
-void camera_init(void)
-{
+void camera_init(void) {
     _state.target = glms_vec3_zero();
-
+    _state.distance = 256.0f;
     _state.azimuth = DIR_SE;
     _state.elevation = CAMERA_ELV_LOW;
-
-    _state.distance = 256.0f;
 }
 
-void camera_update(void)
-{
+void camera_update(void) {
     _camera_process_transitions();
 
     // Transitions work with negative degrees sometimes so don't keep camera
@@ -74,13 +70,11 @@ void camera_update(void)
     _state.position = glms_vec3_add(_state.target, _state.position);
 }
 
-mat4s camera_get_view(void)
-{
+mat4s camera_get_view(void) {
     return glms_lookat(_state.position, _state.target, GLMS_YUP);
 }
 
-mat4s camera_get_proj(void)
-{
+mat4s camera_get_proj(void) {
     f32 aspect = sapp_widthf() / sapp_heightf();
     f32 w = _state.distance;
     f32 h = w / aspect;
@@ -92,35 +86,21 @@ mat4s camera_get_proj(void)
     }
 }
 
-void camera_mouse_movement(f32 dx_deg, f32 dy_deg)
-{
+void camera_mouse_movement(f32 dx_deg, f32 dy_deg) {
     _state.azimuth += dx_deg;
     _state.elevation += dy_deg;
     _state.elevation = glm_clamp(_state.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
 }
 
-void camera_mouse_wheel(f32 delta)
-{
+void camera_mouse_wheel(f32 delta) {
     _state.distance -= delta * SENSITIVITY;
     _state.distance = glm_clamp(_state.distance, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 }
 
-void camera_key_left(void)
-{
-    _camera_azimuth(TRANS_DIR_LEFT);
-}
-void camera_key_right(void)
-{
-    _camera_azimuth(TRANS_DIR_RIGHT);
-}
-void camera_key_up(void)
-{
-    _camera_elevation(TRANS_DIR_UP);
-}
-void camera_key_down(void)
-{
-    _camera_elevation(TRANS_DIR_DOWN);
-}
+void camera_key_left(void) { _camera_azimuth(TRANS_DIR_LEFT); }
+void camera_key_right(void) { _camera_azimuth(TRANS_DIR_RIGHT); }
+void camera_key_up(void) { _camera_elevation(TRANS_DIR_UP); }
+void camera_key_down(void) { _camera_elevation(TRANS_DIR_DOWN); }
 
 camera_t* camera_get_internals(void) { return &_state; }
 
@@ -132,8 +112,7 @@ camera_t* camera_get_internals(void) { return &_state; }
 // Camera transitions deal with values < 0.0f and > 360.0f to simplify
 // calculations. When a transition finishes, the camera_update() will bring the
 // values back within 0.0f-360.0f range.
-static void _camera_azimuth(transition_dir_e dir)
-{
+static void _camera_azimuth(transition_dir_e dir) {
     if (_state.transition.valid) {
         return;
     }
@@ -173,8 +152,7 @@ static void _camera_azimuth(transition_dir_e dir)
     };
 }
 
-static void _camera_elevation(transition_dir_e dir)
-{
+static void _camera_elevation(transition_dir_e dir) {
     if (_state.transition.valid) {
         return;
     }
@@ -194,8 +172,7 @@ static void _camera_elevation(transition_dir_e dir)
     };
 }
 
-static void _camera_process_transitions(void)
-{
+static void _camera_process_transitions(void) {
     transition_t* trans = &_state.transition;
     if (!trans->valid) {
         return;
@@ -224,8 +201,7 @@ static void _camera_process_transitions(void)
     trans->current_frame++;
 }
 
-cardinal_e camera_cardinal(void)
-{
+cardinal_e camera_cardinal(void) {
     f32 azimuth = _state.azimuth;
     int corner_width = 15;
 
@@ -280,8 +256,7 @@ cardinal_e camera_cardinal(void)
     return CARDINAL_UNKNOWN;
 }
 
-const char* camera_cardinal_str(void)
-{
+const char* camera_cardinal_str(void) {
     cardinal_e dir = camera_cardinal();
     switch (dir) {
     case CARDINAL_S:

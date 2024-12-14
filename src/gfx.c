@@ -31,8 +31,7 @@ static sg_face_winding face_winding;
 // There are two passes so we can render the offscreen image to a fullscreen
 // quad. The offscreen is rendered in a lower resolution and then upscaled to
 // the window size to keep the pixelated look.
-void gfx_init(void)
-{
+void gfx_init(void) {
     sg_setup(&(sg_desc) {
         .environment = sglue_environment(),
         .logger.func = slog_func,
@@ -53,8 +52,7 @@ void gfx_init(void)
     _init();
 }
 
-void gfx_render_begin(void)
-{
+void gfx_render_begin(void) {
     // Render the scene and background to an offscreen image
     sg_begin_pass(&(sg_pass) {
         .attachments = _state.offscreen.attachments,
@@ -68,8 +66,7 @@ void gfx_render_begin(void)
     });
 }
 
-void gfx_render_end(void)
-{
+void gfx_render_end(void) {
     // End pass for user rendering
     sg_end_pass();
 
@@ -93,8 +90,7 @@ void gfx_render_end(void)
     sg_commit();
 }
 
-void gfx_render_model(model_t* model, lighting_t* lighting)
-{
+void gfx_render_model(model_t* model, lighting_t* lighting) {
     mat4s model_mat = model_matrix(model->transform);
 
     vs_standard_params_t vs_params = {
@@ -138,8 +134,7 @@ void gfx_render_model(model_t* model, lighting_t* lighting)
     sg_draw(0, model->vertex_count, 1);
 }
 
-model_t gfx_map_to_model(map_t* map)
-{
+model_t gfx_map_to_model(map_t* map) {
     vertices_t vertices = geometry_to_vertices(&map->mesh.geometry);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
@@ -176,8 +171,7 @@ model_t gfx_map_to_model(map_t* map)
     return model;
 }
 
-void gfx_render_background(vec4s top_color, vec4s bottom_color)
-{
+void gfx_render_background(vec4s top_color, vec4s bottom_color) {
     sg_apply_pipeline(_state.background.pipeline);
 
     fs_background_params_t fs_params;
@@ -190,8 +184,7 @@ void gfx_render_background(vec4s top_color, vec4s bottom_color)
     sg_draw(0, 6, 1);
 }
 
-void gfx_scale_change(void)
-{
+void gfx_scale_change(void) {
     sg_destroy_image(_state.offscreen.color_image);
     sg_destroy_image(_state.offscreen.depth_image);
     sg_destroy_attachments(_state.offscreen.attachments);
@@ -202,8 +195,7 @@ void gfx_scale_change(void)
     _state.display.bindings.samplers[SMP_u_sampler] = _state.sampler;
 }
 
-void gfx_shutdown(void)
-{
+void gfx_shutdown(void) {
     sg_destroy_pipeline(_state.offscreen.pipeline);
     sg_destroy_pipeline(_state.background.pipeline);
     sg_destroy_pipeline(_state.display.pipeline);
@@ -217,26 +209,22 @@ void gfx_shutdown(void)
     sg_shutdown();
 }
 
-int gfx_get_scale_divisor(void)
-{
+int gfx_get_scale_divisor(void) {
     return _state.display.scale_divisor;
 }
 
-void gfx_set_scale_divisor(int divisor)
-{
+void gfx_set_scale_divisor(int divisor) {
     _state.display.scale_divisor = divisor;
     gfx_scale_change();
 }
 
-sg_sampler gfx_get_sampler(void)
-{
+sg_sampler gfx_get_sampler(void) {
     return _state.sampler;
 }
 
 // This is split out from _init() because it can be called separately when
 // changing the resolution.
-static void _init_images(void)
-{
+static void _init_images(void) {
 
     int scaled_width = _state.display.width / _state.display.scale_divisor;
     int scaled_height = _state.display.height / _state.display.scale_divisor;
@@ -264,8 +252,7 @@ static void _init_images(void)
     });
 }
 
-static void _init(void)
-{
+static void _init(void) {
     _init_images();
 
     _state.sampler = sg_make_sampler(&(sg_sampler_desc) {

@@ -13,8 +13,7 @@ static vec3s read_normal(span_t*);
 static geometry_t read_geometry(span_t*);
 static vec2s process_tex_coords(f32 u, f32 v, u8 page);
 
-mesh_t read_mesh(span_t* f)
-{
+mesh_t read_mesh(span_t* f) {
     mesh_t mesh = { 0 };
 
     mesh.geometry = read_geometry(f);
@@ -27,8 +26,7 @@ mesh_t read_mesh(span_t* f)
     return mesh;
 }
 
-static geometry_t read_geometry(span_t* f)
-{
+static geometry_t read_geometry(span_t* f) {
     geometry_t geometry = { 0 };
 
     // 0x40 is always the location of the primary mesh pointer.
@@ -165,8 +163,7 @@ static geometry_t read_geometry(span_t* f)
     return geometry;
 }
 
-vec3s read_position(span_t* f)
-{
+vec3s read_position(span_t* f) {
     f32 x = span_read_i16(f);
     f32 y = span_read_i16(f);
     f32 z = span_read_i16(f);
@@ -177,8 +174,7 @@ vec3s read_position(span_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s read_normal(span_t* f)
-{
+static vec3s read_normal(span_t* f) {
     f32 x = span_read_f1x3x12(f);
     f32 y = span_read_f1x3x12(f);
     f32 z = span_read_f1x3x12(f);
@@ -189,8 +185,7 @@ static vec3s read_normal(span_t* f)
     return (vec3s) { { x, y, z } };
 }
 
-void merge_meshes(mesh_t* dst, mesh_t* src)
-{
+void merge_meshes(mesh_t* dst, mesh_t* src) {
     ASSERT(dst != NULL, "Destination mesh is NULL");
     ASSERT(src != NULL, "Source mesh is NULL");
 
@@ -219,8 +214,7 @@ void merge_meshes(mesh_t* dst, mesh_t* src)
     }
 }
 
-vertices_t geometry_to_vertices(geometry_t* geometry)
-{
+vertices_t geometry_to_vertices(geometry_t* geometry) {
     vertices_t vertices = { 0 };
 
     // 10 triangles = 30 offset
@@ -263,8 +257,7 @@ vertices_t geometry_to_vertices(geometry_t* geometry)
     return vertices;
 }
 
-vec3s vertices_centered(vertices_t* vertices)
-{
+vec3s vertices_centered(vertices_t* vertices) {
     f32 min_x = FLT_MAX;
     f32 max_x = -FLT_MAX;
     f32 min_y = FLT_MAX;
@@ -300,8 +293,7 @@ vec3s vertices_centered(vertices_t* vertices)
 //    of a single page (256).
 // 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
 //    divide them by their max to get a 0.0-1.0 value.
-static vec2s process_tex_coords(f32 u, f32 v, u8 page)
-{
+static vec2s process_tex_coords(f32 u, f32 v, u8 page) {
     u = u / 255.0f;
     v = (v + (page * 256)) / 1023.0f;
     return (vec2s) { { u, v } };

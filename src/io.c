@@ -26,8 +26,7 @@ static struct {
     event_t* events;
 } _state;
 
-void io_init(void)
-{
+void io_init(void) {
     _state.bin = fopen("../fft.bin", "rb");
     ASSERT(_state.bin != NULL, "Failed to open fft.bin");
 
@@ -59,8 +58,7 @@ void io_init(void)
     }
 }
 
-void io_shutdown(void)
-{
+void io_shutdown(void) {
     fclose(_state.bin);
     memory_free(_state.test_evt);
     memory_free(_state.attack_out);
@@ -78,8 +76,7 @@ void io_shutdown(void)
     memory_free(_state.events);
 }
 
-void io_read_file(usize sector_num, usize size, u8* out_bytes)
-{
+void io_read_file(usize sector_num, usize size, u8* out_bytes) {
     usize offset = 0;
     usize occupied_sectors = ceil(size / (f64)SECTOR_SIZE);
 
@@ -103,14 +100,12 @@ void io_read_file(usize sector_num, usize size, u8* out_bytes)
 }
 
 // Getters for resources
-event_t io_read_event(int id)
-{
+event_t io_read_event(int id) {
     ASSERT(id < EVENT_COUNT, "Event id %d out of bounds", id);
     return _state.events[id];
 }
 
-scenario_t io_read_scenario(int id)
-{
+scenario_t io_read_scenario(int id) {
     ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
     return _state.scenarios[id];
 }

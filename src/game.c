@@ -13,14 +13,12 @@
 
 // data_init opens the FFT bin file and loads the default scene. It is called
 // during game_init() for native builds, and after file upload on a wasm build.
-void data_init(void)
-{
+void data_init(void) {
     io_init();
     scene_init();
 }
 
-void game_init(void)
-{
+void game_init(void) {
     memory_init();
     time_init();
     camera_init();
@@ -32,8 +30,7 @@ void game_init(void)
 #endif
 }
 
-void game_shutdown(void)
-{
+void game_shutdown(void) {
     scene_shutdown();
     io_shutdown();
     gui_shutdown();
@@ -41,16 +38,14 @@ void game_shutdown(void)
     memory_shutdown();
 }
 
-void game_update(void)
-{
+void game_update(void) {
     time_update();
     scene_update();
     camera_update();
     scene_render();
 }
 
-void game_input(const sapp_event* event)
-{
+void game_input(const sapp_event* event) {
     bool handled_by_ui = gui_input(event);
     bool is_mouse_event = event->type == SAPP_EVENTTYPE_MOUSE_MOVE
         || event->type == SAPP_EVENTTYPE_MOUSE_SCROLL

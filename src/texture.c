@@ -5,8 +5,7 @@
 
 static vec4s read_rgb15(span_t*);
 
-texture_t read_texture(span_t* f)
-{
+texture_t read_texture(span_t* f) {
     const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2); // Each pixel stored as 1/2 a byte
 
     texture_t texture = { 0 };
@@ -29,8 +28,7 @@ texture_t read_texture(span_t* f)
     return texture;
 }
 
-palette_t read_palette(span_t* f)
-{
+palette_t read_palette(span_t* f) {
     palette_t palette = { 0 };
 
     f->offset = 0x44;
@@ -53,8 +51,7 @@ palette_t read_palette(span_t* f)
     return palette;
 }
 
-static vec4s read_rgb15(span_t* f)
-{
+static vec4s read_rgb15(span_t* f) {
     u16 val = span_read_u16(f);
 
     vec4s color = { 0 };

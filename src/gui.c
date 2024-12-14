@@ -57,8 +57,7 @@ static void _draw_section_misc(struct nk_context* ctx);
 static void _draw_dropdown_map(struct nk_context* ctx);
 static void _draw_dropdown_scenario(struct nk_context* ctx);
 
-void gui_init(void)
-{
+void gui_init(void) {
     snk_setup(&(snk_desc_t) {
         .dpi_scale = sapp_dpi_scale(),
         .logger.func = slog_func,
@@ -71,25 +70,21 @@ void gui_init(void)
     _state.y_scale = 2.0f;
 }
 
-void gui_update(void)
-{
+void gui_update(void) {
     _draw();
     snk_render(sapp_width(), sapp_height());
 }
 
-bool gui_input(const sapp_event* event)
-{
+bool gui_input(const sapp_event* event) {
     return snk_handle_event(event);
 }
 
-void gui_shutdown(void)
-{
+void gui_shutdown(void) {
     snk_shutdown();
 }
 
 // draw is the main function that draws the GUI.
-static void _draw(void)
-{
+static void _draw(void) {
     struct nk_context* ctx = snk_new_frame();
 
     nk_flags window_flags = NK_WINDOW_BORDER | NK_WINDOW_SCALABLE | NK_WINDOW_MOVABLE | NK_WINDOW_MINIMIZABLE;
@@ -125,8 +120,7 @@ static void _draw(void)
     return;
 }
 
-static void _draw_section_camera(struct nk_context* ctx)
-{
+static void _draw_section_camera(struct nk_context* ctx) {
     if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
         camera_t* cam = camera_get_internals();
 
@@ -153,8 +147,7 @@ static void _draw_section_camera(struct nk_context* ctx)
     }
 }
 
-static void _draw_mode_selector(struct nk_context* ctx)
-{
+static void _draw_mode_selector(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
     nk_layout_row_static(ctx, 30, 100, 2);
 
@@ -162,8 +155,7 @@ static void _draw_mode_selector(struct nk_context* ctx)
     scene->mode = nk_option_label(ctx, "Scenarios", scene->mode == MODE_SCENARIO) ? MODE_SCENARIO : scene->mode;
 }
 
-static void _draw_section_scenario(struct nk_context* ctx)
-{
+static void _draw_section_scenario(struct nk_context* ctx) {
 
     if (nk_tree_push(ctx, NK_TREE_TAB, "Scenario", NK_MAXIMIZED)) {
         _draw_dropdown_scenario(ctx);
@@ -184,8 +176,7 @@ static void _draw_section_scenario(struct nk_context* ctx)
     }
 }
 
-static void _draw_section_map(struct nk_context* ctx)
-{
+static void _draw_section_map(struct nk_context* ctx) {
     if (nk_tree_push(ctx, NK_TREE_TAB, "Map", NK_MAXIMIZED)) {
         _draw_dropdown_map(ctx);
         nk_spacer(ctx);
@@ -194,8 +185,7 @@ static void _draw_section_map(struct nk_context* ctx)
     }
 }
 
-static void _draw_section_lights(struct nk_context* ctx)
-{
+static void _draw_section_lights(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Lighting", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 3);
@@ -264,8 +254,7 @@ static void _draw_section_lights(struct nk_context* ctx)
     }
 }
 
-static void _draw_section_memory(struct nk_context* ctx)
-{
+static void _draw_section_memory(struct nk_context* ctx) {
     if (nk_tree_push(ctx, NK_TREE_TAB, "Memory", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 20, 1);
         nk_labelf(ctx, NK_TEXT_LEFT, "Current Allocations: %zu", memory_state.allocations_current);
@@ -277,8 +266,7 @@ static void _draw_section_memory(struct nk_context* ctx)
     }
 }
 
-static void _draw_section_misc(struct nk_context* ctx)
-{
+static void _draw_section_misc(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Global", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
@@ -302,8 +290,7 @@ static void _draw_section_misc(struct nk_context* ctx)
     }
 }
 
-static void _draw_window_scenarios(struct nk_context* ctx)
-{
+static void _draw_window_scenarios(struct nk_context* ctx) {
     if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
@@ -316,8 +303,7 @@ static void _draw_window_scenarios(struct nk_context* ctx)
     nk_end(ctx);
 }
 
-static void _draw_window_messages(struct nk_context* ctx)
-{
+static void _draw_window_messages(struct nk_context* ctx) {
     if (nk_begin(ctx, "Messages", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 20, 1);
         const event_t event = scene_get_event();
@@ -342,8 +328,7 @@ static void _draw_window_messages(struct nk_context* ctx)
     nk_end(ctx);
 }
 
-static void _draw_window_instructions(struct nk_context* ctx)
-{
+static void _draw_window_instructions(struct nk_context* ctx) {
     // scene_t* scene = scene_get_internals();
     camera_t* cam = camera_get_internals();
     if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
@@ -422,8 +407,7 @@ static void _draw_window_instructions(struct nk_context* ctx)
     nk_end(ctx);
 }
 
-static void _draw_dropdown_map(struct nk_context* ctx)
-{
+static void _draw_dropdown_map(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
 
     map_desc_t selected_map = map_list[scene->current_map];
@@ -494,8 +478,7 @@ static void _draw_dropdown_map(struct nk_context* ctx)
     nk_layout_row_end(ctx);
 }
 
-static void _draw_dropdown_scenario(struct nk_context* ctx)
-{
+static void _draw_dropdown_scenario(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
     scenario_t selected_scenario = io_read_scenario(scene->current_scenario);
 

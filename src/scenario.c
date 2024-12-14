@@ -3,8 +3,7 @@
 #include "scenario.h"
 #include "span.h"
 
-scenario_t read_scenario(span_t* span)
-{
+scenario_t read_scenario(span_t* span) {
     scenario_t scenario = { 0 };
     scenario.event_id = span_readat_u16(span, 0);
     scenario.map_id = span_readat_u8(span, 2);
