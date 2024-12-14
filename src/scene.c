@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "cglm/struct/vec3.h"
 #include "sokol_gfx.h"
 
 #include "cglm/types-struct.h"
@@ -46,7 +47,7 @@ void scene_update(void)
         if (_state.center_model) {
             _state.models[i].transform.translation = _state.models[i].transform.centered_translation;
         } else {
-            _state.models[i].transform.translation = _state.models[i].transform.translation;
+            _state.models[i].transform.translation = glms_vec3_zero();
         }
     }
 }
