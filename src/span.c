@@ -4,7 +4,23 @@
 #include "span.h"
 #include "util.h"
 
-#define FILE_SIZE_MAX (131072)
+#define SPAN_MAX_BYTES (131072)
+
+void span_read_bytes(span_t* f, usize size, u8* out_bytes) {
+    ASSERT(size < SPAN_MAX_BYTES, "Too many bytes requested.");
+    memcpy(out_bytes, &f->data[f->offset], size);
+    f->offset += size;
+    return;
+}
+
+// This returns a f32, but stored as a fixed-point number.
+// 1 bit   - sign bit
+// 3 bits  - whole
+// 12 bits - fraction
+f32 span_read_f16(span_t* span) {
+    f32 value = span_read_i16(span);
+    return value / 4096.0f;
+}
 
 // FN_SPAN_READ is a macro that generates a read function for a specific type. It
 // reads the value, returns it and increments the offset.
@@ -23,9 +39,8 @@ FN_SPAN_READ(i8)
 FN_SPAN_READ(i16)
 FN_SPAN_READ(i32)
 
-// FN_SPAN_READAT is a macro that generates a read function for a specific type at a
-// specified offset. It reads the value, returns it and sets the offset to the
-// givin offset plus the size of the type.
+// FN_SPAN_READAT is very similar to FN_SPAN_READ, but accepts an offset to
+// start the read at.
 #define FN_SPAN_READAT(type)                               \
     type span_readat_##type(span_t* span, usize offset) {  \
         type value;                                        \
@@ -40,15 +55,3 @@ FN_SPAN_READAT(u32)
 FN_SPAN_READAT(i8)
 FN_SPAN_READAT(i16)
 FN_SPAN_READAT(i32)
-
-void span_read_bytes(span_t* f, usize size, u8* out_bytes) {
-    ASSERT(size < FILE_SIZE_MAX, "File size too large");
-    memcpy(out_bytes, &f->data[f->offset], size);
-    f->offset += size;
-    return;
-}
-
-f32 span_read_f1x3x12(span_t* span) {
-    f32 value = span_read_i16(span);
-    return value / 4096.0f;
-}

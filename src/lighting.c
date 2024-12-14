@@ -65,6 +65,6 @@ static vec4s read_rgb8(span_t* span) {
 }
 
 static f32 read_light_color(span_t* span) {
-    f32 val = span_read_f1x3x12(span);
+    f32 val = span_read_f16(span);
     return glm_min(glm_max(0.0f, val), 1.0f);
 }

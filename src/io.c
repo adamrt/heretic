@@ -17,7 +17,7 @@
 #define TEST_EVT_LEN               (4096000)
 
 static struct {
-    FILE* bin;
+    FILE* file;
 
     u8* test_evt;
     u8* attack_out;
@@ -27,8 +27,8 @@ static struct {
 } _state;
 
 void io_init(void) {
-    _state.bin = fopen("../fft.bin", "rb");
-    ASSERT(_state.bin != NULL, "Failed to open fft.bin");
+    _state.file = fopen("../fft.bin", "rb");
+    ASSERT(_state.file != NULL, "Failed to open fft.bin");
 
     // Allocate for all io resources
     _state.attack_out = memory_allocate(ATTACK_OUT_LEN);
@@ -59,19 +59,13 @@ void io_init(void) {
 }
 
 void io_shutdown(void) {
-    fclose(_state.bin);
+    fclose(_state.file);
     memory_free(_state.test_evt);
     memory_free(_state.attack_out);
     memory_free(_state.scenarios);
-
     for (usize i = 0; i < EVENT_COUNT; i++) {
-        event_t* event = &_state.events[i];
-        memory_free(event->messages);
-        event->messages_len = 0;
-
-        // Free event instructions
-        memory_free(event->instructions);
-        event->instruction_count = 0;
+        memory_free(_state.events[i].messages);
+        memory_free(_state.events[i].instructions);
     }
     memory_free(_state.events);
 }
@@ -82,11 +76,11 @@ void io_read_file(usize sector_num, usize size, u8* out_bytes) {
 
     for (usize i = 0; i < occupied_sectors; i++) {
         usize seek_to = ((sector_num + i) * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
-        usize sn = fseek(_state.bin, seek_to, SEEK_SET);
+        usize sn = fseek(_state.file, seek_to, SEEK_SET);
         ASSERT(sn == 0, "Failed to seek to sector");
 
         u8 sector[SECTOR_SIZE];
-        usize rn = fread(sector, sizeof(u8), SECTOR_SIZE, _state.bin);
+        usize rn = fread(sector, sizeof(u8), SECTOR_SIZE, _state.file);
         ASSERT(rn == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
 
         usize remaining_size = size - offset;

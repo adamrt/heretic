@@ -129,13 +129,18 @@ static void _draw_section_camera(struct nk_context* ctx) {
         nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
 
         nk_layout_row_dynamic(ctx, 25, 2);
-        nk_labelf(ctx, NK_TEXT_LEFT, "X: %f", cam->position.x);
-        nk_slider_float(ctx, -640.00f, &cam->position.x, 640.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %f", cam->position.y);
-        nk_slider_float(ctx, -640.00f, &cam->position.y, 640.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %f", cam->position.z);
-        nk_slider_float(ctx, -640.00f, &cam->position.z, 640.0f, 0.1f);
+        char posbuffer[64];
+        nk_label(ctx, "Position", NK_TEXT_LEFT);
+        snprintf(posbuffer, 64, "%.2f, %.2f, %.2f", cam->position.x, cam->position.y, cam->position.z);
+        if (nk_combo_begin_label(ctx, posbuffer, nk_vec2(200, 200))) {
+            nk_layout_row_dynamic(ctx, 25, 1);
+            nk_property_float(ctx, "#X:", -640.0f, &cam->position.x, 640.0f, 1, 0.5f);
+            nk_property_float(ctx, "#Y:", -640.0f, &cam->position.y, 640.0f, 1, 0.5f);
+            nk_property_float(ctx, "#Z:", -640.0f, &cam->position.z, 640.0f, 1, 0.5f);
+            nk_combo_end(ctx);
+        }
 
+        nk_layout_row_dynamic(ctx, 25, 2);
         nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", cam->distance);
         nk_slider_float(ctx, -32.00f, &cam->distance, 512.0f, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Elevation: %f", cam->elevation);

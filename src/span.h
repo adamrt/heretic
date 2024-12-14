@@ -20,7 +20,7 @@ u32 span_read_u32(span_t*);
 i8 span_read_i8(span_t*);
 i16 span_read_i16(span_t*);
 i32 span_read_i32(span_t*);
-f32 span_read_f1x3x12(span_t*);
+f32 span_read_f16(span_t*);
 
 u8 span_readat_u8(span_t*, usize);
 u16 span_readat_u16(span_t*, usize);

@@ -174,9 +174,9 @@ vec3s read_position(span_t* span) {
 }
 
 static vec3s read_normal(span_t* span) {
-    f32 x = span_read_f1x3x12(span);
-    f32 y = span_read_f1x3x12(span);
-    f32 z = span_read_f1x3x12(span);
+    f32 x = span_read_f16(span);
+    f32 y = span_read_f16(span);
+    f32 z = span_read_f16(span);
 
     y = -y;
     z = -z;

@@ -26,9 +26,6 @@
 #define DIR_NW  (315.0f)
 #define DIR_NNW (337.5f)
 
-#define CAMERA_ELV_MIN (-89.1)
-#define CAMERA_ELV_MAX (89.1)
-
 #define CAMERA_ELV_LOW  (30.0f)
 #define CAMERA_ELV_HIGH (45.0f)
 
@@ -89,7 +86,7 @@ mat4s camera_get_proj(void) {
 void camera_mouse_movement(f32 dx_deg, f32 dy_deg) {
     _state.azimuth += dx_deg;
     _state.elevation += dy_deg;
-    _state.elevation = glm_clamp(_state.elevation, CAMERA_ELV_MIN, CAMERA_ELV_MAX);
+    _state.elevation = glm_clamp(_state.elevation, -89.9f, 89.9f);
 }
 
 void camera_mouse_wheel(f32 delta) {
