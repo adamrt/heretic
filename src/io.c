@@ -3,6 +3,7 @@
 
 #include "event.h"
 #include "io.h"
+#include "memory.h"
 #include "scenario.h"
 #include "util.h"
 
@@ -31,14 +32,10 @@ void io_init(void)
     ASSERT(_state.bin != NULL, "Failed to open fft.bin");
 
     // Allocate for all io resources
-    _state.attack_out = calloc(1, ATTACK_OUT_LEN);
-    _state.test_evt = calloc(1, TEST_EVT_LEN);
-    _state.scenarios = calloc(SCENARIO_COUNT, sizeof(scenario_t));
-    _state.events = calloc(EVENT_COUNT, sizeof(event_t));
-    ASSERT(_state.attack_out != NULL, "Failed to allocate memory for attack_out");
-    ASSERT(_state.test_evt != NULL, "Failed to allocate memory for test_evt");
-    ASSERT(_state.scenarios != NULL, "Failed to allocate memory for scenarios");
-    ASSERT(_state.events != NULL, "Failed to allocate memory for events");
+    _state.attack_out = memory_allocate(ATTACK_OUT_LEN);
+    _state.test_evt = memory_allocate(TEST_EVT_LEN);
+    _state.scenarios = memory_allocate(SCENARIO_COUNT * sizeof(scenario_t));
+    _state.events = memory_allocate(EVENT_COUNT * sizeof(event_t));
 
     // Read all files
     io_read_file(2448, ATTACK_OUT_LEN, _state.attack_out);
@@ -67,10 +64,10 @@ void io_init(void)
 void io_shutdown(void)
 {
     fclose(_state.bin);
-    free(_state.test_evt);
-    free(_state.attack_out);
-    free(_state.scenarios);
-    free(_state.events);
+    memory_free(_state.test_evt);
+    memory_free(_state.attack_out);
+    memory_free(_state.scenarios);
+    memory_free(_state.events);
 }
 
 void io_read_file(usize sector_num, usize size, u8* out_bytes)

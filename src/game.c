@@ -3,6 +3,7 @@
 #include "gfx.h"
 #include "gui.h"
 #include "io.h"
+#include "memory.h"
 #include "scene.h"
 #include "time.h"
 
@@ -20,6 +21,7 @@ void data_init(void)
 
 void game_init(void)
 {
+    memory_init();
     time_init();
     camera_init();
     gfx_init();
@@ -36,6 +38,7 @@ void game_shutdown(void)
     io_shutdown();
     gui_shutdown();
     gfx_shutdown();
+    memory_shutdown();
 }
 
 void game_update(void)

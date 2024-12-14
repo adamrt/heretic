@@ -6,6 +6,7 @@
 #include "defines.h"
 #include "event.h"
 #include "font.h"
+#include "memory.h"
 #include "util.h"
 
 // FIXME: This should be improved by parsing the instructions here as well.
@@ -35,8 +36,7 @@ event_t read_event(buffer_t* buf)
 
 message_t* event_get_messages(event_t event, int* count)
 {
-    message_t* messages = calloc(EVENT_MESSAGE_MAX, sizeof(message_t));
-    ASSERT(messages != NULL, "Failed to allocate memory for messages");
+    message_t* messages = memory_allocate(EVENT_MESSAGE_MAX * sizeof(message_t));
 
     u8 delimiter = 0xFE;
     char event_text[EVENT_TEXT_SIZE_MAX * 2]; // Adjust size as needed
@@ -190,8 +190,7 @@ message_t* event_get_messages(event_t event, int* count)
         message_t message = {
             .len = len + 1, // +1 for null terminator
         };
-        message.cstr = calloc(1, message.len);
-        ASSERT(message.cstr != NULL, "Failed to allocate memory for message");
+        message.cstr = memory_allocate(message.len);
 
         memcpy(message.cstr, start, len);
         message.cstr[len] = '\0'; // not using message.len
@@ -209,8 +208,7 @@ message_t* event_get_messages(event_t event, int* count)
 
 instruction_t* event_get_instructions(event_t event, int* count)
 {
-    instruction_t* instructions = calloc(EVENT_INSTRUCTION_MAX, sizeof(instruction_t));
-    ASSERT(instructions != NULL, "Failed to allocate memory for instructions");
+    instruction_t* instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
 
     usize code_idx = 0;
     while (code_idx < event.code_size) {

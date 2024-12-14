@@ -2,6 +2,7 @@
 
 #include "cglm/types-struct.h"
 #include "io.h"
+#include "memory.h"
 #include "sokol_gfx.h"
 
 #include "shader.glsl.h"
@@ -157,7 +158,7 @@ static void _scene_map_unload(void)
     if (_state.map != NULL) {
 
         if (_state.map->map_data != NULL) {
-            free(_state.map->map_data);
+            memory_free(_state.map->map_data);
         }
 
         _state.model_count--;
@@ -167,7 +168,7 @@ static void _scene_map_unload(void)
         sg_destroy_buffer(_state.models[_state.model_count].vbuf);
         sg_destroy_buffer(_state.models[_state.model_count].ibuf);
 
-        free(_state.map);
+        memory_free(_state.map);
     }
 }
 
@@ -176,14 +177,14 @@ static void _scene_scenario_unload(void)
     if (_state.messages != NULL) {
         for (int i = 0; i < _state.message_count; i++) {
             if (_state.messages[i].cstr != NULL) {
-                free((void*)_state.messages[i].cstr);
+                memory_free((void*)_state.messages[i].cstr);
             }
         }
     }
     _state.message_count = 0;
 
     if (_state.instructions != NULL) {
-        free(_state.instructions);
+        memory_free(_state.instructions);
     }
     _state.instruction_count = 0;
 }
