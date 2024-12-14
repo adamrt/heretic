@@ -12,24 +12,25 @@
 // FIXME: This should be improved by parsing the instructions here as well.
 event_t read_event(buffer_t* buf)
 {
+    event_t event = { 0 };
+
     u32 text_offset = read_u32(buf);
     bool valid = text_offset != 0xF2F2F2F2;
     if (!valid) {
-        return (event_t) { 0 };
+        return event;
     }
 
-    usize code_size = text_offset - 4;
-    ASSERT(code_size <= EVENT_CODE_SIZE_MAX, "Event code size exceeded");
-
-    event_t event = { 0 };
     event.valid = valid;
-    event.code_size = code_size;
     memcpy(event.data, buf->data, EVENT_SIZE);
-    memcpy(event.code, buf->data + 4, code_size);
+
+    event.messages = memory_allocate(EVENT_MESSAGE_MAX * sizeof(message_t));
+    event.instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
 
     buffer_t msgbuf = { event.data, 0 };
-    event.messages = memory_allocate(EVENT_MESSAGE_MAX * sizeof(message_t));
     read_messages(&msgbuf, event.messages, &event.message_count);
+
+    buffer_t instbuf = { event.data, 0 };
+    read_instructions(&instbuf, event.instructions, &event.instruction_count);
 
     return event;
 }
@@ -206,13 +207,16 @@ void read_messages(buffer_t* buf, message_t* out_messages, int* out_count)
     }
 }
 
-instruction_t* event_get_instructions(event_t event, int* count)
+void read_instructions(buffer_t* buf, instruction_t* instructions, int* out_count)
 {
-    instruction_t* instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
+    usize text_offset = read_u32(buf);
+    usize code_offset = 4;
+    usize code_size = text_offset - 4;
 
-    usize code_idx = 0;
-    while (code_idx < event.code_size) {
-        u8 code = event.code[code_idx++];
+    usize i = 0;
+    while (i < code_size) {
+        u8 code = read_u8_at(buf, code_offset + i);
+        i++;
         opcode_t opcode = opcode_list[code];
 
         instruction_t instruction = { .code = code };
@@ -221,21 +225,19 @@ instruction_t* event_get_instructions(event_t event, int* count)
             parameter_t parameter = { 0 };
             if (opcode.param_sizes[j] == 2) {
                 parameter.type = PARAMETER_TYPE_U16;
-                parameter.value.u16 = (event.code[code_idx + 1] << 8) | event.code[code_idx];
-                code_idx += 2;
+                parameter.value.u16 = read_u16_at(buf, code_offset + 1);
+                i += 2;
             } else {
                 parameter.type = PARAMETER_TYPE_U8;
-                parameter.value.u8 = event.code[code_idx];
-                code_idx += 1;
+                parameter.value.u8 = read_u8_at(buf, code_offset + 1);
+                i += 1;
             }
 
             instruction.parameters[j] = parameter;
         }
-        instructions[(*count)++] = instruction;
-        ASSERT(*count < EVENT_INSTRUCTION_MAX, "Instruction count exceeded");
+        instructions[(*out_count)++] = instruction;
+        ASSERT(*out_count < EVENT_INSTRUCTION_MAX, "Instruction count exceeded");
     }
-
-    return instructions;
 }
 
 const opcode_t opcode_list[OPCODE_ID_MAX] = {

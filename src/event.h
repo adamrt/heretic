@@ -23,25 +23,6 @@ typedef struct {
     usize len;
 } message_t;
 
-// An event is a list of text and instructions for a particular scenario.
-//
-// Events are alway 8192 (0x2000) bytes long. There are 3 components.
-// - text_offset: First 4 bytes is a pointer to the to the text_section.
-//   - If the offset is 0xF2F2F2F2, then the event should be skipped.
-//     These are battle setup events and other non map events.
-// - code_section: Bytes 5 to text_offset is the code section.
-// - text_section: Bytes text_offset thru 8192 is the text section.
-typedef struct {
-    u8 code[EVENT_CODE_SIZE_MAX];
-    usize code_size;
-
-    message_t* messages;
-    int message_count;
-
-    u8 data[EVENT_SIZE];
-    bool valid;
-} event_t;
-
 typedef struct {
     int id;
     const char* name;
@@ -68,8 +49,27 @@ typedef struct {
     parameter_t parameters[EVENT_PARAMETER_MAX];
 } instruction_t;
 
+// An event is a list of text and instructions for a particular scenario.
+//
+// Events are alway 8192 (0x2000) bytes long. There are 3 components.
+// - text_offset: First 4 bytes is a pointer to the to the text_section.
+//   - If the offset is 0xF2F2F2F2, then the event should be skipped.
+//     These are battle setup events and other non map events.
+// - code_section: Bytes 5 to text_offset is the code section.
+// - text_section: Bytes text_offset thru 8192 is the text section.
+typedef struct {
+    message_t* messages;
+    int message_count;
+
+    instruction_t* instructions;
+    int instruction_count;
+
+    u8 data[EVENT_SIZE];
+    bool valid;
+} event_t;
+
 event_t read_event(buffer_t*);
 void read_messages(buffer_t*, message_t*, int*);
-instruction_t* event_get_instructions(event_t, int*);
+void read_instructions(buffer_t*, instruction_t*, int*);
 
 extern const opcode_t opcode_list[OPCODE_ID_MAX];

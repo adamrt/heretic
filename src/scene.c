@@ -85,17 +85,14 @@ void scene_load_scenario(int scenario_id)
         .layout = 0,
     };
 
-    // Load scenario data
+    // Load event data
     _state.event = io_read_event(scenario.event_id);
-    _state.instructions = event_get_instructions(_state.event, &_state.instruction_count);
 
     // Load map data
     scene_load_map(scenario.map_id, scenario_state);
 }
 
 event_t scene_get_event(void) { return _state.event; }
-instruction_t* scene_get_instructions(void) { return _state.instructions; }
-int scene_get_instruction_count(void) { return _state.instruction_count; }
 
 void scene_prev(void)
 {
@@ -169,6 +166,4 @@ static void _scene_map_unload(void)
 
 static void _scene_scenario_unload(void)
 {
-    memory_free(_state.instructions);
-    _state.instruction_count = 0;
 }

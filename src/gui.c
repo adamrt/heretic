@@ -406,8 +406,7 @@ static void _draw_window_instructions(struct nk_context* ctx)
     game_camera_t* cam = game_camera_get_internals();
     if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
-        instruction_t* instructions = scene_get_instructions();
-        int count = scene_get_instruction_count();
+        event_t event = scene_get_event();
 
         nk_layout_row_push(ctx, 60);
         nk_label(ctx, "Select", NK_TEXT_RIGHT);
@@ -422,8 +421,8 @@ static void _draw_window_instructions(struct nk_context* ctx)
         nk_label(ctx, "Timer", NK_TEXT_RIGHT);
         nk_layout_row_end(ctx);
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
-        for (int i = 0; i < count; i++) {
-            instruction_t instruction = instructions[i];
+        for (int i = 0; i < event.instruction_count; i++) {
+            instruction_t instruction = event.instructions[i];
             opcode_t opcode = opcode_list[instruction.code];
             if (instruction.code != 0x19)
                 continue;
