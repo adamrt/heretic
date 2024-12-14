@@ -181,6 +181,7 @@ static void _scene_scenario_unload(void)
             }
         }
     }
+    memory_free(_state.messages);
     _state.message_count = 0;
 
     if (_state.instructions != NULL) {
