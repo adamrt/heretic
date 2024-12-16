@@ -19,8 +19,8 @@
 static struct {
     FILE* file;
 
-    u8* test_evt;
-    u8* attack_out;
+    u8 test_evt[TEST_EVT_LEN];
+    u8 attack_out[ATTACK_OUT_LEN];
 
     scenario_t* scenarios;
     event_t* events;
@@ -31,8 +31,6 @@ void io_init(void) {
     ASSERT(_state.file != NULL, "Failed to open fft.bin");
 
     // Allocate for all io resources
-    _state.attack_out = memory_allocate(ATTACK_OUT_LEN);
-    _state.test_evt = memory_allocate(TEST_EVT_LEN);
     _state.scenarios = memory_allocate(SCENARIO_COUNT * sizeof(scenario_t));
     _state.events = memory_allocate(EVENT_COUNT * sizeof(event_t));
 
@@ -60,8 +58,6 @@ void io_init(void) {
 
 void io_shutdown(void) {
     fclose(_state.file);
-    memory_free(_state.test_evt);
-    memory_free(_state.attack_out);
     memory_free(_state.scenarios);
     for (usize i = 0; i < EVENT_COUNT; i++) {
         memory_free(_state.events[i].messages);
