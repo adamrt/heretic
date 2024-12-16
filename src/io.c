@@ -40,30 +40,24 @@ void io_init(void) {
 
     // Read all scenarios and events
     for (usize i = 0; i < SCENARIO_COUNT; i++) {
-        span_t span = {
-            .data = _state.attack_out + ATTACK_OUT_SCENARIO_OFFSET + (i * SCENARIO_SIZE),
-            .offset = 0,
-        };
+        span_t span = { .data = _state.attack_out + ATTACK_OUT_SCENARIO_OFFSET + (i * SCENARIO_SIZE) };
         _state.scenarios[i] = read_scenario(&span);
     }
 
     for (usize i = 0; i < EVENT_COUNT; i++) {
-        span_t span = {
-            .data = _state.test_evt + (i * EVENT_SIZE),
-            .offset = 0,
-        };
+        span_t span = { .data = _state.test_evt + (i * EVENT_SIZE) };
         _state.events[i] = read_event(&span);
     }
 }
 
 void io_shutdown(void) {
-    fclose(_state.file);
-    memory_free(_state.scenarios);
     for (usize i = 0; i < EVENT_COUNT; i++) {
         memory_free(_state.events[i].messages);
         memory_free(_state.events[i].instructions);
     }
     memory_free(_state.events);
+    memory_free(_state.scenarios);
+    fclose(_state.file);
 }
 
 void io_read_file(usize sector_num, usize size, u8* out_bytes) {
@@ -90,12 +84,12 @@ void io_read_file(usize sector_num, usize size, u8* out_bytes) {
 }
 
 // Getters for resources
-event_t io_read_event(int id) {
+event_t io_get_event(int id) {
     ASSERT(id < EVENT_COUNT, "Event id %d out of bounds", id);
     return _state.events[id];
 }
 
-scenario_t io_read_scenario(int id) {
+scenario_t io_get_scenario(int id) {
     ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
     return _state.scenarios[id];
 }
