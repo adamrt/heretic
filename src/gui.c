@@ -328,8 +328,7 @@ static void _draw_window_messages(struct nk_context* ctx) {
 }
 
 static void _draw_window_instructions(struct nk_context* ctx) {
-    // scene_t* scene = scene_get_internals();
-    camera_t* cam = camera_get_internals();
+    scene_t* scene = scene_get_internals();
     if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
         event_t event = scene_get_event();
@@ -355,22 +354,18 @@ static void _draw_window_instructions(struct nk_context* ctx) {
 
             nk_layout_row_push(ctx, 60);
             if (nk_button_label(ctx, "MoveTo")) {
-                f32 x = (f32)((i16)instruction.parameters[0].value.u16);
-                f32 y = -(f32)((i16)instruction.parameters[1].value.u16);
-                f32 z = (f32)((i16)instruction.parameters[2].value.u16);
+                vec3s pos = { { 0 } };
+                pos.x = (f32)((i16)instruction.parameters[0].value.u16) / 2.0f;
+                pos.y = -(f32)((i16)instruction.parameters[1].value.u16) / 2.0f;
+                pos.z = (f32)((i16)instruction.parameters[2].value.u16) / 2.0f;
+                f32 pitch_deg = -(f32)((i16)instruction.parameters[3].value.u16);
+                f32 maprot_deg = -(f32)((i16)instruction.parameters[4].value.u16);
 
-                cam->position.x = x / _state.xz_scale;
-                cam->position.y = y / _state.y_scale;
-                cam->position.z = z / _state.xz_scale;
-                printf("xz_scale: %f, y_scale: %f\n", _state.xz_scale, _state.y_scale);
+                pitch_deg = (pitch_deg * 90.0f) / 1024.0f;
+                maprot_deg = (maprot_deg * 360.0f) / 4096.0f;
 
-                // f32 pitch = -(f32)((i16)instruction.parameters[3].value.u16);
-                // cam->pitch = (pitch / 1024.0f) * 90.0f;
-
-                /* f32 maprot = -(f32)((i16)instruction.parameters[4].value.u16); */
-                /* f32 maprot_scaled = (maprot * 360.0f) / 4096.0f; */
-                /* f32 maprot_rad = glm_rad(maprot_scaled); */
-                // scene->models.transform.rotation.y = maprot_rad;
+                camera_set_freefly(pos, 0.0f, glm_rad(pitch_deg));
+                scene->models[0].transform.rotation.y = glm_rad(maprot_deg);
             }
 
             if (opcode.name != NULL) {
@@ -390,9 +385,9 @@ static void _draw_window_instructions(struct nk_context* ctx) {
                         value = value / 2.0f;
                     }
                     if (j == 0 || j == 2)
-                        value = value / 4.0f;
+                        value = value / 2.0f;
                     if (j == 3) {
-                        value = (value / 1024.0f) * 90.0f;
+                        value = (value * 90.0f) / 1024.0f;
                     }
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%0.1f", value);
                 } else {
