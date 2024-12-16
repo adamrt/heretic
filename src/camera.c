@@ -19,10 +19,14 @@ void camera_init(void) {
 }
 
 void camera_freefly_motion(freefly_motion_t m) {
-    f32 yaw = _state.yaw + glm_rad(m.dx);
-    f32 pitch = glm_clamp((_state.pitch + glm_rad(m.dy)), -MAX_PHI, MAX_PHI);
+    f32 yaw_rad = _state.yaw_rad + glm_rad(m.yaw_deg);
+    f32 pitch_rad = glm_clamp((_state.pitch_rad + glm_rad(m.pitch_deg)), -MAX_PHI, MAX_PHI);
 
-    vec3s forward = { { cosf(pitch) * sinf(yaw), sinf(pitch), -cosf(pitch) * cosf(yaw) } };
+    vec3s forward = { { 0 } };
+    forward.x = cosf(pitch_rad) * sinf(yaw_rad);
+    forward.y = sinf(pitch_rad);
+    forward.z = -cosf(pitch_rad) * cosf(yaw_rad);
+
     vec3s right = glms_normalize(glms_vec3_cross(forward, GLMS_YUP));
     vec3s up = glms_vec3_cross(forward, right);
 
@@ -33,25 +37,23 @@ void camera_freefly_motion(freefly_motion_t m) {
 
     vec3s position = glms_vec3_add(_state.position, velocity);
 
-    camera_set_freefly(position, yaw, pitch);
+    camera_set_freefly(position, yaw_rad, pitch_rad);
 }
 
 void camera_orbit_motion(orbit_motion_t m) {
     spherical_t sph = _to_spherical(_state.position);
 
-    sph.theta += glm_rad(m.orbit.x);
-    sph.phi += glm_rad(m.orbit.y);
-    sph.phi = glm_clamp(sph.phi, -MAX_PHI, MAX_PHI);
-    sph.radius -= m.dolly;
-    sph.radius = glm_clamp(sph.radius, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+    f32 theta_rad = sph.theta_rad + glm_rad(m.theta_deg);
+    f32 phi_rad = glm_clamp((sph.phi_rad + glm_rad(m.phi_deg)), -MAX_PHI, MAX_PHI);
+    f32 radius = glm_clamp((sph.radius - m.dolly), CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 
-    camera_set_orbit(glms_vec3_zero(), sph.theta, sph.phi, sph.radius);
+    camera_set_orbit(glms_vec3_zero(), theta_rad, phi_rad, radius);
 }
 
 void camera_set_freefly(vec3s position, float yaw, float pitch) {
     _state.position = position;
-    _state.yaw = yaw;
-    _state.pitch = pitch;
+    _state.yaw_rad = yaw;
+    _state.pitch_rad = pitch;
 }
 
 void camera_set_orbit(vec3s center, f32 theta, f32 phi, f32 radius) {
@@ -62,8 +64,8 @@ void camera_set_orbit(vec3s center, f32 theta, f32 phi, f32 radius) {
     vec3s forward = glms_vec3_sub(center, _state.position);
     forward = glms_vec3_normalize(forward);
 
-    _state.yaw = atan2f(forward.x, -forward.z);
-    _state.pitch = asinf(forward.y);
+    _state.yaw_rad = atan2f(forward.x, -forward.z);
+    _state.pitch_rad = asinf(forward.y);
 }
 
 spherical_t camera_get_spherical(void) {
@@ -72,9 +74,9 @@ spherical_t camera_get_spherical(void) {
 
 mat4s camera_get_view(void) {
     vec3s forward = { {
-        cosf(_state.pitch) * sinf(_state.yaw),
-        sinf(_state.pitch),
-        -cosf(_state.pitch) * cosf(_state.yaw),
+        cosf(_state.pitch_rad) * sinf(_state.yaw_rad),
+        sinf(_state.pitch_rad),
+        -cosf(_state.pitch_rad) * cosf(_state.yaw_rad),
     } };
     vec3s center = glms_vec3_add(_state.position, forward);
     return glms_lookat(_state.position, center, GLMS_YUP);
@@ -95,17 +97,17 @@ mat4s camera_get_proj(void) {
 
 static vec3s _to_cartesian(spherical_t s) {
     vec3s pos = { 0 };
-    pos.x = s.radius * cosf(s.phi) * sinf(s.theta);
-    pos.y = s.radius * sinf(s.phi);
-    pos.z = s.radius * -cosf(s.phi) * cosf(s.theta);
+    pos.x = s.radius * cosf(s.phi_rad) * sinf(s.theta_rad);
+    pos.y = s.radius * sinf(s.phi_rad);
+    pos.z = s.radius * -cosf(s.phi_rad) * cosf(s.theta_rad);
     return pos;
 }
 
 static spherical_t _to_spherical(vec3s pos) {
     spherical_t s = { 0 };
     s.radius = sqrtf(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-    s.theta = atan2f(pos.x, -pos.z);
-    s.phi = asinf(pos.y / s.radius);
+    s.theta_rad = atan2f(pos.x, -pos.z);
+    s.phi_rad = asinf(pos.y / s.radius);
     return s;
 }
 

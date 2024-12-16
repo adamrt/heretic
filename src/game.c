@@ -102,7 +102,10 @@ void game_input(const sapp_event* event) {
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            orbit_motion_t motion = { .orbit = { { event->mouse_dx, event->mouse_dy } } };
+            orbit_motion_t motion = {
+                .theta_deg = event->mouse_dx,
+                .phi_deg = event->mouse_dy,
+            };
             camera_orbit_motion(motion);
         }
         break;
