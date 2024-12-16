@@ -67,6 +67,25 @@ void game_input(const sapp_event* event) {
         case SAPP_KEYCODE_J:
             scene_prev();
             break;
+
+        case SAPP_KEYCODE_W:
+            camera_freefly_motion((freefly_motion_t) { .forward = 1.0f });
+            break;
+        case SAPP_KEYCODE_A:
+            camera_freefly_motion((freefly_motion_t) { .right = -1.0f });
+            break;
+        case SAPP_KEYCODE_S:
+            camera_freefly_motion((freefly_motion_t) { .forward = -1.0f });
+            break;
+        case SAPP_KEYCODE_D:
+            camera_freefly_motion((freefly_motion_t) { .right = 1.0f });
+            break;
+        case SAPP_KEYCODE_R:
+            camera_freefly_motion((freefly_motion_t) { .up = 1.0f });
+            break;
+        case SAPP_KEYCODE_F:
+            camera_freefly_motion((freefly_motion_t) { .up = -1.0f });
+            break;
         default:
             break;
         }
@@ -83,14 +102,14 @@ void game_input(const sapp_event* event) {
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            motion_t motion = { .oribit = { { event->mouse_dx, event->mouse_dy } } };
-            camera_update_transform(motion);
+            orbit_motion_t motion = { .orbit = { { event->mouse_dx, event->mouse_dy } } };
+            camera_orbit_motion(motion);
         }
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL: {
-        motion_t motion = { .dolly = event->scroll_y };
-        camera_update_transform(motion);
+        orbit_motion_t motion = { .dolly = event->scroll_y };
+        camera_orbit_motion(motion);
         break;
     }
 
