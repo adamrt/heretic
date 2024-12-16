@@ -41,7 +41,6 @@ void game_shutdown(void) {
 void game_update(void) {
     time_update();
     scene_update();
-    camera_update();
     scene_render();
 }
 
@@ -68,18 +67,6 @@ void game_input(const sapp_event* event) {
         case SAPP_KEYCODE_J:
             scene_prev();
             break;
-        case SAPP_KEYCODE_LEFT:
-            camera_key_left();
-            break;
-        case SAPP_KEYCODE_RIGHT:
-            camera_key_right();
-            break;
-        case SAPP_KEYCODE_UP:
-            camera_key_up();
-            break;
-        case SAPP_KEYCODE_DOWN:
-            camera_key_down();
-            break;
         default:
             break;
         }
@@ -96,13 +83,16 @@ void game_input(const sapp_event* event) {
 
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            camera_mouse_movement(event->mouse_dx, event->mouse_dy);
+            motion_t motion = { .oribit = { { event->mouse_dx, event->mouse_dy } } };
+            camera_update_transform(motion);
         }
         break;
 
-    case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        camera_mouse_wheel(event->scroll_y);
+    case SAPP_EVENTTYPE_MOUSE_SCROLL: {
+        motion_t motion = { .dolly = event->scroll_y };
+        camera_update_transform(motion);
         break;
+    }
 
     default:
         break;

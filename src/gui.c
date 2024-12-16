@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "io.h"
-#include "memory.h"
+#include "cglm/types-struct.h"
+#include "cglm/util.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
-#include "util.h"
 
 // If these are changed, update the libs.c file as well.
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
@@ -24,9 +23,12 @@
 #include "event.h"
 #include "gfx.h"
 #include "gui.h"
+#include "io.h"
+#include "memory.h"
 #include "scenario.h"
 #include "scene.h"
 #include "time.h"
+#include "util.h"
 
 static struct {
     bool show_scenarios;
@@ -126,7 +128,6 @@ static void _draw_section_camera(struct nk_context* ctx) {
 
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Cardinal: %s", camera_cardinal_str());
 
         nk_layout_row_dynamic(ctx, 25, 2);
         char posbuffer[64];
@@ -140,13 +141,11 @@ static void _draw_section_camera(struct nk_context* ctx) {
             nk_combo_end(ctx);
         }
 
-        nk_layout_row_dynamic(ctx, 25, 2);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", cam->distance);
-        nk_slider_float(ctx, -32.00f, &cam->distance, 512.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation: %f", cam->elevation);
-        nk_slider_float(ctx, -360.0f, &cam->elevation, 360.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth: %f", cam->azimuth);
-        nk_slider_float(ctx, 0.0f, &cam->azimuth, 360.0f, 0.1f);
+        spherical_t sph = camera_get_spherical();
+        nk_layout_row_dynamic(ctx, 25, 1);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth: %f", glm_deg(sph.theta));
+        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation: %f", glm_deg(sph.phi));
+        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", sph.phi);
 
         nk_tree_pop(ctx);
     }
