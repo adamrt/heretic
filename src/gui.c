@@ -130,22 +130,17 @@ static void _draw_section_camera(struct nk_context* ctx) {
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
 
         nk_layout_row_dynamic(ctx, 25, 2);
-        char posbuffer[64];
-        nk_label(ctx, "Position", NK_TEXT_LEFT);
-        snprintf(posbuffer, 64, "%.2f, %.2f, %.2f", cam->position.x, cam->position.y, cam->position.z);
-        if (nk_combo_begin_label(ctx, posbuffer, nk_vec2(200, 200))) {
-            nk_layout_row_dynamic(ctx, 25, 1);
-            nk_property_float(ctx, "#X:", -640.0f, &cam->position.x, 640.0f, 1, 0.5f);
-            nk_property_float(ctx, "#Y:", -640.0f, &cam->position.y, 640.0f, 1, 0.5f);
-            nk_property_float(ctx, "#Z:", -640.0f, &cam->position.z, 640.0f, 1, 0.5f);
-            nk_combo_end(ctx);
-        }
+        nk_labelf(ctx, NK_TEXT_LEFT, "X: %.2f", cam->position.x);
+        nk_slider_float(ctx, -4096.0f, &cam->position.x, 4096.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Y: %.2f", cam->position.y);
+        nk_slider_float(ctx, -4096.0f, &cam->position.y, 4096.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Z: %.2f", cam->position.z);
+        nk_slider_float(ctx, -4096.0f, &cam->position.z, 4096.0f, 0.1f);
 
-        spherical_t sph = camera_get_spherical();
-        nk_layout_row_dynamic(ctx, 25, 1);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Azimuth: %f", glm_deg(sph.theta));
-        nk_labelf(ctx, NK_TEXT_LEFT, "Elevation: %f", glm_deg(sph.phi));
-        nk_labelf(ctx, NK_TEXT_LEFT, "Distance: %f", sph.phi);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Yaw: %.2f", cam->yaw_rad);
+        nk_slider_float(ctx, -2.0f, &cam->yaw_rad, 2.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %.2f", cam->pitch_rad);
+        nk_slider_float(ctx, -2.0f, &cam->pitch_rad, 2.0f, 0.1f);
 
         nk_tree_pop(ctx);
     }
