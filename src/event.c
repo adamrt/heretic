@@ -21,13 +21,12 @@ event_t read_event(span_t* span) {
     event.valid = valid;
     memcpy(event.data, span->data, EVENT_SIZE);
 
-    event.messages = memory_allocate(EVENT_MESSAGES_LEN);
-    event.instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
-
     span_t msgspan = { event.data, 0 };
+    event.messages = memory_allocate(EVENT_MESSAGES_LEN);
     read_messages(&msgspan, event.messages, &event.messages_len);
 
     span_t instspan = { event.data, 0 };
+    event.instructions = memory_allocate(EVENT_INSTRUCTION_MAX * sizeof(instruction_t));
     read_instructions(&instspan, event.instructions, &event.instruction_count);
 
     return event;
@@ -175,10 +174,9 @@ void read_instructions(span_t* span, instruction_t* instructions, int* out_count
     usize code_offset = 4;
     usize code_size = text_offset - 4;
 
-    usize i = 0;
-    while (i < code_size) {
-        u8 code = span_readat_u8(span, code_offset + i);
-        i++;
+    span->offset = code_offset;
+    while (span->offset < code_size) {
+        u8 code = span_read_u8(span);
         opcode_t opcode = opcode_list[code];
 
         instruction_t instruction = { .code = code };
@@ -187,12 +185,10 @@ void read_instructions(span_t* span, instruction_t* instructions, int* out_count
             parameter_t parameter = { 0 };
             if (opcode.param_sizes[j] == 2) {
                 parameter.type = PARAMETER_TYPE_U16;
-                parameter.value.u16 = span_readat_u16(span, code_offset + 1);
-                i += 2;
+                parameter.value.u16 = span_read_u16(span);
             } else {
                 parameter.type = PARAMETER_TYPE_U8;
-                parameter.value.u8 = span_readat_u8(span, code_offset + 1);
-                i += 1;
+                parameter.value.u8 = span_read_u8(span);
             }
 
             instruction.parameters[j] = parameter;
