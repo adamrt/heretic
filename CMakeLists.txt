@@ -52,11 +52,13 @@ add_executable(heretic
     src/game.c
     src/gfx.c
     src/gui.c
+    src/instruction.c
     src/io.c
     src/lighting.c
     src/map.c
     src/map_record.c
     src/memory.c
+    src/opcode.c
     src/mesh.c
     src/scenario.c
     src/scene.c

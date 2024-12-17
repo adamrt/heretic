@@ -348,18 +348,18 @@ static void _draw_window_instructions(struct nk_context* ctx) {
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
         for (int i = 0; i < event.instruction_count; i++) {
             instruction_t instruction = event.instructions[i];
-            opcode_t opcode = opcode_list[instruction.code];
-            if (instruction.code != 0x19)
+            opcode_desc_t desc = opcode_desc_list[instruction.opcode];
+            if (instruction.opcode != 0x19)
                 continue;
 
             nk_layout_row_push(ctx, 60);
             if (nk_button_label(ctx, "MoveTo")) {
                 vec3s pos = { { 0 } };
-                pos.x = (f32)((i16)instruction.parameters[0].value.u16) / 2.0f;
-                pos.y = -(f32)((i16)instruction.parameters[1].value.u16) / 2.0f;
-                pos.z = (f32)((i16)instruction.parameters[2].value.u16) / 2.0f;
-                f32 pitch_deg = -(f32)((i16)instruction.parameters[3].value.u16);
-                f32 maprot_deg = -(f32)((i16)instruction.parameters[4].value.u16);
+                pos.x = (f32)((i16)instruction.params[0].value.u16) / 2.0f;
+                pos.y = -(f32)((i16)instruction.params[1].value.u16) / 2.0f;
+                pos.z = (f32)((i16)instruction.params[2].value.u16) / 2.0f;
+                f32 pitch_deg = -(f32)((i16)instruction.params[3].value.u16);
+                f32 maprot_deg = -(f32)((i16)instruction.params[4].value.u16);
 
                 pitch_deg = (pitch_deg * 90.0f) / 1024.0f;
                 maprot_deg = (maprot_deg * 360.0f) / 4096.0f;
@@ -368,16 +368,16 @@ static void _draw_window_instructions(struct nk_context* ctx) {
                 scene->models[0].transform.rotation.y = glm_rad(maprot_deg);
             }
 
-            if (opcode.name != NULL) {
-                nk_label(ctx, opcode.name, NK_TEXT_LEFT);
+            if (desc.name != NULL) {
+                nk_label(ctx, desc.name, NK_TEXT_LEFT);
             } else {
-                nk_labelf(ctx, NK_TEXT_LEFT, "NO OPCODE ---- (0x%X)", instruction.code);
+                nk_labelf(ctx, NK_TEXT_LEFT, "NO OPCODE ---- (0x%X)", instruction.opcode);
             }
-            for (int j = 0; j < EVENT_PARAMETER_MAX; j++) {
-                parameter_t param = instruction.parameters[j];
-                if (param.type == PARAMETER_TYPE_NONE) {
+            for (int j = 0; j < OPCODE_PARAM_MAX; j++) {
+                param_t param = instruction.params[j];
+                if (param.type == PARAM_TYPE_NONE) {
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%d", 0);
-                } else if (param.type == PARAMETER_TYPE_U16) {
+                } else if (param.type == PARAM_TYPE_U16) {
 
                     f32 value = (f32)((i16)param.value.u16);
                     if (j == 1) {
