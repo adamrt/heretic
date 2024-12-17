@@ -81,6 +81,10 @@ void scene_load_scenario(int scenario_id) {
     scene_load_map(scenario.map_id, scenario_state);
 }
 
+void scene_set_map_rotation(f32 maprot) {
+    _state.models[0].transform.rotation.y = maprot;
+}
+
 event_t scene_get_event(void) { return _state.event; }
 
 void scene_prev(void) {

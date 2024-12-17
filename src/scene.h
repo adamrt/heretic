@@ -33,8 +33,9 @@ void scene_render(void);
 // Temporary
 scene_t* scene_get_internals(void);
 
-void scene_load_map(int num, map_state_t state);
-void scene_load_scenario(int num);
+void scene_load_map(int, map_state_t);
+void scene_load_scenario(int);
+void scene_set_map_rotation(f32);
 
 event_t scene_get_event(void);
 
