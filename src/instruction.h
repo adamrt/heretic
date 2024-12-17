@@ -26,4 +26,4 @@ typedef struct {
     u8 param_count;
 } instruction_t;
 
-usize read_instructions(span_t*, usize, instruction_t*);
+usize read_instructions(span_t*, instruction_t*);

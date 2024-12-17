@@ -4,4 +4,4 @@
 
 #include "span.h"
 
-usize read_messages(span_t*, usize, char*);
+usize read_messages(span_t*, char*);

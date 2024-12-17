@@ -2,9 +2,9 @@
 #include "opcode.h"
 #include "util.h"
 
-usize read_instructions(span_t* span, usize spansize, instruction_t* out_instructions) {
+usize read_instructions(span_t* span, instruction_t* out_instructions) {
     usize count = 0;
-    while (span->offset < spansize) {
+    while (span->offset < span->size) {
         opcode_id_t id = (opcode_id_t)span_read_u8(span);
         opcode_desc_t desc = opcode_desc_list[id];
         instruction_t instruction = {

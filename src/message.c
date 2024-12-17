@@ -3,12 +3,11 @@
 #include "font.h"
 #include "message.h"
 #include "span.h"
-#include "util.h"
 
-usize read_messages(span_t* span, usize spansize, char* out_text) {
+usize read_messages(span_t* span, char* out_text) {
     usize length = 0;
 
-    while (span->offset < spansize) {
+    while (span->offset < span->size) {
         u8 byte = span_read_u8(span);
 
         // These are special characters. We need to handle them differently.
@@ -27,7 +26,6 @@ usize read_messages(span_t* span, usize spansize, char* out_text) {
             break;
         }
         case 0xE2: {
-            ASSERT(span->offset < spansize, "Out of bounds");
             u8 delay = span_read_u8(span);
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Delay: %d}", (int)delay);
@@ -36,7 +34,6 @@ usize read_messages(span_t* span, usize spansize, char* out_text) {
             break;
         }
         case 0xE3: {
-            ASSERT(span->offset < spansize, "Out of bounds");
             u8 color = span_read_u8(span);
             char buffer[32];
             int len = snprintf(buffer, sizeof(buffer), "{Color: %d}", (int)color);
@@ -51,9 +48,7 @@ usize read_messages(span_t* span, usize spansize, char* out_text) {
             // This is a jump to another point in the text section.
             // The next 2 bytes are the jump location and how many bytes to read.
             // https://gomtuu.org/fft/trans/compression/
-            ASSERT(span->offset < spansize, "Out of bounds");
             u8 second_byte = span_read_u8(span);
-            ASSERT(span->offset < spansize, "Out of bounds");
             u8 third_byte = span_read_u8(span);
             (void)second_byte; // Unused
             (void)third_byte;  // Unused
@@ -86,7 +81,6 @@ usize read_messages(span_t* span, usize spansize, char* out_text) {
         default: {
             if (byte > 0xCF) {
                 /* Two-byte character */
-                ASSERT(span->offset < spansize, "Out of bounds");
                 u8 second_byte = span_read_u8(span);
                 u16 combined = (second_byte | (byte << 8));
                 const char* font_str = font_get_char(combined);
