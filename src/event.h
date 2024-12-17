@@ -7,9 +7,8 @@
 #include "instruction.h"
 #include "span.h"
 
-#define EVENT_SIZE         (8192)
-#define EVENT_COUNT        (500)
-#define EVENT_MESSAGES_LEN (16384)
+#define EVENT_SIZE  (8192)
+#define EVENT_COUNT (500)
 
 // An event is a list of text and instructions for a particular scenario.
 //

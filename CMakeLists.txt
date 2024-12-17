@@ -58,6 +58,7 @@ add_executable(heretic
     src/map.c
     src/map_record.c
     src/memory.c
+    src/message.c
     src/opcode.c
     src/mesh.c
     src/scenario.c
