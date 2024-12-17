@@ -22,13 +22,13 @@ event_t read_event(span_t* span) {
     event.valid = valid;
     memcpy(event.data, span->data, EVENT_SIZE);
 
-    span_t msgspan = { .data = event.data + text_offset, .offset = 0 };
+    span_t text_span = { .data = event.data + text_offset, .size = text_size };
     event.messages = memory_allocate(MESSAGES_LEN);
-    event.messages_len = read_messages(&msgspan, text_size, event.messages);
+    event.messages_len = read_messages(&text_span, text_size, event.messages);
 
-    span_t instspan = { .data = event.data + 4, .offset = 0 };
+    span_t code_span = { .data = event.data + 4, .size = code_size };
     event.instructions = memory_allocate(INSTRUCTION_MAX * sizeof(instruction_t));
-    event.instruction_count = read_instructions(&instspan, code_size, event.instructions);
+    event.instruction_count = read_instructions(&code_span, code_size, event.instructions);
 
     return event;
 }

@@ -24,12 +24,13 @@ f32 span_read_f16(span_t* span) {
 
 // FN_SPAN_READ is a macro that generates a read function for a specific type. It
 // reads the value, returns it and increments the offset.
-#define FN_SPAN_READ(type)                                       \
-    type span_read_##type(span_t* span) {                        \
-        type value;                                              \
-        memcpy(&value, &span->data[span->offset], sizeof(type)); \
-        span->offset += sizeof(type);                            \
-        return value;                                            \
+#define FN_SPAN_READ(type)                                                        \
+    type span_read_##type(span_t* span) {                                         \
+        ASSERT(span->offset + sizeof(type) <= span->size, "Out of bounds read."); \
+        type value;                                                               \
+        memcpy(&value, &span->data[span->offset], sizeof(type));                  \
+        span->offset += sizeof(type);                                             \
+        return value;                                                             \
     }
 
 FN_SPAN_READ(u8)
@@ -41,12 +42,13 @@ FN_SPAN_READ(i32)
 
 // FN_SPAN_READAT is very similar to FN_SPAN_READ, but accepts an offset to
 // start the read at.
-#define FN_SPAN_READAT(type)                               \
-    type span_readat_##type(span_t* span, usize offset) {  \
-        type value;                                        \
-        memcpy(&value, &span->data[offset], sizeof(type)); \
-        span->offset = offset + sizeof(type);              \
-        return value;                                      \
+#define FN_SPAN_READAT(type)                                                \
+    type span_readat_##type(span_t* span, usize offset) {                   \
+        ASSERT(offset + sizeof(type) <= span->size, "Out of bounds read."); \
+        type value;                                                         \
+        memcpy(&value, &span->data[offset], sizeof(type));                  \
+        span->offset = offset + sizeof(type);                               \
+        return value;                                                       \
     }
 
 FN_SPAN_READAT(u8)

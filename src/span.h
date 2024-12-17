@@ -9,6 +9,7 @@
 // Span/view struct to simplify reading of binary data.
 typedef struct {
     const u8* data;
+    usize size;
     usize offset;
 } span_t;
 
