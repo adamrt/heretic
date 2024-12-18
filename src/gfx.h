@@ -5,8 +5,8 @@
 #include "map.h"
 #include "sokol_gfx.h"
 
-#define GFX_DISPLAY_WIDTH  (640 * 3)
-#define GFX_DISPLAY_HEIGHT (480 * 3)
+#define GFX_DISPLAY_WIDTH  (640 * 2)
+#define GFX_DISPLAY_HEIGHT (480 * 2)
 
 typedef struct {
     vec3s translation;
