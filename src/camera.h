@@ -41,7 +41,7 @@ typedef struct {
 } orbit_motion_t;
 
 void camera_init(void);
-void camera_update(void);
+void camera_reset(void);
 mat4s camera_get_view(void);
 mat4s camera_get_proj(void);
 

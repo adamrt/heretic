@@ -17,6 +17,10 @@ static vec3s _to_cartesian(spherical_t);
 static spherical_t _to_spherical(vec3s);
 
 void camera_init(void) {
+    camera_reset();
+}
+
+void camera_reset(void) {
     _state.zoom = 1.0f;
     camera_set_orbit(glms_vec3_zero(), glm_rad(135.0f), glm_rad(30.0f), DEFAULT_DISTANCE);
 }
