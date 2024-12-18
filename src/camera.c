@@ -62,7 +62,7 @@ void camera_orbit_motion(orbit_motion_t m) {
     camera_set_orbit(glms_vec3_zero(), theta_rad, phi_rad, sph.radius);
 }
 
-void camera_set_freefly(vec3s position, float yaw, float pitch, float zoom) {
+void camera_set_freefly(vec3s position, f32 yaw, f32 pitch, f32 zoom) {
     _state.position = position;
     _state.yaw_rad = yaw;
     _state.pitch_rad = pitch;

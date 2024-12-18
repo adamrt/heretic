@@ -364,12 +364,15 @@ static void _draw_window_instructions(struct nk_context* ctx) {
                 pos.z = (f32)((i16)instruction.params[2].value.u16) / 2.0f;
                 f32 pitch_deg = -(f32)((i16)instruction.params[3].value.u16);
                 f32 maprot_deg = -(f32)((i16)instruction.params[4].value.u16);
-                f32 zoom = (f32)instruction.params[5].value.u16 / 4096.0f;
+                f32 yaw_deg = -(f32)((i16)instruction.params[5].value.u16);
+                f32 zoom = (f32)((i16)instruction.params[6].value.u16);
 
                 pitch_deg = (pitch_deg * 90.0f) / 1024.0f;
                 maprot_deg = (maprot_deg * 360.0f) / 4096.0f;
+                yaw_deg = (yaw_deg * 90.0f) / 1024.0f;
+                zoom = zoom / 4096.0f;
 
-                camera_set_freefly(pos, 0.0f, glm_rad(pitch_deg), zoom);
+                camera_set_freefly(pos, glm_rad(yaw_deg), glm_rad(pitch_deg), zoom);
                 scene->models[0].transform.rotation.y = glm_rad(maprot_deg);
             }
 
