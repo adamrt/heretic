@@ -6,8 +6,10 @@
 
 #include "camera.h"
 
-#define MAX_PHI     (glm_rad(89.9f))
-#define SENSITIVITY (2.0f)
+#define MAX_PHI            (glm_rad(89.9f))
+#define DEFAULT_DISTANCE   (256.0f)
+#define ORTHO_FRUSTUM_SIZE (256.0f)
+#define ZOOM_SENSITIVITY   (0.002f)
 
 static camera_t _state;
 
@@ -16,7 +18,7 @@ static spherical_t _to_spherical(vec3s);
 
 void camera_init(void) {
     _state.zoom = 1.0f;
-    camera_set_orbit(glms_vec3_zero(), glm_rad(135.0f), glm_rad(30.0f), 256.0f);
+    camera_set_orbit(glms_vec3_zero(), glm_rad(135.0f), glm_rad(30.0f), DEFAULT_DISTANCE);
 }
 
 void camera_freefly_motion(freefly_motion_t m) {
@@ -53,8 +55,8 @@ void camera_orbit_motion(orbit_motion_t m) {
         sph.radius = glm_clamp(sph.radius - m.dolly, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
     } else {
         // Change ortho frustum
-        m.dolly /= 100.0f;
-        _state.zoom = glm_clamp(_state.zoom - m.dolly, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+        m.dolly *= ZOOM_SENSITIVITY;
+        _state.zoom = glm_clamp(_state.zoom + m.dolly, CAMERA_ZOOM_MIN, CAMERA_ZOOM_MAX);
     }
 
     camera_set_orbit(glms_vec3_zero(), theta_rad, phi_rad, sph.radius);
@@ -99,7 +101,7 @@ mat4s camera_get_proj(void) {
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);
     } else {
-        f32 w = 256.0f * _state.zoom;
+        f32 w = ORTHO_FRUSTUM_SIZE / _state.zoom;
         f32 h = w / aspect;
         return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
     }

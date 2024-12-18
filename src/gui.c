@@ -125,6 +125,7 @@ static void _draw(void) {
 static void _draw_section_camera(struct nk_context* ctx) {
     if (nk_tree_push(ctx, NK_TREE_TAB, "Camera", NK_MINIMIZED)) {
         camera_t* cam = camera_get_internals();
+        spherical_t sph = camera_get_spherical();
 
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_checkbox_label(ctx, "Perspective", &cam->use_perspective);
@@ -141,8 +142,9 @@ static void _draw_section_camera(struct nk_context* ctx) {
         nk_slider_float(ctx, -10.0f, &cam->yaw_rad, 10.0f, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %.2f", cam->pitch_rad);
         nk_slider_float(ctx, -10.0f, &cam->pitch_rad, 10.0f, 0.1f);
-        nk_labelf(ctx, NK_TEXT_LEFT, "Zoom: %.2f", cam->zoom);
-        nk_slider_float(ctx, 1.0f, &cam->zoom, 1000.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Ortho Zoom: %.2f", cam->zoom);
+        nk_slider_float(ctx, CAMERA_ZOOM_MIN, &cam->zoom, CAMERA_ZOOM_MAX, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Perspective Radius: %.2f", sph.radius);
 
         nk_tree_pop(ctx);
     }

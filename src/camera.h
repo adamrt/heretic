@@ -6,7 +6,9 @@
 
 #include "defines.h"
 
-#define CAMERA_DIST_MIN (0.01f)
+#define CAMERA_ZOOM_MIN (0.1f)
+#define CAMERA_ZOOM_MAX (3.0f)
+#define CAMERA_DIST_MIN (0.1f)
 #define CAMERA_DIST_MAX (1000.0f)
 
 typedef struct {
