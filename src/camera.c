@@ -15,6 +15,7 @@ static vec3s _to_cartesian(spherical_t);
 static spherical_t _to_spherical(vec3s);
 
 void camera_init(void) {
+    _state.zoom = 1.0f;
     camera_set_orbit(glms_vec3_zero(), glm_rad(135.0f), glm_rad(30.0f), 256.0f);
 }
 
@@ -37,7 +38,7 @@ void camera_freefly_motion(freefly_motion_t m) {
 
     vec3s position = glms_vec3_add(_state.position, velocity);
 
-    camera_set_freefly(position, yaw_rad, pitch_rad);
+    camera_set_freefly(position, yaw_rad, pitch_rad, _state.zoom);
 }
 
 void camera_orbit_motion(orbit_motion_t m) {
@@ -45,21 +46,31 @@ void camera_orbit_motion(orbit_motion_t m) {
 
     f32 theta_rad = sph.theta_rad + glm_rad(m.theta_deg);
     f32 phi_rad = glm_clamp((sph.phi_rad + glm_rad(m.phi_deg)), -MAX_PHI, MAX_PHI);
-    f32 radius = glm_clamp((sph.radius - m.dolly), CAMERA_DIST_MIN, CAMERA_DIST_MAX);
 
-    camera_set_orbit(glms_vec3_zero(), theta_rad, phi_rad, radius);
+    // Dolly / Zoom
+    if (_state.use_perspective) {
+        // Physically move camera
+        sph.radius = glm_clamp(sph.radius - m.dolly, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+    } else {
+        // Change ortho frustum
+        m.dolly /= 100.0f;
+        _state.zoom = glm_clamp(_state.zoom - m.dolly, CAMERA_DIST_MIN, CAMERA_DIST_MAX);
+    }
+
+    camera_set_orbit(glms_vec3_zero(), theta_rad, phi_rad, sph.radius);
 }
 
-void camera_set_freefly(vec3s position, float yaw, float pitch) {
+void camera_set_freefly(vec3s position, float yaw, float pitch, float zoom) {
     _state.position = position;
     _state.yaw_rad = yaw;
     _state.pitch_rad = pitch;
+    _state.zoom = zoom;
 }
 
-void camera_set_orbit(vec3s center, f32 theta, f32 phi, f32 radius) {
-    _state.position.x = center.x + radius * cosf(phi) * sinf(theta);
-    _state.position.y = center.y + radius * sinf(phi);
-    _state.position.z = center.z + radius * -cosf(phi) * cosf(theta);
+void camera_set_orbit(vec3s center, f32 theta, f32 phi, f32 distance) {
+    _state.position.x = center.x + distance * cosf(phi) * sinf(theta);
+    _state.position.y = center.y + distance * sinf(phi);
+    _state.position.z = center.z + distance * -cosf(phi) * cosf(theta);
 
     vec3s forward = glms_vec3_sub(center, _state.position);
     forward = glms_vec3_normalize(forward);
@@ -88,8 +99,7 @@ mat4s camera_get_proj(void) {
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);
     } else {
-        spherical_t s = _to_spherical(_state.position);
-        f32 w = s.radius;
+        f32 w = 256.0f * _state.zoom;
         f32 h = w / aspect;
         return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
     }

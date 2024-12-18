@@ -13,6 +13,7 @@ typedef struct {
     vec3s position;
     f32 yaw_rad;
     f32 pitch_rad;
+    f32 zoom;
     bool use_perspective;
 } camera_t;
 
@@ -46,7 +47,7 @@ void camera_freefly_motion(freefly_motion_t);
 void camera_orbit_motion(orbit_motion_t);
 
 void camera_set_orbit(vec3s, f32, f32, f32);
-void camera_set_freefly(vec3s, f32, f32);
+void camera_set_freefly(vec3s, f32, f32, f32);
 
 camera_t* camera_get_internals(void);
 spherical_t camera_get_spherical(void);

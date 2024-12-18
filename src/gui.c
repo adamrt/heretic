@@ -138,9 +138,11 @@ static void _draw_section_camera(struct nk_context* ctx) {
         nk_slider_float(ctx, -4096.0f, &cam->position.z, 4096.0f, 0.1f);
 
         nk_labelf(ctx, NK_TEXT_LEFT, "Yaw: %.2f", cam->yaw_rad);
-        nk_slider_float(ctx, -2.0f, &cam->yaw_rad, 2.0f, 0.1f);
+        nk_slider_float(ctx, -10.0f, &cam->yaw_rad, 10.0f, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %.2f", cam->pitch_rad);
-        nk_slider_float(ctx, -2.0f, &cam->pitch_rad, 2.0f, 0.1f);
+        nk_slider_float(ctx, -10.0f, &cam->pitch_rad, 10.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Zoom: %.2f", cam->zoom);
+        nk_slider_float(ctx, 1.0f, &cam->zoom, 1000.0f, 0.1f);
 
         nk_tree_pop(ctx);
     }
@@ -360,11 +362,12 @@ static void _draw_window_instructions(struct nk_context* ctx) {
                 pos.z = (f32)((i16)instruction.params[2].value.u16) / 2.0f;
                 f32 pitch_deg = -(f32)((i16)instruction.params[3].value.u16);
                 f32 maprot_deg = -(f32)((i16)instruction.params[4].value.u16);
+                f32 zoom = (f32)instruction.params[5].value.u16 / 4096.0f;
 
                 pitch_deg = (pitch_deg * 90.0f) / 1024.0f;
                 maprot_deg = (maprot_deg * 360.0f) / 4096.0f;
 
-                camera_set_freefly(pos, 0.0f, glm_rad(pitch_deg));
+                camera_set_freefly(pos, 0.0f, glm_rad(pitch_deg), zoom);
                 scene->models[0].transform.rotation.y = glm_rad(maprot_deg);
             }
 
