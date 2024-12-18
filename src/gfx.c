@@ -160,9 +160,9 @@ model_t gfx_map_to_model(map_t* map) {
 
     model_t model = {
         .vertex_count = map->mesh.geometry.vertex_count,
+        .center = centered_translation,
         .transform = {
             .scale = { { 1.0f, 1.0f, 1.0f } },
-            .centered_translation = centered_translation,
         },
         .vbuf = vbuf,
         .texture = texture,

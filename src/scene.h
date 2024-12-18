@@ -18,7 +18,6 @@ typedef struct {
     model_t models[10];
     int model_count;
 
-    bool center_model;
     int current_scenario;
     int current_map;
 

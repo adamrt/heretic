@@ -12,8 +12,6 @@ typedef struct {
     vec3s translation;
     vec3s rotation;
     vec3s scale;
-
-    vec3s centered_translation;
 } transform_t;
 
 // model_t represents a renderable model
@@ -24,6 +22,9 @@ typedef struct {
     sg_image palette;
     transform_t transform;
     int vertex_count;
+
+    // Center point of verticies. This allows centering the camera on the mesh.
+    vec3s center;
 } model_t;
 
 void gfx_init(void);

@@ -27,7 +27,6 @@ static void _scene_switch(switch_e dir);
 static void _scene_map_unload(void);
 
 void scene_init(void) {
-    _state.center_model = true;
     _state.current_scenario = 78;
     _state.mode = MODE_SCENARIO;
     scene_load_scenario(_state.current_scenario);
@@ -38,13 +37,6 @@ void scene_shutdown(void) {
 }
 
 void scene_update(void) {
-    for (int i = 0; i < _state.model_count; i++) {
-        if (_state.center_model) {
-            _state.models[i].transform.translation = _state.models[i].transform.centered_translation;
-        } else {
-            _state.models[i].transform.translation = glms_vec3_zero();
-        }
-    }
 }
 
 void scene_render(void) {

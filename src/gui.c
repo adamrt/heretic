@@ -270,11 +270,9 @@ static void _draw_section_memory(struct nk_context* ctx) {
 }
 
 static void _draw_section_misc(struct nk_context* ctx) {
-    scene_t* scene = scene_get_internals();
     if (nk_tree_push(ctx, NK_TREE_TAB, "Global", NK_MINIMIZED)) {
         nk_layout_row_dynamic(ctx, 25, 2);
         nk_checkbox_label(ctx, "Show Game Scenarios", &_state.show_scenarios);
-        nk_checkbox_label(ctx, "Center Model", &scene->center_model);
         nk_layout_row_static(ctx, 20, 40, 6);
         nk_label(ctx, "Scale", NK_TEXT_LEFT);
 
