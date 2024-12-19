@@ -61,6 +61,7 @@ add_executable(heretic
     src/message.c
     src/opcode.c
     src/mesh.c
+    src/parse.c
     src/scenario.c
     src/scene.c
     src/span.c
