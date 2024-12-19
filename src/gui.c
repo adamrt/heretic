@@ -6,6 +6,7 @@
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
+#include "vm.h"
 
 // If these are changed, update the libs.c file as well.
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
@@ -170,6 +171,10 @@ static void _draw_section_scenario(struct nk_context* ctx) {
         nk_layout_row_dynamic(ctx, 25, 1);
         nk_labelf(ctx, NK_TEXT_LEFT, "Map %d: %s", map.id, map.name);
         nk_labelf(ctx, NK_TEXT_LEFT, "Time: %s, Weather: %s, Layout: %d", time_str(scenario.time), weather_str(scenario.weather), 0);
+
+        if (nk_button_label(ctx, "Play Event")) {
+            vm_execute_event(&scene->event);
+        }
 
         nk_checkbox_label(ctx, "Show Event Instructions", &_state.show_instructions);
         nk_checkbox_label(ctx, "Show Event Messages", &_state.show_messages);

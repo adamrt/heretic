@@ -12,6 +12,7 @@
 #include "scenario.h"
 #include "scene.h"
 #include "util.h"
+#include "vm.h"
 
 static scene_t _state;
 
@@ -68,6 +69,8 @@ void scene_load_scenario(int scenario_id) {
         .weather = scenario.weather,
         .layout = 0,
     };
+
+    vm_reset();
 
     _state.event = io_get_event(scenario.event_id);
     scene_load_map(scenario.map_id, scenario_state);

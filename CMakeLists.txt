@@ -66,7 +66,10 @@ add_executable(heretic
     src/scene.c
     src/span.c
     src/texture.c
-    src/time.c)
+    src/time.c
+    src/transition.c
+    src/vm.c
+    src/vm_func.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)

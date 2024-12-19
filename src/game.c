@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "scene.h"
 #include "time.h"
+#include "transition.h"
+#include "vm.h"
 
 #if defined(__EMSCRIPTEN__)
 #    include <emscripten/emscripten.h>
@@ -22,6 +24,7 @@ void game_init(void) {
     memory_init();
     time_init();
     camera_init();
+    vm_init();
     gfx_init();
     gui_init();
 
@@ -40,6 +43,8 @@ void game_shutdown(void) {
 
 void game_update(void) {
     time_update();
+    vm_update();
+    transition_update();
     scene_update();
     scene_render();
 }

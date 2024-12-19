@@ -16,7 +16,9 @@ typedef struct {
     param_type_e type;
     union {
         u8 u8;
+        i8 i8;
         u16 u16;
+        i16 i16;
     } value;
 } param_t;
 
