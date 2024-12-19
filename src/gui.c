@@ -138,6 +138,8 @@ static void _draw_section_camera(struct nk_context* ctx) {
         nk_slider_float(ctx, -10.0f, &cam->yaw_rad, 10.0f, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Pitch: %.2f", cam->pitch_rad);
         nk_slider_float(ctx, -10.0f, &cam->pitch_rad, 10.0f, 0.1f);
+        nk_labelf(ctx, NK_TEXT_LEFT, "Ortho Frustum: %.2f", cam->frustum);
+        nk_slider_float(ctx, CAMERA_FRUSTUM_MIN, &cam->frustum, CAMERA_FRUSTUM_MAX, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Ortho Zoom: %.2f", cam->zoom);
         nk_slider_float(ctx, CAMERA_ZOOM_MIN, &cam->zoom, CAMERA_ZOOM_MAX, 0.1f);
         nk_labelf(ctx, NK_TEXT_LEFT, "Perspective Radius: %.2f", sph.radius);

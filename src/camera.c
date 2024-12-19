@@ -6,10 +6,9 @@
 
 #include "camera.h"
 
-#define MAX_PHI            (glm_rad(89.9f))
-#define DEFAULT_DISTANCE   (256.0f)
-#define ORTHO_FRUSTUM_SIZE (256.0f)
-#define ZOOM_SENSITIVITY   (0.002f)
+#define MAX_PHI          (glm_rad(89.9f))
+#define DEFAULT_DISTANCE (256.0f)
+#define ZOOM_SENSITIVITY (0.002f)
 
 static camera_t _state;
 
@@ -22,6 +21,7 @@ void camera_init(void) {
 
 void camera_reset(void) {
     _state.zoom = 1.0f;
+    _state.frustum = 256.0f;
     camera_set_orbit(glms_vec3_zero(), glm_rad(135.0f), glm_rad(30.0f), DEFAULT_DISTANCE);
 }
 
@@ -105,7 +105,7 @@ mat4s camera_get_proj(void) {
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);
     } else {
-        f32 w = ORTHO_FRUSTUM_SIZE / _state.zoom;
+        f32 w = _state.frustum / _state.zoom;
         f32 h = w / aspect;
         return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
     }
