@@ -23,7 +23,7 @@ typedef struct {
     int messages_len;
 
     instruction_t* instructions;
-    int instruction_count;
+    usize instruction_count;
 
     u8 data[EVENT_SIZE];
     bool valid;

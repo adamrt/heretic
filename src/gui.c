@@ -348,7 +348,7 @@ static void _draw_window_instructions(struct nk_context* ctx) {
         nk_label(ctx, "Timer", NK_TEXT_RIGHT);
         nk_layout_row_end(ctx);
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
-        for (int i = 0; i < event.instruction_count; i++) {
+        for (usize i = 0; i < event.instruction_count; i++) {
             instruction_t instruction = event.instructions[i];
             opcode_desc_t desc = opcode_desc_list[instruction.opcode];
             if (instruction.opcode != 0x19)
