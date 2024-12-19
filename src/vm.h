@@ -1,11 +1,8 @@
 #pragma once
 
 #include "event.h"
-#include "instruction.h"
 #include "opcode.h"
-
-// Function pointer type for opcode functions
-typedef void (*opcode_fn_t)(void* state, const instruction_t*);
+#include "vm_func.h"
 
 // Virtual machine state
 typedef struct {

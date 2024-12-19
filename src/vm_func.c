@@ -5,8 +5,16 @@
 #include "scene.h"
 #include "transition.h"
 
-void fn_camera(void* state, const instruction_t* instr) {
-    (void)state;
+void fn_10_displaymessage(const instruction_t* instr) {
+    (void)instr->params[0].value.u8; // unused, typically 0x10
+    u8 type = instr->params[1].value.u8;
+    printf("Display message type: 0x%X\n", type);
+}
+
+void fn_19_camera(const instruction_t* instr) {
+    camera_t* cam = camera_get_internals();
+    scene_t* scene = scene_get_internals();
+
     f32 x = parse_coord(instr->params[0].value.i16);
     f32 y = -parse_coord(instr->params[1].value.i16);
     f32 z = parse_coord(instr->params[2].value.i16);
@@ -15,9 +23,6 @@ void fn_camera(void* state, const instruction_t* instr) {
     f32 yaw_rad = parse_rad(instr->params[5].value.i16);
     f32 zoom = parse_zoom(instr->params[6].value.i16);
     f32 duration = (f32)instr->params[7].value.i16;
-
-    camera_t* cam = camera_get_internals();
-    scene_t* scene = scene_get_internals();
 
     transition_add(&cam->position.x, cam->position.x, x, duration);
     transition_add(&cam->position.y, cam->position.y, y, duration);
