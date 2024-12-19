@@ -1,5 +1,6 @@
 #include "game.h"
 #include "camera.h"
+#include "font.h"
 #include "gfx.h"
 #include "gui.h"
 #include "io.h"
@@ -17,6 +18,7 @@
 // during game_init() for native builds, and after file upload on a wasm build.
 void data_init(void) {
     io_init();
+    font_init();
     scene_init();
 }
 
@@ -36,6 +38,7 @@ void game_init(void) {
 void game_shutdown(void) {
     scene_shutdown();
     io_shutdown();
+    font_init();
     gui_shutdown();
     gfx_shutdown();
     memory_shutdown();

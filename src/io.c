@@ -15,12 +15,14 @@
 #define ATTACK_OUT_LEN             (125956)
 #define ATTACK_OUT_SCENARIO_OFFSET (0x10938)
 #define TEST_EVT_LEN               (4096000)
+#define FONT_BIN_LEN               (77000)
 
 static struct {
     FILE* file;
 
     u8 test_evt[TEST_EVT_LEN];
     u8 attack_out[ATTACK_OUT_LEN];
+    u8 font_bin[FONT_BIN_LEN];
 
     scenario_t* scenarios;
     event_t* events;
@@ -37,6 +39,7 @@ void io_init(void) {
     // Read all files
     io_read_file(2448, ATTACK_OUT_LEN, _state.attack_out);
     io_read_file(3707, TEST_EVT_LEN, _state.test_evt);
+    io_read_file(3650, FONT_BIN_LEN, _state.font_bin);
 
     // Read all scenarios and events
     for (usize i = 0; i < SCENARIO_COUNT; i++) {
@@ -101,5 +104,7 @@ scenario_t io_get_scenario(int id) {
 }
 
 // Return preloaded files
+// FIXME: Use span_t instead of file_t since we have size now.
 file_t io_file_test_evt(void) { return (file_t) { _state.test_evt, TEST_EVT_LEN }; }
 file_t io_file_attack_out(void) { return (file_t) { _state.attack_out, ATTACK_OUT_LEN }; }
+file_t io_file_font_bin(void) { return (file_t) { _state.font_bin, FONT_BIN_LEN }; }

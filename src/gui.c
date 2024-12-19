@@ -3,6 +3,7 @@
 
 #include "cglm/types-struct.h"
 #include "cglm/util.h"
+#include "font.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -35,7 +36,9 @@ static struct {
     bool show_scenarios;
     bool show_messages;
     bool show_instructions;
+    bool show_font;
     int scale_divisor;
+    snk_image_t font_atlas_image;
 } _state;
 
 static void _draw(void);
@@ -44,6 +47,7 @@ static void _draw_mode_selector(struct nk_context* ctx);
 static void _draw_window_scenarios(struct nk_context* ctx);
 static void _draw_window_messages(struct nk_context* ctx);
 static void _draw_window_instructions(struct nk_context* ctx);
+static void _draw_window_font(struct nk_context* ctx);
 
 static void _draw_section_scenario(struct nk_context* ctx);
 static void _draw_section_map(struct nk_context* ctx);
@@ -66,11 +70,20 @@ void gui_init(void) {
     _state.show_instructions = false;
     _state.show_scenarios = false;
     _state.show_messages = false;
+    _state.show_font = false;
 }
 
 void gui_update(void) {
     _draw();
     snk_render(sapp_width(), sapp_height());
+
+    // The gui can start before data is loaded. This is kinda ugly but functional for now.
+    if (font_get_atlas_image().id != SG_INVALID_ID && _state.font_atlas_image.id == SG_INVALID_ID) {
+        _state.font_atlas_image = snk_make_image(&(snk_image_desc_t) {
+            .image = font_get_atlas_image(),
+            .sampler = gfx_get_sampler(),
+        });
+    }
 }
 
 bool gui_input(const sapp_event* event) {
@@ -113,6 +126,10 @@ static void _draw(void) {
 
     if (_state.show_messages) {
         _draw_window_messages(ctx);
+    }
+
+    if (_state.show_font) {
+        _draw_window_font(ctx);
     }
 
     return;
@@ -173,6 +190,7 @@ static void _draw_section_scenario(struct nk_context* ctx) {
             vm_execute_event(&scene->event);
         }
 
+        nk_checkbox_label(ctx, "Show Font", &_state.show_font);
         nk_checkbox_label(ctx, "Show Event Instructions", &_state.show_instructions);
         nk_checkbox_label(ctx, "Show Event Messages", &_state.show_messages);
 
@@ -302,6 +320,14 @@ static void _draw_window_scenarios(struct nk_context* ctx) {
             nk_labelf(ctx, NK_TEXT_LEFT, "ID: %d, Event ID: %d, Next: %d, Map: %s", i, scenario.event_id, scenario.next_scenario_id, scenario_name_list[scenario.event_id].name);
             nk_labelf(ctx, NK_TEXT_LEFT, "Weather: %s, Time: %s, ENTD: %d", weather_str(scenario.weather), time_str(scenario.time), scenario.entd_id);
         }
+    }
+    nk_end(ctx);
+}
+
+static void _draw_window_font(struct nk_context* ctx) {
+    if (nk_begin(ctx, "Font", nk_rect(10, 10, FONT_ATLAS_WIDTH * 2, FONT_ATLAS_HEIGHT + 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
+        nk_layout_row_dynamic(ctx, FONT_ATLAS_HEIGHT * 2, 1);
+        nk_image(ctx, nk_image_handle(snk_nkhandle(_state.font_atlas_image)));
     }
     nk_end(ctx);
 }

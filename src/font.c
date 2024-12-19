@@ -3,12 +3,45 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sokol_gfx.h"
+
 #include "defines.h"
 #include "font.h"
+#include "io.h"
+
+static struct {
+    sg_image font_atlas_image;
+} _state;
 
 // Forward declarations
 static const font_char_t _font[FONT_CHAR_COUNT];
-static int _compare_font_chars(const void* a, const void* b);
+static int _compare_font_chars(const void*, const void*);
+static font_atlas_t read_font_atlas(span_t*);
+
+void font_init(void) {
+    file_t file = io_file_font_bin();
+    span_t span = {
+        .data = file.data,
+        .size = file.size,
+    };
+    font_atlas_t atlas = read_font_atlas(&span);
+
+    _state.font_atlas_image = sg_make_image(&(sg_image_desc) {
+        .width = FONT_ATLAS_WIDTH,
+        .height = FONT_ATLAS_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(atlas.data),
+        .label = "font-atlas",
+    });
+}
+
+void font_shutdown(void) {
+    sg_destroy_image(_state.font_atlas_image);
+}
+
+sg_image font_get_atlas_image(void) {
+    return _state.font_atlas_image;
+}
 
 const char* font_get_char(u16 id) {
     font_char_t key = { id, NULL };
@@ -23,6 +56,69 @@ static int _compare_font_chars(const void* a, const void* b) {
     u16 id_a = ((const font_char_t*)a)->id;
     u16 id_b = ((const font_char_t*)b)->id;
     return (id_a > id_b) - (id_a < id_b);
+}
+
+static font_atlas_t read_font_atlas(span_t* span) {
+    font_atlas_t atlas = { 0 };
+
+    for (int glyph = 0; glyph < FONT_CHAR_COUNT; ++glyph) {
+        int atlas_row = glyph / FONT_ATLAS_COLS;
+        int atlas_col = glyph % FONT_ATLAS_COLS;
+
+        int char_start_x = atlas_col * FONT_CHAR_WIDTH;
+        int char_start_y = atlas_row * FONT_CHAR_HEIGHT;
+
+        for (int byte_idx = 0; byte_idx < BYTES_PER_CHAR; ++byte_idx) {
+            u8 byte = span_read_u8(span);
+
+            for (int k = 6; k >= 0; k -= 2) {
+                u8 val = (byte >> k) & 0x3; // Extract 2 bits
+                u8 alpha = (val == 0) ? 0 : 255;
+                u8 shade = 0;
+
+                switch (val) {
+                case 1:
+                    shade = 200;
+                    break;
+                case 2:
+                    shade = 100;
+                    break;
+                case 3:
+                    shade = 50;
+                    break;
+                default:
+                    shade = 0;
+                    break;
+                }
+
+                // Calculate the pixel's position within the character
+                int pixel_index_in_char = byte_idx * 4 + (3 - (k / 2));
+                int pixel_x = pixel_index_in_char % FONT_CHAR_WIDTH;
+                int pixel_y = pixel_index_in_char / FONT_CHAR_WIDTH;
+
+                if (pixel_y >= FONT_CHAR_HEIGHT || pixel_x >= FONT_CHAR_WIDTH) {
+                    continue;
+                }
+
+                // Calculate the pixel's position within the atlas
+                int atlas_x = char_start_x + pixel_x;
+                int atlas_y = char_start_y + pixel_y;
+
+                int atlas_pixel_index = (atlas_y * FONT_ATLAS_WIDTH + atlas_x) * 4;
+                if (atlas_pixel_index + 4 >= FONT_ATLAS_BYTE_COUNT) {
+                    continue;
+                }
+
+                atlas.data[atlas_pixel_index + 0] = shade; // R
+                atlas.data[atlas_pixel_index + 1] = shade; // G
+                atlas.data[atlas_pixel_index + 2] = shade; // B
+                atlas.data[atlas_pixel_index + 3] = alpha; // A
+            }
+        }
+    }
+
+    atlas.valid = true;
+    return atlas;
 }
 
 static const font_char_t _font[FONT_CHAR_COUNT] = {

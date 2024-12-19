@@ -21,3 +21,4 @@ scenario_t io_get_scenario(int);
 // Return preloaded files.
 file_t io_file_test_evt(void);
 file_t io_file_attack_out(void);
+file_t io_file_font_bin(void);
