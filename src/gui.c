@@ -36,9 +36,6 @@ static struct {
     bool show_messages;
     bool show_instructions;
     int scale_divisor;
-
-    f32 xz_scale;
-    f32 y_scale;
 } _state;
 
 static void _draw(void);
@@ -69,8 +66,6 @@ void gui_init(void) {
     _state.show_instructions = false;
     _state.show_scenarios = false;
     _state.show_messages = false;
-    _state.xz_scale = 4.0f;
-    _state.y_scale = 2.0f;
 }
 
 void gui_update(void) {
