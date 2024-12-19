@@ -16,6 +16,7 @@
 #define ATTACK_OUT_SCENARIO_OFFSET (0x10938)
 #define TEST_EVT_LEN               (4096000)
 #define FONT_BIN_LEN               (77000)
+#define FRAME_BIN_LEN              (37568)
 
 static struct {
     FILE* file;
@@ -23,6 +24,7 @@ static struct {
     u8 test_evt[TEST_EVT_LEN];
     u8 attack_out[ATTACK_OUT_LEN];
     u8 font_bin[FONT_BIN_LEN];
+    u8 frame_bin[FRAME_BIN_LEN];
 
     scenario_t* scenarios;
     event_t* events;
@@ -40,7 +42,9 @@ void io_init(void) {
     io_read_file(2448, ATTACK_OUT_LEN, _state.attack_out);
     io_read_file(3707, TEST_EVT_LEN, _state.test_evt);
     io_read_file(3650, FONT_BIN_LEN, _state.font_bin);
+    io_read_file(3688, FRAME_BIN_LEN, _state.frame_bin);
 
+    // FIXME: Maybe move these to their respective modules.
     // Read all scenarios and events
     for (usize i = 0; i < SCENARIO_COUNT; i++) {
         span_t span = {
@@ -107,3 +111,4 @@ scenario_t io_get_scenario(int id) {
 span_t io_file_test_evt(void) { return (span_t) { .data = _state.test_evt, .size = TEST_EVT_LEN }; }
 span_t io_file_attack_out(void) { return (span_t) { .data = _state.attack_out, .size = ATTACK_OUT_LEN }; }
 span_t io_file_font_bin(void) { return (span_t) { .data = _state.font_bin, .size = FONT_BIN_LEN }; }
+span_t io_file_frame_bin(void) { return (span_t) { .data = _state.frame_bin, .size = FRAME_BIN_LEN }; }

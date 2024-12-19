@@ -7,6 +7,7 @@
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
+#include "sprite.h"
 #include "vm.h"
 
 // If these are changed, update the libs.c file as well.
@@ -37,8 +38,10 @@ static struct {
     bool show_messages;
     bool show_instructions;
     bool show_font;
+    bool show_sprite_frame;
     int scale_divisor;
     snk_image_t font_atlas_image;
+    snk_image_t sprite_frame_image;
 } _state;
 
 static void _draw(void);
@@ -48,6 +51,7 @@ static void _draw_window_scenarios(struct nk_context* ctx);
 static void _draw_window_messages(struct nk_context* ctx);
 static void _draw_window_instructions(struct nk_context* ctx);
 static void _draw_window_font(struct nk_context* ctx);
+static void _draw_window_sprite_frame(struct nk_context* ctx);
 
 static void _draw_section_scenario(struct nk_context* ctx);
 static void _draw_section_map(struct nk_context* ctx);
@@ -71,6 +75,7 @@ void gui_init(void) {
     _state.show_scenarios = false;
     _state.show_messages = false;
     _state.show_font = false;
+    _state.show_sprite_frame = false;
 }
 
 void gui_update(void) {
@@ -81,6 +86,12 @@ void gui_update(void) {
     if (font_get_atlas_image().id != SG_INVALID_ID && _state.font_atlas_image.id == SG_INVALID_ID) {
         _state.font_atlas_image = snk_make_image(&(snk_image_desc_t) {
             .image = font_get_atlas_image(),
+            .sampler = gfx_get_sampler(),
+        });
+    }
+    if (sprite_get_frame_image().id != SG_INVALID_ID && _state.sprite_frame_image.id == SG_INVALID_ID) {
+        _state.sprite_frame_image = snk_make_image(&(snk_image_desc_t) {
+            .image = sprite_get_frame_image(),
             .sampler = gfx_get_sampler(),
         });
     }
@@ -130,6 +141,10 @@ static void _draw(void) {
 
     if (_state.show_font) {
         _draw_window_font(ctx);
+    }
+
+    if (_state.show_sprite_frame) {
+        _draw_window_sprite_frame(ctx);
     }
 
     return;
@@ -191,6 +206,7 @@ static void _draw_section_scenario(struct nk_context* ctx) {
         }
 
         nk_checkbox_label(ctx, "Show Font", &_state.show_font);
+        nk_checkbox_label(ctx, "Show Sprite Frame", &_state.show_sprite_frame);
         nk_checkbox_label(ctx, "Show Event Instructions", &_state.show_instructions);
         nk_checkbox_label(ctx, "Show Event Messages", &_state.show_messages);
 
@@ -328,6 +344,14 @@ static void _draw_window_font(struct nk_context* ctx) {
     if (nk_begin(ctx, "Font", nk_rect(10, 10, FONT_ATLAS_WIDTH * 2, FONT_ATLAS_HEIGHT + 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
         nk_layout_row_dynamic(ctx, FONT_ATLAS_HEIGHT * 2, 1);
         nk_image(ctx, nk_image_handle(snk_nkhandle(_state.font_atlas_image)));
+    }
+    nk_end(ctx);
+}
+
+static void _draw_window_sprite_frame(struct nk_context* ctx) {
+    if (nk_begin(ctx, "Sprite Frame", nk_rect(10, 10, SPRITE_FRAME_WIDTH * 2, SPRITE_FRAME_HEIGHT * 2), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
+        nk_layout_row_dynamic(ctx, SPRITE_FRAME_HEIGHT * 2, 1);
+        nk_image(ctx, nk_image_handle(snk_nkhandle(_state.sprite_frame_image)));
     }
     nk_end(ctx);
 }

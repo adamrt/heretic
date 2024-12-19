@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdint.h>
-
 #include "sokol_gfx.h"
 
 #include "defines.h"

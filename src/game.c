@@ -6,6 +6,7 @@
 #include "io.h"
 #include "memory.h"
 #include "scene.h"
+#include "sprite.h"
 #include "time.h"
 #include "transition.h"
 #include "vm.h"
@@ -19,6 +20,7 @@
 void data_init(void) {
     io_init();
     font_init();
+    sprite_init();
     scene_init();
 }
 
@@ -39,6 +41,7 @@ void game_shutdown(void) {
     scene_shutdown();
     io_shutdown();
     font_init();
+    sprite_shutdown();
     gui_shutdown();
     gfx_shutdown();
     memory_shutdown();
