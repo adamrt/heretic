@@ -5,7 +5,7 @@
 #include "scene.h"
 #include "transition.h"
 
-void fn_10_displaymessage(const instruction_t* instr) {
+void fn_10_display_message(const instruction_t* instr) {
     (void)instr->params[0].value.u8; // unused, typically 0x10
     u8 type = instr->params[1].value.u8;
     printf("Display message type: 0x%X\n", type);
