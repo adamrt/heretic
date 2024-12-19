@@ -104,7 +104,6 @@ scenario_t io_get_scenario(int id) {
 }
 
 // Return preloaded files
-// FIXME: Use span_t instead of file_t since we have size now.
-file_t io_file_test_evt(void) { return (file_t) { _state.test_evt, TEST_EVT_LEN }; }
-file_t io_file_attack_out(void) { return (file_t) { _state.attack_out, ATTACK_OUT_LEN }; }
-file_t io_file_font_bin(void) { return (file_t) { _state.font_bin, FONT_BIN_LEN }; }
+span_t io_file_test_evt(void) { return (span_t) { .data = _state.test_evt, .size = TEST_EVT_LEN }; }
+span_t io_file_attack_out(void) { return (span_t) { .data = _state.attack_out, .size = ATTACK_OUT_LEN }; }
+span_t io_file_font_bin(void) { return (span_t) { .data = _state.font_bin, .size = FONT_BIN_LEN }; }

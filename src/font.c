@@ -19,11 +19,7 @@ static int _compare_font_chars(const void*, const void*);
 static font_atlas_t read_font_atlas(span_t*);
 
 void font_init(void) {
-    file_t file = io_file_font_bin();
-    span_t span = {
-        .data = file.data,
-        .size = file.size,
-    };
+    span_t span = io_file_font_bin();
     font_atlas_t atlas = read_font_atlas(&span);
 
     _state.font_atlas_image = sg_make_image(&(sg_image_desc) {
