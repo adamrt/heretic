@@ -5,7 +5,6 @@
 
 #include "defines.h"
 #include "instruction.h"
-#include "span.h"
 
 #define EVENT_SIZE  (8192)
 #define EVENT_COUNT (500)
@@ -29,4 +28,6 @@ typedef struct {
     bool valid;
 } event_t;
 
-event_t read_event(span_t*);
+void event_init(void);
+void event_shutdown(void);
+event_t event_get_event(int);

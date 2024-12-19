@@ -5,6 +5,7 @@
 #include "gui.h"
 #include "io.h"
 #include "memory.h"
+#include "scenario.h"
 #include "scene.h"
 #include "sprite.h"
 #include "time.h"
@@ -19,6 +20,8 @@
 // during game_init() for native builds, and after file upload on a wasm build.
 void data_init(void) {
     io_init();
+    event_init();
+    scenario_init();
     font_init();
     sprite_init();
     scene_init();
@@ -40,6 +43,8 @@ void game_init(void) {
 void game_shutdown(void) {
     scene_shutdown();
     io_shutdown();
+    scenario_shutdown();
+    event_shutdown();
     font_init();
     sprite_shutdown();
     gui_shutdown();

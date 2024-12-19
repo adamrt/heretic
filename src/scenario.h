@@ -22,6 +22,8 @@ typedef struct {
     const char* name;
 } scenario_name_t;
 
-scenario_t read_scenario(span_t*);
+void scenario_init(void);
+void scenario_shutdown(void);
+scenario_t scenario_get_scenario(int);
 
 extern scenario_name_t scenario_name_list[];
