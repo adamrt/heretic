@@ -3,8 +3,6 @@
 #include "defines.h"
 #include "texture.h"
 
-static vec4s read_rgb15(span_t*);
-
 texture_t read_texture(span_t* span) {
     const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2); // Each pixel stored as 1/2 a byte
 
@@ -50,7 +48,7 @@ palette_t read_palette(span_t* span) {
     return palette;
 }
 
-static vec4s read_rgb15(span_t* span) {
+vec4s read_rgb15(span_t* span) {
     u16 val = span_read_u16(span);
 
     vec4s color = { 0 };

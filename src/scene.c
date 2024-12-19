@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-#include "cglm/struct/vec3.h"
 #include "sokol_gfx.h"
 
 #include "cglm/types-struct.h"

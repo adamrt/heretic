@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "cglm/types-struct.h"
 #include "defines.h"
 #include "map_record.h"
 #include "span.h"
@@ -30,3 +31,4 @@ typedef struct {
 
 texture_t read_texture(span_t*);
 palette_t read_palette(span_t*);
+vec4s read_rgb15(span_t* span);

@@ -40,8 +40,11 @@ static struct {
     bool show_font;
     bool show_sprite_frame;
     int scale_divisor;
+
+    // Images
     snk_image_t font_atlas_image;
     snk_image_t sprite_frame_image;
+    int sprite_frame_palette_index;
 } _state;
 
 static void _draw(void);
@@ -76,6 +79,7 @@ void gui_init(void) {
     _state.show_messages = false;
     _state.show_font = false;
     _state.show_sprite_frame = false;
+    _state.sprite_frame_palette_index = 0;
 }
 
 void gui_update(void) {
@@ -350,6 +354,30 @@ static void _draw_window_font(struct nk_context* ctx) {
 
 static void _draw_window_sprite_frame(struct nk_context* ctx) {
     if (nk_begin(ctx, "Sprite Frame", nk_rect(10, 10, SPRITE_FRAME_WIDTH * 2, SPRITE_FRAME_HEIGHT * 2), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
+        nk_layout_row_dynamic(ctx, 20, 2);
+
+        char buffer[64];
+        snprintf(buffer, 5, "%d", _state.sprite_frame_palette_index);
+        nk_label(ctx, "Palette", NK_TEXT_LEFT);
+        if (nk_combo_begin_label(ctx, buffer, nk_vec2(370, 550))) {
+            nk_layout_row_dynamic(ctx, 25, 1);
+
+            for (int i = 0; i < 22; ++i) {
+                snprintf(buffer, 64, "Palette %d ", i);
+                if (nk_combo_item_label(ctx, buffer, NK_TEXT_LEFT)) {
+                    _state.sprite_frame_palette_index = i;
+                    sprite_set_frame_palette(i);
+
+                    snk_destroy_image(_state.sprite_frame_image);
+                    _state.sprite_frame_image = snk_make_image(&(snk_image_desc_t) {
+                        .image = sprite_get_frame_image(),
+                        .sampler = gfx_get_sampler(),
+                    });
+                }
+            }
+            nk_combo_end(ctx);
+        }
+
         nk_layout_row_dynamic(ctx, SPRITE_FRAME_HEIGHT * 2, 1);
         nk_image(ctx, nk_image_handle(snk_nkhandle(_state.sprite_frame_image)));
     }
