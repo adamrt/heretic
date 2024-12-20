@@ -171,19 +171,6 @@ model_t gfx_map_to_model(map_t* map) {
     return model;
 }
 
-void gfx_render_background(vec4s top_color, vec4s bottom_color) {
-    sg_apply_pipeline(_state.background.pipeline);
-
-    fs_background_params_t fs_params;
-    fs_params.u_top_color = top_color;
-    fs_params.u_bottom_color = bottom_color;
-
-    sg_apply_pipeline(_state.background.pipeline);
-    sg_apply_bindings(&_state.background.bindings);
-    sg_apply_uniforms(0, &SG_RANGE(fs_params));
-    sg_draw(0, 6, 1);
-}
-
 void gfx_scale_change(void) {
     sg_destroy_image(_state.offscreen.color_image);
     sg_destroy_image(_state.offscreen.depth_image);
@@ -197,7 +184,6 @@ void gfx_scale_change(void) {
 
 void gfx_shutdown(void) {
     sg_destroy_pipeline(_state.offscreen.pipeline);
-    sg_destroy_pipeline(_state.background.pipeline);
     sg_destroy_pipeline(_state.display.pipeline);
 
     sg_destroy_attachments(_state.offscreen.attachments);
@@ -262,6 +248,17 @@ static void _init(void) {
         .wrap_v = SG_WRAP_REPEAT,
     });
 
+    _state.quad_vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(shape_quad_vertices),
+        .label = "quad-vertices",
+    });
+
+    _state.quad_ibuf = sg_make_buffer(&(sg_buffer_desc) {
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = SG_RANGE(shape_quad_indices),
+        .label = "quad-indices",
+    });
+
     //
     // Offscreen
     //
@@ -287,46 +284,6 @@ static void _init(void) {
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "standard-pipeline",
     });
-
-    //
-    // Background
-    //
-
-    _state.background.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
-        .layout = {
-            .buffers[0].stride = sizeof(vertex_t),
-            .attrs = {
-                [ATTR_background_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-            },
-        },
-        .shader = sg_make_shader(background_shader_desc(sg_query_backend())),
-        .index_type = SG_INDEXTYPE_UINT16,
-        .cull_mode = SG_CULLMODE_NONE,
-        .depth = {
-            .pixel_format = SG_PIXELFORMAT_DEPTH,
-            // disable write and compre so the bg doesn't affect to the depth buffer.
-            // .compare = SG_COMPAREFUNC_LESS,
-            // .write_enabled = true,
-        },
-        .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
-        .label = "background-pipeline",
-    });
-
-    sg_buffer quad_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(shape_quad_vertices),
-        .label = "background-vertices",
-    });
-
-    sg_buffer quad_ibuf = sg_make_buffer(&(sg_buffer_desc) {
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(shape_quad_indices),
-        .label = "background-indices",
-    });
-
-    _state.background.bindings = (sg_bindings) {
-        .vertex_buffers[0] = quad_vbuf,
-        .index_buffer = quad_ibuf,
-    };
 
     //
     // Display
@@ -355,13 +312,20 @@ static void _init(void) {
     // Fullscreen quad vertices
     // clang-format off
     _state.display.bindings = (sg_bindings) {
-        .vertex_buffers[0] = quad_vbuf,
-        .index_buffer = quad_ibuf,
+        .vertex_buffers[0] = gfx_get_quad_vbuf(),
+        .index_buffer = gfx_get_quad_ibuf(),
         .images[IMG_u_texture] = _state.offscreen.color_image,
         .samplers[SMP_u_sampler] = _state.sampler,
     };
 }
 
+sg_buffer gfx_get_quad_vbuf(void) {
+    return _state.quad_vbuf;
+}
+
+sg_buffer gfx_get_quad_ibuf(void) {
+    return _state.quad_ibuf;
+}
 
 static void _render_display(void)
 {

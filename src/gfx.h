@@ -30,18 +30,23 @@ typedef struct {
 void gfx_init(void);
 void gfx_shutdown(void);
 void gfx_render_begin(void);
-void gfx_render_background(vec4s, vec4s);
 void gfx_render_model(model_t*, lighting_t*);
 void gfx_render_end(void);
 void gfx_scale_change(void);
 model_t gfx_map_to_model(map_t*);
 
 sg_sampler gfx_get_sampler(void);
+sg_buffer gfx_get_quad_vbuf(void);
+sg_buffer gfx_get_quad_ibuf(void);
+
 int gfx_get_scale_divisor(void);
 void gfx_set_scale_divisor(int);
 
 typedef struct {
     sg_sampler sampler;
+
+    sg_buffer quad_vbuf;
+    sg_buffer quad_ibuf;
 
     struct {
         sg_pipeline pipeline;
@@ -49,11 +54,6 @@ typedef struct {
         sg_image depth_image;
         sg_attachments attachments;
     } offscreen;
-
-    struct {
-        sg_pipeline pipeline;
-        sg_bindings bindings;
-    } background;
 
     struct {
         int width;

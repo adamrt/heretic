@@ -1,4 +1,5 @@
 #include "game.h"
+#include "background.h"
 #include "camera.h"
 #include "font.h"
 #include "gfx.h"
@@ -33,6 +34,7 @@ void game_init(void) {
     camera_init();
     vm_init();
     gfx_init();
+    background_init();
     gui_init();
 
 #if !defined(__EMSCRIPTEN__)
@@ -48,6 +50,7 @@ void game_shutdown(void) {
     font_init();
     sprite_shutdown();
     gui_shutdown();
+    background_shutdown();
     gfx_shutdown();
     memory_shutdown();
 }

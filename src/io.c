@@ -1,10 +1,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "event.h"
 #include "io.h"
-#include "memory.h"
-#include "scenario.h"
 #include "util.h"
 
 #define SECTOR_HEADER_SIZE (24)

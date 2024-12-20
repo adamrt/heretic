@@ -5,6 +5,7 @@
 #include "cglm/types-struct.h"
 #include "shader.glsl.h"
 
+#include "background.h"
 #include "event.h"
 #include "memory.h"
 #include "scenario.h"
@@ -41,7 +42,7 @@ void scene_update(void) {
 void scene_render(void) {
     gfx_render_begin();
     {
-        gfx_render_background(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
+        background_render(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
         for (int i = 0; i < _state.model_count; i++) {
             gfx_render_model(&_state.models[i], &_state.map->mesh.lighting);
         }
