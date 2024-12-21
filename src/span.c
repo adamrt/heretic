@@ -22,6 +22,17 @@ f32 span_read_f16(span_t* span) {
     return value / 4096.0f;
 }
 
+void span_print(const span_t* span) {
+    printf("Span: \n");
+    for (usize i = 0; i < span->size; i++) {
+        printf("%02X ", span->data[i]);
+        if ((i + 1) % 32 == 0) {
+            printf("\n");
+        }
+    }
+    printf("\n");
+}
+
 // FN_SPAN_READ is a macro that generates a read function for a specific type. It
 // reads the value, returns it and increments the offset.
 #define FN_SPAN_READ(type)                                                        \

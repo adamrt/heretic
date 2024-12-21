@@ -30,3 +30,5 @@ i8 span_readat_i8(span_t*, usize);
 i16 span_readat_i16(span_t*, usize);
 i32 span_readat_i32(span_t*, usize);
 f32 span_readat_f1x3x12(span_t*, usize);
+
+void span_print(const span_t*);
