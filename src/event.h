@@ -7,7 +7,7 @@
 #include "instruction.h"
 
 #define EVENT_SIZE  (8192)
-#define EVENT_COUNT (500)
+#define EVENT_COUNT (491)
 
 // An event is a list of text and instructions for a particular scenario.
 //
@@ -27,6 +27,15 @@ typedef struct {
     u8 data[EVENT_SIZE];
     bool valid;
 } event_t;
+
+// Event descriptions
+typedef struct {
+    u16 id;
+    bool usable;
+    const char* name;
+} event_desc_t;
+
+extern event_desc_t event_desc_list[];
 
 void event_init(void);
 void event_shutdown(void);

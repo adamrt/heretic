@@ -3,7 +3,7 @@
 #include "defines.h"
 #include "map_record.h"
 
-#define SCENARIO_COUNT (490)
+#define SCENARIO_COUNT (491)
 #define SCENARIO_SIZE  (24)
 
 typedef struct {
@@ -16,14 +16,6 @@ typedef struct {
     u8 data[SCENARIO_SIZE];
 } scenario_t;
 
-// Scenario descriptors
-typedef struct {
-    u16 id;
-    const char* name;
-} scenario_name_t;
-
 void scenario_init(void);
 void scenario_shutdown(void);
 scenario_t scenario_get_scenario(int);
-
-extern scenario_name_t scenario_name_list[];
