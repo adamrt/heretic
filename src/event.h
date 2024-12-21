@@ -5,6 +5,7 @@
 
 #include "defines.h"
 #include "instruction.h"
+#include "message.h"
 
 #define EVENT_SIZE  (8192)
 #define EVENT_COUNT (491)
@@ -18,10 +19,10 @@
 // - code_section: Bytes 5 to text_offset is the code section.
 // - text_section: Bytes text_offset thru 8192 is the text section.
 typedef struct {
-    char* messages;
+    char messages[MESSAGES_MAX_LEN];
     int messages_len;
 
-    instruction_t* instructions;
+    instruction_t instructions[INSTRUCTION_MAX];
     usize instruction_count;
 
     u8 data[EVENT_SIZE];
@@ -39,6 +40,5 @@ typedef struct {
 extern event_desc_t event_desc_list[];
 
 event_t event_get_event(int);
-void event_free(event_t*); // FIXME: This isn't ver symetrical.
 event_desc_t event_get_desc_by_event_id(int);
 event_desc_t event_get_desc_by_scenario_id(int);

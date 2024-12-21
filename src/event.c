@@ -22,11 +22,6 @@ event_t event_get_event(int id) {
     return event;
 }
 
-void event_free(event_t* event) {
-    memory_free(event->messages);
-    memory_free(event->instructions);
-}
-
 event_desc_t event_get_desc_by_event_id(int event_id) {
     return event_desc_list[event_id];
 }
@@ -56,7 +51,6 @@ static event_t read_event(span_t* span) {
         .data = event.data + text_offset,
         .size = text_size,
     };
-    event.messages = memory_allocate(MESSAGES_LEN);
     event.messages_len = read_messages(&text_span, event.messages);
 
     usize code_size = text_offset - 4;
@@ -64,7 +58,6 @@ static event_t read_event(span_t* span) {
         .data = event.data + 4,
         .size = code_size,
     };
-    event.instructions = memory_allocate(INSTRUCTION_MAX * sizeof(instruction_t));
     event.instruction_count = read_instructions(&code_span, event.instructions);
 
     event.valid = valid;

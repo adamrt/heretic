@@ -1,4 +1,4 @@
-#include "cglm/cglm.h"
+#include "cglm/util.h"
 
 #include "lighting.h"
 #include "mesh.h"
