@@ -1,25 +1,31 @@
 #include "cglm/types-struct.h"
 
 #include "defines.h"
+#include "span.h"
 #include "texture.h"
 
 texture_t read_texture(span_t* span) {
-    const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2); // Each pixel stored as 1/2 a byte
+    // Each pixel stored as 1/2 a byte
+    const int TEXTURE_ON_DISK_SIZE = (TEXTURE_SIZE / 2);
 
     texture_t texture = { 0 };
 
-    for (int i = 0; i < TEXTURE_ON_DISK_SIZE * 8; i += 8) {
-        u8 raw_pixel = span_read_u8(span);
-        u8 right = ((raw_pixel & 0x0F));
-        u8 left = ((raw_pixel & 0xF0) >> 4);
-        texture.data[i + 0] = right;
-        texture.data[i + 1] = right;
-        texture.data[i + 2] = right;
-        texture.data[i + 3] = right;
-        texture.data[i + 4] = left;
-        texture.data[i + 5] = left;
-        texture.data[i + 6] = left;
-        texture.data[i + 7] = left;
+    u8 bytes[TEXTURE_ON_DISK_SIZE];
+    span_read_bytes(span, sizeof(bytes), bytes);
+
+    usize write_idx = 0;
+    for (int i = 0; i < TEXTURE_ON_DISK_SIZE; i++) {
+        u8 raw_pixel = bytes[i];
+        u8 right = raw_pixel & 0x0F;
+        u8 left = (raw_pixel & 0xF0) >> 4;
+
+        // Expand left/right nibbles into four entries for RBGA
+        for (int j = 0; j < 4; j++) {
+            texture.data[write_idx++] = right;
+        }
+        for (int j = 0; j < 4; j++) {
+            texture.data[write_idx++] = left;
+        }
     }
 
     texture.valid = true;
