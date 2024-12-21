@@ -18,7 +18,7 @@ typedef struct {
     model_t models[10];
     int model_count;
 
-    int current_scenario;
+    int current_scenario_id;
     int current_map;
 
     event_t event;

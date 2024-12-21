@@ -1,39 +1,23 @@
 #include <string.h>
 
-#include "event.h"
 #include "io.h"
-#include "memory.h"
 #include "scenario.h"
 #include "span.h"
 #include "util.h"
 
 #define SCENARIO_OFFSET (0x10938)
 
-static struct {
-    scenario_t* scenarios;
-} _state;
-
 static scenario_t read_scenario(span_t*);
-
-void scenario_init(void) {
-    _state.scenarios = memory_allocate(SCENARIO_COUNT * sizeof(scenario_t));
-    span_t file = io_file_attack_out();
-    for (usize i = 0; i < SCENARIO_COUNT; i++) {
-        span_t span = {
-            .data = file.data + SCENARIO_OFFSET + (i * SCENARIO_SIZE),
-            .size = SCENARIO_SIZE,
-        };
-        _state.scenarios[i] = read_scenario(&span);
-    }
-}
-
-void scenario_shutdown(void) {
-    memory_free(_state.scenarios);
-}
 
 scenario_t scenario_get_scenario(int id) {
     ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
-    return _state.scenarios[id];
+    span_t file = io_file_attack_out();
+    span_t span = {
+        .data = file.data + SCENARIO_OFFSET + (id * SCENARIO_SIZE),
+        .size = SCENARIO_SIZE,
+    };
+    scenario_t scenario = read_scenario(&span);
+    return scenario;
 }
 
 static scenario_t read_scenario(span_t* span) {

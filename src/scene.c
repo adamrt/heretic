@@ -25,15 +25,17 @@ typedef enum {
 
 static void _scene_switch(switch_e dir);
 static void _scene_map_unload(void);
+static void _scene_unload_scenario(void);
 
 void scene_init(void) {
-    _state.current_scenario = 78;
+    _state.current_scenario_id = 78;
     _state.mode = MODE_SCENARIO;
-    scene_load_scenario(_state.current_scenario);
+    scene_load_scenario(_state.current_scenario_id);
 }
 
 void scene_shutdown(void) {
     _scene_map_unload();
+    _scene_unload_scenario();
 }
 
 void scene_update(void) {
@@ -62,14 +64,13 @@ void scene_load_map(int num, map_state_t map_state) {
 }
 
 void scene_load_scenario(int scenario_id) {
+    _scene_unload_scenario();
     scenario_t scenario = scenario_get_scenario(scenario_id);
     map_state_t scenario_state = {
         .time = scenario.time,
         .weather = scenario.weather,
         .layout = 0,
     };
-
-    vm_reset();
 
     _state.event = event_get_event(scenario.event_id);
     scene_load_map(scenario.map_id, scenario_state);
@@ -94,21 +95,20 @@ static void _scene_switch(switch_e dir) {
 
     switch (_state.mode) {
     case MODE_SCENARIO:
-        _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
+        _state.current_scenario_id = is_prev ? _state.current_scenario_id - 1 : _state.current_scenario_id + 1;
         while (true) {
-            if (_state.current_scenario < 0) {
-                _state.current_scenario = SCENARIO_COUNT - 1;
+            if (_state.current_scenario_id < 0) {
+                _state.current_scenario_id = SCENARIO_COUNT - 1;
             }
-            if (_state.current_scenario > SCENARIO_COUNT - 1) {
-                _state.current_scenario = 0;
+            if (_state.current_scenario_id > SCENARIO_COUNT - 1) {
+                _state.current_scenario_id = 0;
             }
-            scenario_t scenario = scenario_get_scenario(_state.current_scenario);
-            event_t event = event_get_event(scenario.event_id);
-            if (!event.valid) {
-                _state.current_scenario = is_prev ? _state.current_scenario - 1 : _state.current_scenario + 1;
+            event_desc_t desc = event_get_desc_by_scenario_id(_state.current_scenario_id);
+            if (!desc.usable) {
+                _state.current_scenario_id = is_prev ? _state.current_scenario_id - 1 : _state.current_scenario_id + 1;
                 continue;
             }
-            scene_load_scenario(_state.current_scenario);
+            scene_load_scenario(_state.current_scenario_id);
             break;
         }
         break;
@@ -145,4 +145,9 @@ static void _scene_map_unload(void) {
     sg_destroy_image(_state.models[_state.model_count].palette);
     sg_destroy_buffer(_state.models[_state.model_count].vbuf);
     sg_destroy_buffer(_state.models[_state.model_count].ibuf);
+}
+
+static void _scene_unload_scenario(void) {
+    event_free(&_state.event);
+    vm_reset();
 }

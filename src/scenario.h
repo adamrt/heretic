@@ -16,6 +16,4 @@ typedef struct {
     u8 data[SCENARIO_SIZE];
 } scenario_t;
 
-void scenario_init(void);
-void scenario_shutdown(void);
 scenario_t scenario_get_scenario(int);

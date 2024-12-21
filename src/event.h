@@ -30,13 +30,15 @@ typedef struct {
 
 // Event descriptions
 typedef struct {
-    u16 id;
+    u16 event_id;
+    u16 scenario_id;
     bool usable;
     const char* name;
 } event_desc_t;
 
 extern event_desc_t event_desc_list[];
 
-void event_init(void);
-void event_shutdown(void);
 event_t event_get_event(int);
+void event_free(event_t*); // FIXME: This isn't ver symetrical.
+event_desc_t event_get_desc_by_event_id(int);
+event_desc_t event_get_desc_by_scenario_id(int);

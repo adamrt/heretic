@@ -197,7 +197,7 @@ static void _draw_section_scenario(struct nk_context* ctx) {
         _draw_dropdown_scenario(ctx);
 
         scene_t* scene = scene_get_internals();
-        scenario_t scenario = scenario_get_scenario(scene->current_scenario);
+        scenario_t scenario = scenario_get_scenario(scene->current_scenario_id);
         map_desc_t map = map_list[scenario.map_id];
 
         nk_layout_row_dynamic(ctx, 25, 1);
@@ -559,14 +559,15 @@ static void _draw_dropdown_map(struct nk_context* ctx) {
 
 static void _draw_dropdown_scenario(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
-    scenario_t selected_scenario = scenario_get_scenario(scene->current_scenario);
 
     nk_layout_row_begin(ctx, NK_STATIC, 25, 2);
     nk_layout_row_push(ctx, 50);
     nk_label(ctx, "Scenaio", NK_TEXT_LEFT);
 
+    event_desc_t selected_desc = event_get_desc_by_scenario_id(scene->current_scenario_id);
+
     char selected_buffer[64];
-    snprintf(selected_buffer, 64, "%d - %d %s", scene->current_scenario, selected_scenario.event_id, event_desc_list[selected_scenario.event_id].name);
+    snprintf(selected_buffer, 64, "Scenario: %d - Event: %d - %s", selected_desc.scenario_id, selected_desc.event_id, selected_desc.name);
 
     nk_layout_row_push(ctx, 300);
     if (nk_combo_begin_label(ctx, selected_buffer, nk_vec2(480, 550))) {
@@ -575,17 +576,17 @@ static void _draw_dropdown_scenario(struct nk_context* ctx) {
         for (int i = 0; i < SCENARIO_COUNT; ++i) {
             // We only want to show scenarios that have valid events.
             // The others are for load out screens and such.
-            scenario_t scenario = scenario_get_scenario(i);
-            event_t event = event_get_event(scenario.event_id);
-            if (!event.valid) {
+            event_desc_t desc = event_get_desc_by_scenario_id(i);
+            if (!desc.usable) {
                 continue;
             }
+
             char item_buffer[64];
-            snprintf(item_buffer, 64, "%d - %d %s", i, event_desc_list[scenario.event_id].id, event_desc_list[scenario.event_id].name);
+            snprintf(item_buffer, 64, "Scenario: %d - Event: %d - %s", desc.scenario_id, desc.event_id, desc.name);
 
             if (nk_combo_item_label(ctx, item_buffer, NK_TEXT_LEFT)) {
-                scene->current_scenario = i;
-                scene_load_scenario(scene->current_scenario);
+                scene->current_scenario_id = desc.scenario_id;
+                scene_load_scenario(scene->current_scenario_id);
             }
         }
         nk_combo_end(ctx);
