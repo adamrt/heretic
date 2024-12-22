@@ -162,6 +162,7 @@ model_t gfx_map_to_model(map_t* map) {
         .vertex_count = map->mesh.geometry.vertex_count,
         .center = centered_translation,
         .transform = {
+            .translation = centered_translation, // Centering for now as it seems better.
             .scale = { { 1.0f, 1.0f, 1.0f } },
         },
         .vbuf = vbuf,
