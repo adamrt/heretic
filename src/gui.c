@@ -4,6 +4,7 @@
 #include "cglm/types-struct.h"
 #include "cglm/util.h"
 #include "font.h"
+#include "parse.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -436,21 +437,18 @@ static void _draw_window_instructions(struct nk_context* ctx) {
             nk_layout_row_push(ctx, 60);
             if (nk_button_label(ctx, "MoveTo")) {
                 vec3s pos = { { 0 } };
-                pos.x = (f32)((i16)instruction.params[0].value.u16) / 4.0f;
-                pos.y = -(f32)((i16)instruction.params[1].value.u16) / 4.0f;
-                pos.z = (f32)((i16)instruction.params[2].value.u16) / 4.0f;
-                f32 pitch_deg = -(f32)((i16)instruction.params[3].value.u16);
-                f32 maprot_deg = -(f32)((i16)instruction.params[4].value.u16);
-                f32 yaw_deg = -(f32)((i16)instruction.params[5].value.u16);
-                f32 zoom = (f32)((i16)instruction.params[6].value.u16);
+                param_t* p = instruction.params;
 
-                pitch_deg = pitch_deg / 1024.0f * 90.0f;
-                maprot_deg = maprot_deg / 1024.0f * 90.0f;
-                yaw_deg = yaw_deg / 1024.0f * 90.0f;
-                zoom = zoom / 4096.0f;
+                pos.x = parse_coord(p[0].value.i16);
+                pos.y = -parse_coord(p[1].value.i16);
+                pos.z = parse_coord(p[2].value.i16);
+                f32 pitch = parse_rad(p[3].value.i16);
+                f32 maprot = parse_rad(p[4].value.i16);
+                f32 yaw = parse_rad(p[5].value.i16);
+                f32 zoom = parse_zoom(p[6].value.i16);
 
-                camera_set_freefly(pos, glm_rad(yaw_deg), glm_rad(pitch_deg), zoom);
-                scene->models[0].transform.rotation.y = glm_rad(maprot_deg);
+                camera_set_freefly(pos, yaw, pitch, zoom);
+                scene->models[0].transform.rotation.y = maprot;
             }
 
             if (desc.name != NULL) {
@@ -463,17 +461,17 @@ static void _draw_window_instructions(struct nk_context* ctx) {
                 if (param.type == PARAM_TYPE_NONE) {
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%d", 0);
                 } else if (param.type == PARAM_TYPE_U16) {
-
-                    f32 value = (f32)((i16)param.value.u16);
+                    f32 value = (f32)param.value.i16;
                     if (j == 1) {
-                        value = -value;
-                        value = value / 2.0f;
+                        value = -parse_coord(value);
+                    } else if (j == 0 || j == 2) {
+                        value = parse_coord(value);
+                    } else if (j == 3 || j == 4 || j == 5) {
+                        value = glm_deg(parse_rad(value));
+                    } else if (j == 6) {
+                        value = parse_zoom(value);
                     }
-                    if (j == 0 || j == 2)
-                        value = value / 2.0f;
-                    if (j == 3) {
-                        value = (value * 90.0f) / 1024.0f;
-                    }
+
                     nk_labelf(ctx, NK_TEXT_RIGHT, "%0.1f", value);
                 } else {
                     f32 value = (f32)(i8)param.value.u8;

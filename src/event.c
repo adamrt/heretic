@@ -4,7 +4,6 @@
 #include "event.h"
 #include "instruction.h"
 #include "io.h"
-#include "memory.h"
 #include "message.h"
 #include "span.h"
 #include "util.h"
