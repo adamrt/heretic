@@ -44,6 +44,7 @@ static struct {
     // Images
     snk_image_t font_atlas_image;
     snk_image_t sprite_frame_image;
+    snk_image_t sprite_frame_palette_image;
     int sprite_frame_palette_index;
 } _state;
 
@@ -96,6 +97,13 @@ void gui_update(void) {
     if (sprite_get_frame_image().id != SG_INVALID_ID && _state.sprite_frame_image.id == SG_INVALID_ID) {
         _state.sprite_frame_image = snk_make_image(&(snk_image_desc_t) {
             .image = sprite_get_frame_image(),
+            .sampler = gfx_get_sampler(),
+        });
+    }
+
+    if (sprite_get_frame_palette_image().id != SG_INVALID_ID && _state.sprite_frame_palette_image.id == SG_INVALID_ID) {
+        _state.sprite_frame_palette_image = snk_make_image(&(snk_image_desc_t) {
+            .image = sprite_get_frame_palette_image(),
             .sampler = gfx_get_sampler(),
         });
     }
@@ -353,7 +361,7 @@ static void _draw_window_font(struct nk_context* ctx) {
 }
 
 static void _draw_window_sprite_frame(struct nk_context* ctx) {
-    if (nk_begin(ctx, "Sprite Frame", nk_rect(10, 10, SPRITE_FRAME_WIDTH * 2, SPRITE_FRAME_HEIGHT * 2), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
+    if (nk_begin(ctx, "Sprite Frame", nk_rect(10, 10, SPRITE_FRAME_WIDTH * 2, SPRITE_FRAME_HEIGHT * 2 + 80), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
         nk_layout_row_dynamic(ctx, 20, 2);
 
         char buffer[64];
@@ -380,6 +388,12 @@ static void _draw_window_sprite_frame(struct nk_context* ctx) {
 
         nk_layout_row_dynamic(ctx, SPRITE_FRAME_HEIGHT * 2, 1);
         nk_image(ctx, nk_image_handle(snk_nkhandle(_state.sprite_frame_image)));
+    }
+    nk_end(ctx);
+
+    if (nk_begin(ctx, "Sprite Frame Palette", nk_rect(sapp_width() - SPRITE_FRAME_PALETTE_WIDTH * 16 - 10, 10, SPRITE_FRAME_PALETTE_WIDTH * 16 + 10, SPRITE_FRAME_PALETTE_HEIGHT * 16 + 10), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_SCALABLE)) {
+        nk_layout_row_dynamic(ctx, SPRITE_FRAME_PALETTE_HEIGHT * 16, 1);
+        nk_image(ctx, nk_image_handle(snk_nkhandle(_state.sprite_frame_palette_image)));
     }
     nk_end(ctx);
 }

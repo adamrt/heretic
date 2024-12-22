@@ -44,10 +44,10 @@ palette_t read_palette(span_t* span) {
 
     for (int i = 0; i < 16 * 16 * 4; i = i + 4) {
         vec4s c = read_rgb15(span);
-        palette.data[i + 0] = c.x;
-        palette.data[i + 1] = c.y;
-        palette.data[i + 2] = c.z;
-        palette.data[i + 3] = c.w;
+        palette.data[i + 0] = c.r;
+        palette.data[i + 1] = c.g;
+        palette.data[i + 2] = c.b;
+        palette.data[i + 3] = c.a;
     }
 
     palette.valid = true;
