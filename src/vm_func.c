@@ -1,17 +1,44 @@
 #include "vm_func.h"
 
 #include "camera.h"
+#include "dialog.h"
+#include "message.h"
 #include "parse.h"
 #include "scene.h"
 #include "transition.h"
 
-void fn_10_display_message(const instruction_t* instr) {
+void fn_display_message(const instruction_t* instr) {
+    scene_t* scene = scene_get_internals();
+
     (void)instr->params[0].value.u8; // unused, typically 0x10
-    u8 type = instr->params[1].value.u8;
-    printf("Display message type: 0x%X\n", type);
+    dialog_t dialog = parse_dialog(instr->params[1].value.u8);
+    u16 message_id = instr->params[2].value.u16;
+    u8 unit_id = instr->params[3].value.u8;
+    (void)instr->params[4].value.u8; // unused, always 0x00
+    u8 portrait_row = instr->params[5].value.u8;
+    i16 x = instr->params[6].value.i16;
+    i16 y = instr->params[7].value.i16;
+    i16 arrow_pos = instr->params[8].value.i16;
+    dialog_opening_t opening = parse_dialog_opening(instr->params[9].value.u8);
+
+    char text[512];
+    message_by_index(scene->event.messages, message_id, text);
+
+    /* printf("-- Messaage: %d %d @ %dx%d --\n", message_id, unit_id, x, y); */
+    /* printf("Dialog: type: %d, arrow: %d, alignment: %d\n", dialog.type, dialog.arrow, dialog.alignment); */
+    /* printf("Opening: speed: %d, remboucing: %d, darken: %d, arrow: %d\n", opening.speed, opening.remove_bouncing, opening.darken, opening.toggle_arrow_right); */
+    /* printf("Text: %s\n", text); */
+
+    (void)dialog;
+    (void)unit_id;
+    (void)portrait_row;
+    (void)x;
+    (void)y;
+    (void)arrow_pos;
+    (void)opening;
 }
 
-void fn_19_camera(const instruction_t* instr) {
+void fn_camera(const instruction_t* instr) {
     camera_t* cam = camera_get_internals();
     scene_t* scene = scene_get_internals();
 

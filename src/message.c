@@ -3,6 +3,7 @@
 #include "font.h"
 #include "message.h"
 #include "span.h"
+#include "util.h"
 
 usize read_messages(span_t* span, char* out_text) {
     usize length = 0;
@@ -114,4 +115,38 @@ usize read_messages(span_t* span, char* out_text) {
 
     out_text[length] = '\0';
     return length;
+}
+
+int message_by_index(char* string, int index, char* buffer) {
+    ASSERT(index > 0, "Index must be greater than 0");
+    ASSERT(buffer != NULL, "Buffer must not be NULL");
+
+    int current_index = 1; // 1-based indexing
+    const char* start = string;
+    const char* ptr = string;
+
+    while (*ptr != '\0') {
+        if ((unsigned char)*ptr == 0xFE) {
+            if (current_index == index) {
+                size_t length = ptr - start;
+                strncpy(buffer, start, length);
+                buffer[length] = '\0';
+                return 0;
+            }
+            // Move to the next substring
+            current_index++;
+            start = ptr + 1;
+        }
+        ptr++;
+    }
+
+    // Check if the last substring is the desired one
+    if (current_index == index) {
+        size_t length = ptr - start;
+        strncpy(buffer, start, length);
+        buffer[length] = '\0';
+        return 0;
+    }
+
+    ASSERT(false, "Index out of bounds");
 }

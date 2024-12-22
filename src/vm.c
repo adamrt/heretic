@@ -9,8 +9,8 @@ static vm_t _state;
 void vm_init(void) {
     vm_reset();
 
-    _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = fn_10_display_message;
-    _state.handlers[OPCODE_ID_CAMERA] = fn_19_camera;
+    _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = fn_display_message;
+    _state.handlers[OPCODE_ID_CAMERA] = fn_camera;
 }
 
 void vm_reset(void) {
