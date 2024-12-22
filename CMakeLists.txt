@@ -3,13 +3,17 @@ project(
   Heretic
   VERSION     0.1
   DESCRIPTION "Final Fantasy Tactics Toolkit"
-  LANGUAGES   C)
+  LANGUAGES   C CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g3 -ggdb")
 
@@ -22,7 +26,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(Threads REQUIRED)
 endif()
 
-set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/nuklear)
+set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/nuklear lib/dcimgui/src)
 set(SHARED_MAC_COMPILE_OPTIONS -x objective-c)
 set(SHARED_MAC_FRAMEWORKS "-framework QuartzCore" "-framework Cocoa" "-framework MetalKit" "-framework Metal" "-framework OpenGL" "-framework AudioToolbox")
 set(SHARED_LINUX_LIBS X11 Xi Xcursor GL asound dl m Threads::Threads)
@@ -42,6 +46,14 @@ endfunction()
 # Add libraries using the helper function
 add_shared_library(sokol lib/sokol.c)
 add_shared_library(nuklear lib/nuklear.c)
+add_library(cimgui
+    lib/cimgui.c
+    lib/dcimgui/src-docking/cimgui.cpp
+    lib/dcimgui/src-docking/imgui.cpp
+    lib/dcimgui/src-docking/imgui_widgets.cpp
+    lib/dcimgui/src-docking/imgui_draw.cpp
+    lib/dcimgui/src-docking/imgui_tables.cpp
+    lib/dcimgui/src-docking/imgui_demo.cpp)
 
 # Add Heretic executable
 add_executable(heretic
@@ -53,7 +65,7 @@ add_executable(heretic
     src/font.c
     src/game.c
     src/gfx.c
-    src/gui.c
+    src/ui.c
     src/instruction.c
     src/io.c
     src/lighting.c
@@ -78,10 +90,9 @@ option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)
 option(CGLM_USE_C99 "" ON)
 add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
-target_include_directories(heretic PUBLIC lib/nuklear)
 
 # Link sokol, nuklear and cglm library
-target_link_libraries(heretic sokol nuklear cglm_headers)
+target_link_libraries(heretic sokol nuklear cimgui cglm_headers)
 
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)

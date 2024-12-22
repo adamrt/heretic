@@ -19,7 +19,7 @@ if [[ $TARGET == "native" &&  ! -f "fft.bin" ]]; then
 fi
 
 # Check if submodules are populated by looking for a key file in each submodule
-if [[ ! -f "lib/sokol/sokol_app.h" || ! -f "lib/cglm/cglm.h" || -f "lib/nuklear/nuklear.h" ]]; then
+if [[ ! -f "lib/sokol/sokol_app.h" || ! -f "lib/cglm/cglm.h" || ! -f "lib/nuklear/nuklear.h" || ! -f "lib/dcimgui/src/cimgui.h" ]]; then
     echo "Submodules not initialized. Initializing and updating git submodules..."
     git submodule init
     git submodule update
