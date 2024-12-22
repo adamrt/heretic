@@ -25,8 +25,8 @@ void background_init(void) {
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
             // disable write and compre so the bg doesn't affect to the depth buffer.
-            // .compare = SG_COMPAREFUNC_LESS,
-            // .write_enabled = true,
+            .compare = SG_COMPAREFUNC_ALWAYS,
+            .write_enabled = false,
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "background-pipeline",
