@@ -64,7 +64,7 @@ add_executable(heretic
     src/font.c
     src/game.c
     src/gfx.c
-    src/ui.c
+    src/gui.c
     src/instruction.c
     src/io.c
     src/lighting.c
