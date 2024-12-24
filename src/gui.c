@@ -1,7 +1,9 @@
 #include "camera.h"
 #include "cglm/util.h"
 #include "cimgui.h"
+#include "event.h"
 #include "font.h"
+#include "map.h"
 #include "map_record.h"
 #include "memory.h"
 #include "message.h"
@@ -230,8 +232,23 @@ static void _draw_scenario_text(void) {
 
 static void _draw_scene(void) {
     camera_t* cam = camera_get_internals();
+    scene_t* scene = scene_get_internals();
     igBegin("Scene", &_state.show_window_scene, 0);
+    event_desc_t desc = event_get_desc_by_scenario_id(scene->current_scenario_id);
+
+    if (igRadioButton("Events", scene->mode == MODE_SCENARIO)) {
+        scene->mode = MODE_SCENARIO;
+    }
+    igSameLine();
+    if (igRadioButton("Maps", scene->mode == MODE_MAP)) {
+        scene->mode = MODE_MAP;
+    }
+    igText("Event: %d - %s", desc.event_id, desc.name);
+    igText("Map: %d - %s", scene->current_map, map_list[scene->current_map].name);
+    igNewLine();
+
     if (igCollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+        igNewLine();
         if (igRadioButton("Orthographic", !cam->use_perspective)) {
             cam->use_perspective = false;
         }
@@ -246,10 +263,11 @@ static void _draw_scene(void) {
         igSliderFloat("Zoom", &cam->zoom, 0, 2.0f);
         igSliderFloat("Yaw", &cam->yaw_rad, -3.0f, 3.0f);
         igSliderFloat("Pitch", &cam->pitch_rad, -3.0f, 3.0f);
-        igSeparator();
     }
 
+    igNewLine();
     if (igCollapsingHeader("Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
+        igNewLine();
         igText("Memory Usage");
         igText("Current Allocations: %zu", memory_state.allocations_current);
         igText("Total Allocations: %zu", memory_state.allocations_total);
