@@ -3,7 +3,7 @@
 Heretic is a set of tools for looking at the contents of the Final Fantasy
 Tactics PSX image.
 
-It uses c99, sokol, nuklear, cglm.
+It uses c99, sokol, imgui, cglm.
 
 ### Required
 

@@ -4,9 +4,6 @@
 [submodule "lib/sokol"]
 	path = lib/sokol
 	url = git@github.com:floooh/sokol.git
-[submodule "lib/nuklear"]
-	path = lib/nuklear
-	url = git@github.com:Immediate-Mode-UI/Nuklear.git
 [submodule "lib/dcimgui"]
 	path = lib/dcimgui
 	url = git@github.com:floooh/dcimgui.git

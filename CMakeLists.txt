@@ -26,7 +26,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(Threads REQUIRED)
 endif()
 
-set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/nuklear lib/dcimgui/src-docking)
+set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/dcimgui/src-docking)
 set(SHARED_MAC_COMPILE_OPTIONS -x objective-c)
 set(SHARED_MAC_FRAMEWORKS "-framework QuartzCore" "-framework Cocoa" "-framework MetalKit" "-framework Metal" "-framework OpenGL" "-framework AudioToolbox")
 set(SHARED_LINUX_LIBS X11 Xi Xcursor GL asound dl m Threads::Threads)
@@ -45,7 +45,6 @@ endfunction()
 
 # Add libraries using the helper function
 add_shared_library(sokol lib/sokol.c)
-add_shared_library(nuklear lib/nuklear.c)
 add_library(cimgui
     lib/cimgui.c
     lib/dcimgui/src-docking/cimgui.cpp
@@ -91,8 +90,7 @@ option(CGLM_STATIC "Static build"  ON)
 option(CGLM_USE_C99 "" ON)
 add_subdirectory(lib/cglm/ EXCLUDE_FROM_ALL)
 
-# Link sokol, nuklear and cglm library
-target_link_libraries(heretic sokol nuklear cimgui cglm_headers)
+target_link_libraries(heretic sokol cimgui cglm_headers)
 
 # Emscripten specific settings
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
