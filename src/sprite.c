@@ -6,7 +6,6 @@
 #include "texture.h"
 
 #include "defines.h"
-#include <string.h>
 
 #define FRAME_SIZE        (SPRITE_FRAME_WIDTH * SPRITE_FRAME_HEIGHT) // 58,368
 #define FRAME_NBYTES_RGBA (FRAME_SIZE * 4)                           // 233,472

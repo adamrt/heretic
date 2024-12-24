@@ -32,6 +32,24 @@ texture_t read_texture(span_t* span) {
     return texture;
 }
 
+texture_t texture_grascale(texture_t* orig) {
+    texture_t gray = { 0 };
+    gray.valid = true;
+    gray.map_state = orig->map_state;
+    for (int i = 0; i < TEXTURE_SIZE; i++) {
+        u8 r = orig->data[i * 4 + 0];
+        u8 g = orig->data[i * 4 + 1];
+        u8 b = orig->data[i * 4 + 2];
+        u8 a = orig->data[i * 4 + 3];
+
+        gray.data[i * 4 + 0] = r * 17;
+        gray.data[i * 4 + 1] = g * 17;
+        gray.data[i * 4 + 2] = b * 17;
+        gray.data[i * 4 + 3] = a * 17;
+    }
+    return gray;
+}
+
 palette_t read_palette(span_t* span) {
     palette_t palette = { 0 };
 
