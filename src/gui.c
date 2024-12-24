@@ -238,12 +238,35 @@ static void _draw_scene(void) {
 
     if (igRadioButton("Events", scene->mode == MODE_SCENARIO)) {
         scene->mode = MODE_SCENARIO;
+        _state.show_window_scenario_instructions = true;
+        _state.show_window_scenario_text = true;
     }
     igSameLine();
     if (igRadioButton("Maps", scene->mode == MODE_MAP)) {
         scene->mode = MODE_MAP;
+        _state.show_window_scenario_instructions = false;
+        _state.show_window_scenario_text = false;
     }
-    igText("Event: %d - %s", desc.event_id, desc.name);
+
+    if (scene->mode == MODE_SCENARIO) {
+        if (igButton("Prev Event (j)")) {
+            scene_prev();
+        }
+        igSameLine();
+        if (igButton("Next Event (k)")) {
+            scene_next();
+        }
+        igText("Event: %d - %s", desc.event_id, desc.name);
+    } else {
+        if (igButton("Prev Map (j)")) {
+            scene_prev();
+        }
+        igSameLine();
+        if (igButton("Next Map (k)")) {
+            scene_next();
+        }
+    }
+
     igText("Map: %d - %s", scene->current_map, map_list[scene->current_map].name);
     igNewLine();
 
