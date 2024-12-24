@@ -23,6 +23,7 @@ usize read_instructions(span_t* span, instruction_t* out_instructions) {
                 ASSERT(false, "Unknown param type %d %s", desc.param_sizes[i], desc.name);
             }
             instruction.params[i] = param;
+            instruction.param_count++;
         }
         out_instructions[count++] = instruction;
         ASSERT(count < INSTRUCTION_MAX, "Instruction count exceeded");
