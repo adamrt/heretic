@@ -53,38 +53,48 @@ map_data_t* read_map_data(int num) {
     map_data->record_count = read_map_records(&gnsspan, map_data->records);
 
     for (int i = 0; i < map_data->record_count; i++) {
-        map_record_t record = map_data->records[i];
+        map_record_t* record = &map_data->records[i];
 
-        bytes_t file_contents = io_read_file_bytes(record.sector, record.length);
-        span_t file = { file_contents.data, record.length, 0 };
+        bytes_t file_contents = io_read_file_bytes(record->sector, record->length);
+        span_t file = { file_contents.data, record->length, 0 };
 
-        switch (record.type) {
+        switch (record->type) {
         case FILETYPE_TEXTURE: {
             texture_t texture = read_texture(&file);
-            texture.map_state = record.state;
+            texture.map_state = record->state;
             map_data->textures[map_data->texture_count++] = texture;
             break;
         }
         case FILETYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
-            ASSERT(map_state_default(record.state), "Primary mesh file has non-default state");
+            ASSERT(map_state_default(record->state), "Primary mesh file has non-default state");
 
             map_data->primary_mesh = read_mesh(&file);
+            record->vertex_count = map_data->primary_mesh.geometry.vertex_count;
+            record->light_count = map_data->primary_mesh.lighting.light_count;
+            record->valid_palette = map_data->primary_mesh.palette.valid;
+
             ASSERT(map_data->primary_mesh.valid, "Primary mesh is invalid");
             break;
 
         case FILETYPE_MESH_ALT: {
             mesh_t alt_mesh = read_mesh(&file);
-            alt_mesh.map_state = record.state;
+            alt_mesh.map_state = record->state;
             map_data->alt_meshes[map_data->alt_mesh_count++] = alt_mesh;
+            record->vertex_count = alt_mesh.geometry.vertex_count;
+            record->light_count = alt_mesh.lighting.light_count;
+            record->valid_palette = alt_mesh.palette.valid;
             break;
         }
 
         case FILETYPE_MESH_OVERRIDE: {
             // If there is an override file, there is only one and it uses default state.
-            ASSERT(map_state_default(record.state), "Oerride must be default map state");
+            ASSERT(map_state_default(record->state), "Oerride must be default map state");
 
             map_data->override_mesh = read_mesh(&file);
+            record->vertex_count = map_data->override_mesh.geometry.vertex_count;
+            record->light_count = map_data->override_mesh.lighting.light_count;
+            record->valid_palette = map_data->override_mesh.palette.valid;
             break;
         }
 

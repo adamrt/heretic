@@ -51,6 +51,7 @@ lighting_t read_lighting(span_t* span) {
     lighting.bg_top = read_rgb8(span);
     lighting.bg_bottom = read_rgb8(span);
 
+    lighting.light_count = a_valid + b_valid + c_valid;
     lighting.valid = true;
     return lighting;
 }

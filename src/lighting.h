@@ -27,6 +27,7 @@ typedef struct {
     vec4s bg_top;
     vec4s bg_bottom;
 
+    int light_count;
     bool valid;
 } lighting_t;
 
