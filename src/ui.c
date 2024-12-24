@@ -113,8 +113,8 @@ static void _draw_map_records(void) {
         igTableHeadersRow();
 
         for (int i = 0; i < scene->map->map_data->record_count; i++) {
-            map_record_t* r = &scene->map->map_data->records[i];
-            if (!_state.show_texture_resources && r->type == FILETYPE_TEXTURE) {
+            map_record_t r = scene->map->map_data->records[i];
+            if (!_state.show_texture_resources && r.type == FILETYPE_TEXTURE) {
                 continue;
             }
 
@@ -122,26 +122,26 @@ static void _draw_map_records(void) {
             igTableSetColumnIndex(0);
             igPushIDInt(i);
             if (igButton("Load")) {
-                scene_load_map(scene->current_map, r->state);
+                scene_load_map(scene->current_map, r.state);
             }
             igPopID();
             igTableSetColumnIndex(1);
-            igText("%d", r->state.layout);
+            igText("%d", r.state.layout);
             igTableSetColumnIndex(2);
-            igText("%s", time_str(r->state.time));
+            igText("%s", time_str(r.state.time));
             igTableSetColumnIndex(3);
-            igText("%s", weather_str(r->state.weather));
+            igText("%s", weather_str(r.state.weather));
             igTableSetColumnIndex(4);
-            igText("%s", filetype_str(r->type));
-            if (r->vertex_count > 0) {
+            igText("%s", filetype_str(r.type));
+            if (r.vertex_count > 0) {
                 igTableSetColumnIndex(5);
-                igText("%d", r->vertex_count);
+                igText("%d", r.vertex_count);
             }
-            if (r->light_count > 0) {
+            if (r.light_count > 0) {
                 igTableSetColumnIndex(6);
-                igText("%d", r->light_count);
+                igText("%d", r.light_count);
             }
-            if (r->valid_palette) {
+            if (r.valid_palette) {
                 igTableSetColumnIndex(7);
                 igText("true");
             }
