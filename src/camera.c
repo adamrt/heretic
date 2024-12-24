@@ -2,6 +2,7 @@
 #include "cglm/struct/vec3.h"
 #include "cglm/types-struct.h"
 
+#include "gfx.h"
 #include "sokol_app.h"
 
 #include "camera.h"
@@ -101,7 +102,7 @@ mat4s camera_get_view(void) {
 }
 
 mat4s camera_get_proj(void) {
-    f32 aspect = 256.0f / 240.0f;
+    f32 aspect = GFX_RENDER_WIDTH / (f32)GFX_RENDER_HEIGHT;
 
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);

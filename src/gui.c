@@ -340,7 +340,7 @@ static void _draw_section_misc(struct nk_context* ctx) {
 }
 
 static void _draw_window_scenarios(struct nk_context* ctx) {
-    if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_DISPLAY_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+    if (nk_begin(ctx, "Scenarios", nk_rect(10, GFX_WINDOW_HEIGHT - 250, 1270, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 15, 2);
         for (int i = 0; i < SCENARIO_COUNT; i++) {
             scenario_t scenario = scenario_get_scenario(i);
@@ -399,7 +399,7 @@ static void _draw_window_sprite_frame(struct nk_context* ctx) {
 }
 
 static void _draw_window_messages(struct nk_context* ctx) {
-    if (nk_begin(ctx, "Messages", nk_rect(GFX_DISPLAY_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+    if (nk_begin(ctx, "Messages", nk_rect(GFX_WINDOW_WIDTH - 620, 20, 600, 960), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_dynamic(ctx, 20, 1);
         const event_t event = scene_get_event();
         const char* start = event.messages;
@@ -425,7 +425,7 @@ static void _draw_window_messages(struct nk_context* ctx) {
 
 static void _draw_window_instructions(struct nk_context* ctx) {
     scene_t* scene = scene_get_internals();
-    if (nk_begin(ctx, "Instructions", nk_rect(GFX_DISPLAY_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+    if (nk_begin(ctx, "Instructions", nk_rect(GFX_WINDOW_WIDTH - 1044, 20, 1024, 800), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
         nk_layout_row_begin(ctx, NK_STATIC, 20, 16);
         event_t event = scene_get_event();
 

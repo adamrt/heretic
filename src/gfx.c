@@ -227,16 +227,16 @@ static void _init_images(void) {
 
     _state.offscreen.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
-        .width = scaled_width,
-        .height = scaled_height,
+        .width = GFX_RENDER_WIDTH,
+        .height = GFX_RENDER_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "color-image",
     });
 
     _state.offscreen.depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
-        .width = scaled_width,
-        .height = scaled_height,
+        .width = GFX_RENDER_WIDTH,
+        .height = GFX_RENDER_HEIGHT,
         .pixel_format = SG_PIXELFORMAT_DEPTH,
         .label = "depth-image",
     });
