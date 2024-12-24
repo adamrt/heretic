@@ -293,7 +293,7 @@ void _row_instr_camera(instruction_t* instr) {
 static void _draw_scenario_instructions(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Scenario Instructions", &_state.show_window_scenario_instructions, 0);
-    if (igBeginTable("", 12, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+    if (igBeginTable("", 13, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
         igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 200, 0);
         igTableSetupColumnEx("Action", ImGuiTableColumnFlags_WidthFixed, 100, 0);
         igTableSetupColumnEx("1", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
@@ -306,6 +306,7 @@ static void _draw_scenario_instructions(void) {
         igTableSetupColumnEx("8", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("9", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("10", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Extra", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
 
         igTableHeadersRow();
 
@@ -326,14 +327,31 @@ static void _draw_scenario_instructions(void) {
             igTableSetColumnIndex(1);
             igText("");
 
+            static bool set = false;
             for (int j = 0; j < instr->param_count; j++) {
-                igTableSetColumnIndex(j + 2);
+                // This is ugly cause there is only opcode (0x73) that has more
+                // than 10 params. Its rarely used and we don't care about it.
+                // Instead of messing up the UI for an exception, just shove
+                // them all in a final column.
+                if (j <= 9) {
+                    igTableSetColumnIndex(j + 2);
+                } else {
+                    if (!set) {
+                        igTableSetColumnIndex(12);
+                    }
+                    set = true;
+                }
+
                 if (instr->params[j].type == PARAM_TYPE_U8) {
                     igText("0x%02X", instr->params[j].value.u8);
                 } else if (instr->params[j].type == PARAM_TYPE_U16) {
                     igText("0x%04X", instr->params[j].value.u16);
                 }
+                if (j > 9) {
+                    igSameLine();
+                }
             }
+            set = false;
         }
         igEndTable();
     }
