@@ -37,6 +37,8 @@ static struct {
     bool show_window_scenario;
     bool show_window_scenario_text;
     bool show_window_scenario_instructions;
+
+    bool show_texture_resources;
 } _state;
 
 static bool is_hovered = false;
@@ -57,11 +59,13 @@ void gui_init(void) {
     _state.show_window_map_records = true;
 
     _state.show_window_scenario = true;
-    _state.show_window_scenario_text = false;
+    _state.show_window_scenario_text = true;
     _state.show_window_scenario_instructions = true;
 
     _state.show_window_frame_bin = false;
     _state.show_window_font_bin = false;
+
+    _state.show_texture_resources = false;
 
     _state.show_window_demo = false;
 }
@@ -95,25 +99,52 @@ bool gui_input(const sapp_event* event) {
 static void _draw_map_records(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Map Records", &_state.show_window_map_records, 0);
-    if (igBeginTable("", 4, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
-        igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 75.0f, 0);
-        igTableSetupColumnEx("Weather", ImGuiTableColumnFlags_WidthFixed, 75.0f, 0);
-        igTableSetupColumnEx("Time", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
-        igTableSetupColumnEx("Layout", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+    igCheckbox("Show Texture Resources", &_state.show_texture_resources);
+
+    if (igBeginTable("", 8, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("Action", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+        igTableSetupColumnEx("Layout", ImGuiTableColumnFlags_WidthFixed, 25.0f, 0);
+        igTableSetupColumnEx("Time", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
+        igTableSetupColumnEx("Weather", ImGuiTableColumnFlags_WidthStretch, 75.0f, 0);
+        igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthStretch, 75.0f, 0);
+        igTableSetupColumnEx("Verts", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
+        igTableSetupColumnEx("Lights", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
+        igTableSetupColumnEx("Pallete", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
         igTableHeadersRow();
 
         for (int i = 0; i < scene->map->map_data->record_count; i++) {
             map_record_t* r = &scene->map->map_data->records[i];
+            if (!_state.show_texture_resources && r->type == FILETYPE_TEXTURE) {
+                continue;
+            }
 
             igTableNextRow();
             igTableSetColumnIndex(0);
-            igText("%s", filetype_str(r->type));
+            igPushIDInt(i);
+            if (igButton("Load")) {
+                scene_load_map(scene->current_map, r->state);
+            }
+            igPopID();
             igTableSetColumnIndex(1);
-            igText("%s", weather_str(r->state.weather));
+            igText("%d", r->state.layout);
             igTableSetColumnIndex(2);
             igText("%s", time_str(r->state.time));
             igTableSetColumnIndex(3);
-            igText("%d", r->state.layout);
+            igText("%s", weather_str(r->state.weather));
+            igTableSetColumnIndex(4);
+            igText("%s", filetype_str(r->type));
+            if (r->vertex_count > 0) {
+                igTableSetColumnIndex(5);
+                igText("%d", r->vertex_count);
+            }
+            if (r->light_count > 0) {
+                igTableSetColumnIndex(6);
+                igText("%d", r->light_count);
+            }
+            if (r->valid_palette) {
+                igTableSetColumnIndex(7);
+                igText("true");
+            }
         }
         igEndTable();
     }
@@ -275,19 +306,26 @@ void _row_instr_camera(instruction_t* instr) {
         scene->models[0].transform.rotation.y = maprot;
     }
     igTableSetColumnIndex(2);
-    igText("X: %0.2f", parse_coord(instr->params[0].value.i16));
+    igText("X");
+    igText("%0.2f", parse_coord(instr->params[0].value.i16));
     igTableSetColumnIndex(3);
-    igText("Y: %0.2f", -parse_coord(instr->params[1].value.i16));
+    igText("Y");
+    igText("%0.2f", -parse_coord(instr->params[1].value.i16));
     igTableSetColumnIndex(4);
-    igText("Z: %0.2f", parse_coord(instr->params[2].value.i16));
+    igText("Z");
+    igText("%0.2f", parse_coord(instr->params[2].value.i16));
     igTableSetColumnIndex(5);
-    igText("Pitch: %0.2f°", glm_deg(parse_rad(instr->params[3].value.i16)));
+    igText("Pitch");
+    igText("%0.2f°", glm_deg(parse_rad(instr->params[3].value.i16)));
     igTableSetColumnIndex(6);
-    igText("Yaw: %0.2f°", glm_deg(parse_rad(instr->params[5].value.i16)));
+    igText("Yaw");
+    igText("%0.2f°", glm_deg(parse_rad(instr->params[5].value.i16)));
     igTableSetColumnIndex(7);
-    igText("MapRot: %0.2f°", glm_deg(parse_rad(instr->params[4].value.i16)));
+    igText("MapRot");
+    igText("%0.2f°", glm_deg(parse_rad(instr->params[4].value.i16)));
     igTableSetColumnIndex(8);
-    igText("Zoom: %0.2f", parse_zoom(instr->params[6].value.i16));
+    igText("Zoom");
+    igText("%0.2f", parse_zoom(instr->params[6].value.i16));
 }
 
 static void _draw_scenario_instructions(void) {
@@ -295,7 +333,7 @@ static void _draw_scenario_instructions(void) {
     igBegin("Scenario Instructions", &_state.show_window_scenario_instructions, 0);
     if (igBeginTable("", 13, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
         igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-        igTableSetupColumnEx("Action", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+        igTableSetupColumnEx("Action", ImGuiTableColumnFlags_WidthFixed, 50, 0);
         igTableSetupColumnEx("1", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("2", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("3", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
@@ -303,10 +341,10 @@ static void _draw_scenario_instructions(void) {
         igTableSetupColumnEx("5", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("6", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("7", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("8", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("9", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("10", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("Extra", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("8", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
+        igTableSetupColumnEx("9", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
+        igTableSetupColumnEx("10", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
+        igTableSetupColumnEx("Extra", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
 
         igTableHeadersRow();
 
@@ -346,9 +384,6 @@ static void _draw_scenario_instructions(void) {
                     igText("0x%02X", instr->params[j].value.u8);
                 } else if (instr->params[j].type == PARAM_TYPE_U16) {
                     igText("0x%04X", instr->params[j].value.u16);
-                }
-                if (j > 9) {
-                    igSameLine();
                 }
             }
             set = false;
