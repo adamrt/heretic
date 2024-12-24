@@ -44,3 +44,7 @@ void vm_update(void) {
         }
     }
 }
+
+int vm_get_current_instruction(void) {
+    return _state.current_instruction;
+}

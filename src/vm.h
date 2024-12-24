@@ -16,3 +16,4 @@ void vm_init(void);
 void vm_execute_event(const event_t* event);
 void vm_update(void);
 void vm_reset(void);
+int vm_get_current_instruction(void);

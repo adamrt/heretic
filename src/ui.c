@@ -350,8 +350,13 @@ static void _draw_scenario_instructions(void) {
 
         for (usize i = 0; i < scene->event.instruction_count; i++) {
             instruction_t* instr = &scene->event.instructions[i];
-
             igTableNextRow();
+
+            // Highlight the current instruction
+            if (i == (usize)vm_get_current_instruction()) {
+                igTableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(70, 130, 180, 255), -1);
+            }
+
             igTableSetColumnIndex(0);
             igText("0x%02X - %s", instr->opcode, opcode_desc_list[instr->opcode].name);
 
