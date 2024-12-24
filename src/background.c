@@ -23,8 +23,8 @@ void background_init(void) {
         .index_type = SG_INDEXTYPE_UINT16,
         .cull_mode = SG_CULLMODE_NONE,
         .depth = {
+            // Disable write and compare so thebg doesn't affect the depth buffer.
             .pixel_format = SG_PIXELFORMAT_DEPTH,
-            // disable write and compre so the bg doesn't affect to the depth buffer.
             .compare = SG_COMPAREFUNC_ALWAYS,
             .write_enabled = false,
         },

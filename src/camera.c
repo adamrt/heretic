@@ -8,7 +8,7 @@
 
 #define MAX_PHI          (glm_rad(89.9f))
 #define DEFAULT_DISTANCE (256.0f * 2.0f)
-#define DEFAULT_FRUSTUM  (150.0f)
+#define DEFAULT_FRUSTUM  (256.0f)
 #define ZOOM_SENSITIVITY (0.002f)
 
 static camera_t _state;
@@ -101,13 +101,13 @@ mat4s camera_get_view(void) {
 }
 
 mat4s camera_get_proj(void) {
-    f32 aspect = sapp_widthf() / sapp_heightf();
+    f32 aspect = 256.0f / 240.0f;
 
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);
     } else {
         f32 w = _state.frustum / _state.zoom;
-        f32 h = w / aspect;
+        f32 h = _state.frustum * aspect / _state.zoom;
         return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
     }
 }
