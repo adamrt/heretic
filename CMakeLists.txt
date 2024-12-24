@@ -26,7 +26,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     find_package(Threads REQUIRED)
 endif()
 
-set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/nuklear lib/dcimgui/src)
+set(SHARED_INCLUDE_DIRS lib/sokol lib/sokol/util lib/nuklear lib/dcimgui/src-docking)
 set(SHARED_MAC_COMPILE_OPTIONS -x objective-c)
 set(SHARED_MAC_FRAMEWORKS "-framework QuartzCore" "-framework Cocoa" "-framework MetalKit" "-framework Metal" "-framework OpenGL" "-framework AudioToolbox")
 set(SHARED_LINUX_LIBS X11 Xi Xcursor GL asound dl m Threads::Threads)
