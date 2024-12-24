@@ -21,9 +21,7 @@
 static gfx_t _state;
 
 // Forward declarations
-static void _init_images(void);
 static void _init(void);
-static void _render_display(void);
 static mat4s model_matrix(transform_t);
 
 static sg_face_winding face_winding;
@@ -44,18 +42,13 @@ void gfx_init(void) {
         face_winding = SG_FACEWINDING_CCW;
     }
 
-    _state.display.width = GFX_DISPLAY_WIDTH;
-    _state.display.height = GFX_DISPLAY_HEIGHT;
-    _state.display.scale_divisor = 2;
-
-    _init_images();
     _init();
 }
 
 void gfx_render_begin(void) {
     // Render the scene and background to an offscreen image
     sg_begin_pass(&(sg_pass) {
-        .attachments = _state.offscreen.attachments,
+        .attachments = _state.attachments,
         .action = {
             .colors[0] = (sg_color_attachment_action) {
                 .load_action = SG_LOADACTION_CLEAR,
@@ -82,7 +75,6 @@ void gfx_render_end(void) {
         .label = "display-pass",
     });
     {
-        _render_display();
         gui_update();
     }
     sg_end_pass();
@@ -127,7 +119,7 @@ void gfx_render_model(model_t* model, lighting_t* lighting) {
         },
     };
 
-    sg_apply_pipeline(_state.offscreen.pipeline);
+    sg_apply_pipeline(_state.pipeline);
     sg_apply_bindings(&bindings);
     sg_apply_uniforms(0, &SG_RANGE(vs_params));
     sg_apply_uniforms(1, &SG_RANGE(fs_params));
@@ -181,51 +173,22 @@ model_t gfx_map_to_model(map_t* map) {
     return model;
 }
 
-void gfx_scale_change(void) {
-    sg_destroy_image(_state.offscreen.color_image);
-    sg_destroy_image(_state.offscreen.depth_image);
-    sg_destroy_attachments(_state.offscreen.attachments);
-
-    _init_images();
-
-    _state.display.bindings.images[IMG_u_texture] = _state.offscreen.color_image;
-    _state.display.bindings.samplers[SMP_u_sampler] = _state.sampler;
-}
-
 void gfx_shutdown(void) {
-    sg_destroy_pipeline(_state.offscreen.pipeline);
-    sg_destroy_pipeline(_state.display.pipeline);
-
-    sg_destroy_attachments(_state.offscreen.attachments);
-    sg_destroy_image(_state.offscreen.color_image);
-    sg_destroy_image(_state.offscreen.depth_image);
-
+    sg_destroy_pipeline(_state.pipeline);
+    sg_destroy_attachments(_state.attachments);
+    sg_destroy_image(_state.color_image);
+    sg_destroy_image(_state.depth_image);
     sg_destroy_sampler(_state.sampler);
-
     sg_shutdown();
-}
-
-int gfx_get_scale_divisor(void) {
-    return _state.display.scale_divisor;
-}
-
-void gfx_set_scale_divisor(int divisor) {
-    _state.display.scale_divisor = divisor;
-    gfx_scale_change();
 }
 
 sg_sampler gfx_get_sampler(void) {
     return _state.sampler;
 }
 
-// This is split out from _init() because it can be called separately when
-// changing the resolution.
-static void _init_images(void) {
+static void _init(void) {
 
-    int scaled_width = _state.display.width / _state.display.scale_divisor;
-    int scaled_height = _state.display.height / _state.display.scale_divisor;
-
-    _state.offscreen.color_image = sg_make_image(&(sg_image_desc) {
+    _state.color_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = GFX_RENDER_WIDTH,
         .height = GFX_RENDER_HEIGHT,
@@ -233,7 +196,7 @@ static void _init_images(void) {
         .label = "color-image",
     });
 
-    _state.offscreen.depth_image = sg_make_image(&(sg_image_desc) {
+    _state.depth_image = sg_make_image(&(sg_image_desc) {
         .render_target = true,
         .width = GFX_RENDER_WIDTH,
         .height = GFX_RENDER_HEIGHT,
@@ -241,15 +204,11 @@ static void _init_images(void) {
         .label = "depth-image",
     });
 
-    _state.offscreen.attachments = sg_make_attachments(&(sg_attachments_desc) {
-        .colors[0].image = _state.offscreen.color_image,
-        .depth_stencil.image = _state.offscreen.depth_image,
+    _state.attachments = sg_make_attachments(&(sg_attachments_desc) {
+        .colors[0].image = _state.color_image,
+        .depth_stencil.image = _state.depth_image,
         .label = "offscreen-attachments",
     });
-}
-
-static void _init(void) {
-    _init_images();
 
     _state.sampler = sg_make_sampler(&(sg_sampler_desc) {
         .min_filter = SG_FILTER_NEAREST,
@@ -269,11 +228,7 @@ static void _init(void) {
         .label = "quad-indices",
     });
 
-    //
-    // Offscreen
-    //
-
-    _state.offscreen.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+    _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .attrs = {
                 [ATTR_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3,
@@ -294,39 +249,6 @@ static void _init(void) {
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "standard-pipeline",
     });
-
-    //
-    // Display
-    //
-
-    _state.display.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
-        .layout = {
-            .buffers[0].stride = sizeof(vertex_t),
-            .attrs = {
-                [ATTR_display_a_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_display_a_position].offset = offsetof(vertex_t, position),
-                [ATTR_display_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
-                [ATTR_display_a_uv].offset = offsetof(vertex_t, uv),
-            },
-        },
-        .shader = sg_make_shader(display_shader_desc(sg_query_backend())),
-        .index_type = SG_INDEXTYPE_UINT16,
-        .cull_mode = SG_CULLMODE_NONE,
-        .depth = {
-            .compare = SG_COMPAREFUNC_LESS,
-            .write_enabled = true,
-        },
-        .label = "quad-pipeline",
-    });
-
-    // Fullscreen quad vertices
-    // clang-format off
-    _state.display.bindings = (sg_bindings) {
-        .vertex_buffers[0] = gfx_get_quad_vbuf(),
-        .index_buffer = gfx_get_quad_ibuf(),
-        .images[IMG_u_texture] = _state.offscreen.color_image,
-        .samplers[SMP_u_sampler] = _state.sampler,
-    };
 }
 
 sg_buffer gfx_get_quad_vbuf(void) {
@@ -337,15 +259,7 @@ sg_buffer gfx_get_quad_ibuf(void) {
     return _state.quad_ibuf;
 }
 
-static void _render_display(void)
-{
-    sg_apply_pipeline(_state.display.pipeline);
-    sg_apply_bindings(&_state.display.bindings);
-    sg_draw(0, 6, 1);
-}
-
-static mat4s model_matrix(transform_t transform)
-{
+static mat4s model_matrix(transform_t transform) {
     mat4s model_matrix = glms_mat4_identity();
     model_matrix = glms_translate(model_matrix, transform.translation);
     model_matrix = glms_rotate_x(model_matrix, transform.rotation.x);
@@ -353,4 +267,8 @@ static mat4s model_matrix(transform_t transform)
     model_matrix = glms_rotate_z(model_matrix, transform.rotation.z);
     model_matrix = glms_scale(model_matrix, transform.scale);
     return model_matrix;
+}
+
+sg_image gfx_get_color_image(void) {
+    return _state.color_image;
 }
