@@ -5,6 +5,8 @@ Tactics PSX image.
 
 It uses c99, sokol, imgui, cglm.
 
+![Fort Zeakden](https://github.com/adamrt/heretic/blob/master/res/fort-night.png)
+
 ### Required
 
 The PSX US Final Final Fantasy Tactics image. The file `fft.bin` must be placed in the project folder.
@@ -19,4 +21,3 @@ To fetch dependencies, compile shaders and build for your platform, run:
 - `./build.sh native` for Mac (Metal), Linux (OpenGL) 
 - `./build.sh wasm` for the browser (WebGPU)
 
-![Fort Zeakden](https://github.com/adamrt/heretic/blob/master/res/fort-night.png)
