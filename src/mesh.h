@@ -63,7 +63,6 @@ typedef struct {
     map_state_t map_state;
 
     geometry_t geometry;
-    texture_t texture;
     palette_t palette;
     lighting_t lighting;
 
