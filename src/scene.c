@@ -28,7 +28,7 @@ static void _scene_map_unload(void);
 
 void scene_init(void) {
     _state.current_scenario_id = 78;
-    _state.mode = MODE_SCENARIO;
+    _state.mode = MODE_EVENT;
     scene_load_scenario(_state.current_scenario_id);
 }
 
@@ -93,7 +93,7 @@ static void _scene_switch(switch_e dir) {
     bool is_prev = dir == SWITCH_PREV;
 
     switch (_state.mode) {
-    case MODE_SCENARIO:
+    case MODE_EVENT:
         _state.current_scenario_id = is_prev ? _state.current_scenario_id - 1 : _state.current_scenario_id + 1;
         while (true) {
             if (_state.current_scenario_id < 0) {

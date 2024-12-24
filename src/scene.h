@@ -7,8 +7,8 @@
 #include "map.h"
 
 typedef enum {
+    MODE_EVENT,
     MODE_MAP,
-    MODE_SCENARIO,
 } mode_e;
 
 typedef struct {

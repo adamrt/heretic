@@ -1,6 +1,8 @@
 #pragma once
 
+#include "assert.h"
 #include "defines.h"
+#include "event.h"
 #include "map_record.h"
 
 #define SCENARIO_COUNT (491)
@@ -17,3 +19,5 @@ typedef struct {
 } scenario_t;
 
 scenario_t scenario_get_scenario(int);
+
+static_assert(EVENT_COUNT == SCENARIO_COUNT, "Event/scenario count mismatch");
