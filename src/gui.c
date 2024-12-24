@@ -52,7 +52,7 @@ void gui_init(void) {
 
     ImGuiIO* io = igGetIO();
     io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io->IniFilename = "../imgui.ini";
+    io->IniFilename = "imgui.ini";
 
     _state.show_window_scene = true;
 
@@ -72,7 +72,7 @@ void gui_init(void) {
     _state.show_window_demo = false;
 }
 void gui_shutdown(void) {
-    igSaveIniSettingsToDisk("../imgui.ini");
+    igSaveIniSettingsToDisk("imgui.ini");
     simgui_shutdown();
 }
 

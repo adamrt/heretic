@@ -24,7 +24,7 @@ static struct {
 } _state;
 
 void io_init(void) {
-    _state.file = fopen("../fft.bin", "rb");
+    _state.file = fopen("fft.bin", "rb");
     ASSERT(_state.file != NULL, "Failed to open fft.bin");
 
     // Read all files

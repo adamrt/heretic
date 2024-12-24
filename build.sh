@@ -89,6 +89,7 @@ case "$TARGET" in
         cmake -DCMAKE_BUILD_TYPE=Debug ..
         cmake --build . -j"$NUMCORES"
         [[ "$OPTION" == "buildonly" ]] && exit 0
-        ./heretic
+        cd ..
+        ./build/heretic
         ;;
 esac
