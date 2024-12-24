@@ -105,7 +105,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
         -sTOTAL_MEMORY=1024mb
         -sEXPORTED_FUNCTIONS=_main,_data_init
         -sEXPORTED_RUNTIME_METHODS=ccall
-        --preload-file ../res/loading.jpg@loading.jpg
+        --preload-file=../imgui.ini@imgui.ini
+        --preload-file=../res/loading.jpg@loading.jpg
         --closure=1)
 endif()
 
