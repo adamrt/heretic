@@ -47,11 +47,13 @@ static event_t read_event(span_t* span) {
     usize text_size = EVENT_SIZE - text_offset;
     span_t text_span = { .data = event.data + text_offset, .size = text_size };
     usize messages_len = read_messages(&text_span, event.messages);
+    int msg_count = message_count(event.messages);
 
     usize code_size = text_offset - 4;
     span_t code_span = { .data = event.data + 4, .size = code_size };
     usize instruction_count = read_instructions(&code_span, event.instructions);
 
+    event.message_count = msg_count;
     event.messages_len = messages_len;
     event.instruction_count = instruction_count;
     event.valid = true;

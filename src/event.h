@@ -21,6 +21,7 @@
 typedef struct {
     char messages[MESSAGES_MAX_LEN];
     int messages_len;
+    int message_count;
 
     instruction_t instructions[INSTRUCTION_MAX];
     usize instruction_count;

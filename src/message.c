@@ -150,3 +150,21 @@ int message_by_index(char* string, int index, char* buffer) {
 
     ASSERT(false, "Index out of bounds");
 }
+
+int message_count(char* string) {
+    ASSERT(string != NULL, "String must not be NULL");
+
+    if (*string == '\0') {
+        return 0;
+    }
+
+    int count = 1;
+    const char* ptr = string;
+    while (*ptr != '\0') {
+        if ((unsigned char)*ptr == 0xFE) {
+            count++;
+        }
+        ptr++;
+    }
+    return count;
+}
