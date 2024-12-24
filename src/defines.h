@@ -19,3 +19,12 @@ typedef float f32;
 typedef double f64;
 
 typedef size_t usize;
+
+// Maximum number of bytes that can be stored in a bytes_t.
+// This is used for resources and textures aare the largest.
+#define BYTES_MAX (131072)
+
+typedef struct {
+    u8 data[BYTES_MAX];
+    usize size;
+} bytes_t;

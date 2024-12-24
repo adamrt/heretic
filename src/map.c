@@ -46,20 +46,17 @@ map_t* read_map(int num, map_state_t map_state) {
 }
 
 map_data_t* read_map_data(int num) {
-    u8* gnsfile = memory_allocate(MAP_FILE_MAX_SIZE);
-    io_read_file(map_list[num].sector, MAP_FILE_MAX_SIZE, gnsfile);
-    span_t gnsspan = { gnsfile, MAP_FILE_MAX_SIZE, 0 };
+    bytes_t gnsfile = io_read_file_bytes(map_list[num].sector, MAP_FILE_MAX_SIZE);
+    span_t gnsspan = { gnsfile.data, MAP_FILE_MAX_SIZE, 0 };
 
     map_data_t* map_data = memory_allocate(sizeof(map_data_t));
     map_data->record_count = read_map_records(&gnsspan, map_data->records);
-    memory_free(gnsfile);
 
     for (int i = 0; i < map_data->record_count; i++) {
         map_record_t record = map_data->records[i];
 
-        u8* file_contents = memory_allocate(record.length);
-        io_read_file(record.sector, record.length, file_contents);
-        span_t file = { file_contents, record.length, 0 };
+        bytes_t file_contents = io_read_file_bytes(record.sector, record.length);
+        span_t file = { file_contents.data, record.length, 0 };
 
         switch (record.type) {
         case FILETYPE_TEXTURE: {
@@ -92,11 +89,8 @@ map_data_t* read_map_data(int num) {
         }
 
         default:
-            memory_free(file_contents);
             ASSERT(false, "Unknown map file type");
         }
-
-        memory_free(file_contents);
     }
 
     return map_data;

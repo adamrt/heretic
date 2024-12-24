@@ -61,6 +61,30 @@ void io_read_file(usize sector_num, usize size, u8* out_bytes) {
     return;
 }
 
+bytes_t io_read_file_bytes(usize sector_num, usize size) {
+    ASSERT(size <= BYTES_MAX, "Size is too large for bytes_t");
+    usize offset = 0;
+    usize occupied_sectors = ceil(size / (f64)SECTOR_SIZE);
+
+    bytes_t bytes = { .size = size };
+    for (usize i = 0; i < occupied_sectors; i++) {
+        usize seek_to = ((sector_num + i) * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
+        usize sn = fseek(_state.file, seek_to, SEEK_SET);
+        ASSERT(sn == 0, "Failed to seek to sector");
+
+        u8 sector[SECTOR_SIZE];
+        usize rn = fread(sector, sizeof(u8), SECTOR_SIZE, _state.file);
+        ASSERT(rn == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
+
+        usize remaining_size = size - offset;
+        usize bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
+
+        memcpy(bytes.data + offset, sector, bytes_to_copy);
+        offset += bytes_to_copy;
+    }
+    return bytes;
+}
+
 // Return preloaded files
 span_t io_file_test_evt(void) { return (span_t) { .data = _state.test_evt, .size = TEST_EVT_LEN }; }
 span_t io_file_attack_out(void) { return (span_t) { .data = _state.attack_out, .size = ATTACK_OUT_LEN }; }
