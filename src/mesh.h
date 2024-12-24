@@ -48,14 +48,6 @@ typedef struct {
 
     int vertex_count;
 
-    struct {
-        vec3s vmin;
-        vec3s vmax;
-        f32 vcount;
-        f32 tri_count;
-        f32 quad_count;
-    } meta;
-
     bool valid;
 } geometry_t;
 
