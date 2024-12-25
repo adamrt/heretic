@@ -25,12 +25,11 @@ void transition_update(void) {
     }
 }
 
-void transition_add(void* target, f32 start, f32 end, f32 duration) {
-    if (_state.transaction_count >= TRANSITION_MAX) {
-        return;
-    }
+void transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32 duration) {
+    ASSERT(_state.transaction_count <= TRANSITION_MAX, "Too many transitions");
 
     transition_t* t = &_state.transitions[_state.transaction_count++];
+    t->opcode_id = opcode_id;
     t->start = start;
     t->end = end;
     t->frame_total = duration;

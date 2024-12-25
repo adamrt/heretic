@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "defines.h"
+#include "opcode.h"
 
 #define TRANSITION_MAX 64
 
@@ -13,6 +14,7 @@ typedef struct {
     f32 frame_total;
     f32 frame_current;
     void* target;
+    opcode_id_t opcode_id;
 } transition_t;
 
 typedef struct {
@@ -21,5 +23,5 @@ typedef struct {
 } transition_manager_t;
 
 void transition_update(void);
-void transition_add(void*, f32, f32, f32);
+void transition_add(opcode_id_t, void*, f32, f32, f32);
 bool transition_active(void);
