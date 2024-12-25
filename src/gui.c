@@ -29,6 +29,7 @@ static struct {
     bool show_window_demo;
     bool show_window_frame_bin;
     bool show_window_font_bin;
+    bool show_window_item_bin;
 
     bool show_window_scene;
 
@@ -63,6 +64,7 @@ void gui_init(void) {
     _state.show_window_event_instructions = true;
 
     _state.show_window_frame_bin = false;
+    _state.show_window_item_bin = false;
     _state.show_window_font_bin = false;
 
     _state.show_texture_resources = false;
@@ -199,6 +201,43 @@ static void _draw_game_frame_palette_image(void) {
     igEnd();
 }
 
+static void _draw_game_item_image(void) {
+    igBegin("ITEM.BIN", &_state.show_window_item_bin, 0);
+    ImVec2 dims = { 256 * 2, 256 * 2 };
+    // We have an array of item labels
+    static int current_item = 0;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Palette %d", current_item);
+
+    // The preview label is items[current_item], which is shown before opening
+    if (igBeginCombo("Palette##combo", buf, 0)) {
+        for (int i = 0; i < SPRITE_ITEM_PALETTE_HEIGHT; i++) {
+            bool is_selected = (current_item == i);
+
+            snprintf(buf, sizeof(buf), "Palette %d", i);
+            if (igSelectable(buf)) {
+                current_item = i;
+                sprite_set_item_palette(i);
+            }
+
+            if (is_selected)
+                igSetItemDefaultFocus();
+        }
+        igEndCombo();
+    }
+
+    igSeparator();
+
+    igImage(simgui_imtextureid(sprite_get_item_image()), dims);
+    igEnd();
+}
+
+static void _draw_game_item_palette_image(void) {
+    igBegin("ITEM.BIN Palette", &_state.show_window_item_bin, 0);
+    ImVec2 dims = { 256 * 2, 16 * 16 * 2 };
+    igImage(simgui_imtextureid(sprite_get_item_palette_image()), dims);
+    igEnd();
+}
 static void _draw_game_font_image(void) {
     igBegin("FONT.BIN", &_state.show_window_font_bin, 0);
     ImVec2 dims = { FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT };
@@ -495,6 +534,9 @@ static void _draw(void) {
         if (igMenuItem("FRAME.BIN")) {
             _state.show_window_frame_bin = !_state.show_window_frame_bin;
         }
+        if (igMenuItem("ITEM.BIN")) {
+            _state.show_window_item_bin = !_state.show_window_item_bin;
+        }
         if (igMenuItem("FONT.BIN")) {
             _state.show_window_font_bin = !_state.show_window_font_bin;
         }
@@ -541,6 +583,11 @@ static void _draw(void) {
     if (_state.show_window_frame_bin) {
         _draw_game_frame_image();
         _draw_game_frame_palette_image();
+    }
+
+    if (_state.show_window_item_bin) {
+        _draw_game_item_image();
+        _draw_game_item_palette_image();
     }
 
     if (_state.show_window_demo) {
