@@ -337,42 +337,47 @@ static void _draw_map_lights(void) {
 void _row_instr_camera(instruction_t* instr) {
     scene_t* scene = scene_get_internals();
     igTableSetColumnIndex(1);
+
+    param_t* p = instr->params;
+    f32 x = parse_coord(p[0].value.i16);
+    f32 y = -parse_coord(p[1].value.i16);
+    f32 z = parse_coord(p[2].value.i16);
+    f32 pitch = parse_rad(p[3].value.i16);
+    f32 maprot = parse_rad(p[4].value.i16);
+    f32 yaw = parse_rad(p[5].value.i16);
+    f32 zoom = parse_zoom(p[6].value.i16);
+    int duration = p[7].value.i16;
+
     if (igButton("MoveTo")) {
-        vec3s pos = { { 0 } };
-        param_t* p = instr->params;
-
-        pos.x = parse_coord(p[0].value.i16);
-        pos.y = -parse_coord(p[1].value.i16);
-        pos.z = parse_coord(p[2].value.i16);
-        f32 pitch = parse_rad(p[3].value.i16);
-        f32 maprot = parse_rad(p[4].value.i16);
-        f32 yaw = parse_rad(p[5].value.i16);
-        f32 zoom = parse_zoom(p[6].value.i16);
-
+        vec3s pos = { { x, y, z } };
         camera_set_freefly(pos, yaw, pitch, zoom);
         scene->models[0].transform.rotation.y = maprot;
     }
+
     igTableSetColumnIndex(2);
     igText("X");
-    igText("%0.2f", parse_coord(instr->params[0].value.i16));
+    igText("%0.2f", x);
     igTableSetColumnIndex(3);
     igText("Y");
-    igText("%0.2f", -parse_coord(instr->params[1].value.i16));
+    igText("%0.2f", y);
     igTableSetColumnIndex(4);
     igText("Z");
-    igText("%0.2f", parse_coord(instr->params[2].value.i16));
+    igText("%0.2f", z);
     igTableSetColumnIndex(5);
     igText("Pitch");
-    igText("%0.2f°", glm_deg(parse_rad(instr->params[3].value.i16)));
+    igText("%0.2f°", pitch);
     igTableSetColumnIndex(6);
     igText("Yaw");
-    igText("%0.2f°", glm_deg(parse_rad(instr->params[5].value.i16)));
+    igText("%0.2f°", yaw);
     igTableSetColumnIndex(7);
     igText("MapRot");
-    igText("%0.2f°", glm_deg(parse_rad(instr->params[4].value.i16)));
+    igText("%0.2f°", maprot);
     igTableSetColumnIndex(8);
     igText("Zoom");
-    igText("%0.2f", parse_zoom(instr->params[6].value.i16));
+    igText("%0.2f", zoom);
+    igTableSetColumnIndex(9);
+    igText("Time");
+    igText("%d", duration);
 }
 
 static void _draw_event_instructions(void) {
