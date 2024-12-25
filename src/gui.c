@@ -57,9 +57,9 @@ void gui_init(void) {
 
     _state.show_window_scene = true;
 
-    _state.show_window_map_lights = true;
+    _state.show_window_map_lights = false;
     _state.show_window_map_texture = false;
-    _state.show_window_map_records = true;
+    _state.show_window_map_records = false;
 
     _state.show_window_event_text = true;
     _state.show_window_event_instructions = true;
@@ -288,7 +288,8 @@ static void _draw_scene(void) {
         _state.show_window_event_instructions = true;
         _state.show_window_event_text = true;
         _state.show_window_map_texture = false;
-        _state.show_window_map_lights = true;
+        _state.show_window_map_lights = false;
+        _state.show_window_map_records = false;
     }
     igSameLine();
     if (igRadioButton("Maps", scene->mode == MODE_MAP)) {
@@ -297,6 +298,7 @@ static void _draw_scene(void) {
         _state.show_window_event_text = false;
         _state.show_window_map_texture = true;
         _state.show_window_map_lights = true;
+        _state.show_window_map_records = true;
     }
 
     if (scene->mode == MODE_EVENT) {
