@@ -30,6 +30,7 @@ static struct {
     bool show_window_frame_bin;
     bool show_window_font_bin;
     bool show_window_item_bin;
+    bool show_window_evtface_bin;
 
     bool show_window_scene;
 
@@ -65,6 +66,7 @@ void gui_init(void) {
 
     _state.show_window_frame_bin = false;
     _state.show_window_item_bin = false;
+    _state.show_window_evtface_bin = false;
     _state.show_window_font_bin = false;
 
     _state.show_texture_resources = false;
@@ -238,6 +240,14 @@ static void _draw_game_item_palette_image(void) {
     igImage(simgui_imtextureid(sprite_get_item_palette_image()), dims);
     igEnd();
 }
+
+static void _draw_game_evtface_image(void) {
+    igBegin("EVTFACE.BIN Palette", &_state.show_window_evtface_bin, 0);
+    ImVec2 dims = { 256 * 2, 384 * 2 };
+    igImage(simgui_imtextureid(sprite_get_evtface_image()), dims);
+    igEnd();
+}
+
 static void _draw_game_font_image(void) {
     igBegin("FONT.BIN", &_state.show_window_font_bin, 0);
     ImVec2 dims = { FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT };
@@ -537,6 +547,9 @@ static void _draw(void) {
         if (igMenuItem("ITEM.BIN")) {
             _state.show_window_item_bin = !_state.show_window_item_bin;
         }
+        if (igMenuItem("EVTFACE.BIN")) {
+            _state.show_window_evtface_bin = !_state.show_window_evtface_bin;
+        }
         if (igMenuItem("FONT.BIN")) {
             _state.show_window_font_bin = !_state.show_window_font_bin;
         }
@@ -588,6 +601,10 @@ static void _draw(void) {
     if (_state.show_window_item_bin) {
         _draw_game_item_image();
         _draw_game_item_palette_image();
+    }
+
+    if (_state.show_window_evtface_bin) {
+        _draw_game_evtface_image();
     }
 
     if (_state.show_window_demo) {

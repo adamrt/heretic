@@ -14,6 +14,9 @@
 #define SPRITE_ITEM_PALETTE_WIDTH  (16) // 16 colors
 #define SPRITE_ITEM_PALETTE_HEIGHT (16) // 16 palettes
 
+#define SPRITE_EVTFACE_WIDTH  (256) // 8 * 32
+#define SPRITE_EVTFACE_HEIGHT (384) // 8 * 48
+
 void sprite_init(void);
 void sprite_shutdown(void);
 
@@ -24,3 +27,5 @@ sg_image sprite_get_frame_palette_image(void);
 void sprite_set_item_palette(int);
 sg_image sprite_get_item_image(void);
 sg_image sprite_get_item_palette_image(void);
+
+sg_image sprite_get_evtface_image(void);

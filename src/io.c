@@ -9,16 +9,18 @@
 #define SECTOR_SIZE_RAW    (2352)
 
 // Individual file lengths
-#define ATTACK_OUT_SECTOR (2448)
-#define ATTACK_OUT_LEN    (125956)
-#define TEST_EVT_SECTOR   (3707)
-#define TEST_EVT_LEN      (4096000)
-#define FONT_BIN_SECTOR   (3650)
-#define FONT_BIN_LEN      (77000)
-#define FRAME_BIN_LEN     (37568)
-#define FRAME_BIN_SECTOR  (3688)
-#define ITEM_BIN_SECTOR   (6297)
-#define ITEM_BIN_LEN      (33280)
+#define ATTACK_OUT_SECTOR  (2448)
+#define ATTACK_OUT_LEN     (125956)
+#define TEST_EVT_SECTOR    (3707)
+#define TEST_EVT_LEN       (4096000)
+#define FONT_BIN_SECTOR    (3650)
+#define FONT_BIN_LEN       (77000)
+#define FRAME_BIN_LEN      (37568)
+#define FRAME_BIN_SECTOR   (3688)
+#define ITEM_BIN_SECTOR    (6297)
+#define ITEM_BIN_LEN       (33280)
+#define EVTFACE_BIN_SECTOR (5707)
+#define EVTFACE_BIN_LEN    (65536)
 
 static struct {
     FILE* file;
@@ -28,6 +30,7 @@ static struct {
     u8 font_bin[FONT_BIN_LEN];
     u8 frame_bin[FRAME_BIN_LEN];
     u8 item_bin[ITEM_BIN_LEN];
+    u8 evtface_bin[EVTFACE_BIN_LEN];
 } _state;
 
 void io_init(void) {
@@ -40,6 +43,7 @@ void io_init(void) {
     io_read_file(FONT_BIN_SECTOR, FONT_BIN_LEN, _state.font_bin);
     io_read_file(FRAME_BIN_SECTOR, FRAME_BIN_LEN, _state.frame_bin);
     io_read_file(ITEM_BIN_SECTOR, ITEM_BIN_LEN, _state.item_bin);
+    io_read_file(EVTFACE_BIN_SECTOR, EVTFACE_BIN_LEN, _state.evtface_bin);
 }
 
 void io_shutdown(void) {
@@ -99,3 +103,4 @@ span_t io_file_attack_out(void) { return (span_t) { .data = _state.attack_out, .
 span_t io_file_font_bin(void) { return (span_t) { .data = _state.font_bin, .size = FONT_BIN_LEN }; }
 span_t io_file_frame_bin(void) { return (span_t) { .data = _state.frame_bin, .size = FRAME_BIN_LEN }; }
 span_t io_file_item_bin(void) { return (span_t) { .data = _state.item_bin, .size = ITEM_BIN_LEN }; }
+span_t io_file_evtface_bin(void) { return (span_t) { .data = _state.evtface_bin, .size = EVTFACE_BIN_LEN }; }
