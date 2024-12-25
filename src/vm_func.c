@@ -6,6 +6,7 @@
 #include "parse.h"
 #include "scene.h"
 #include "transition.h"
+#include "vm.h"
 
 void fn_display_message(const instruction_t* instr) {
     scene_t* scene = scene_get_internals();
@@ -51,11 +52,16 @@ void fn_camera(const instruction_t* instr) {
     f32 zoom = parse_zoom(instr->params[6].value.i16);
     f32 duration = (f32)instr->params[7].value.i16;
 
-    transition_add(&cam->position.x, cam->position.x, x, duration);
-    transition_add(&cam->position.y, cam->position.y, y, duration);
-    transition_add(&cam->position.z, cam->position.z, z, duration);
-    transition_add(&cam->yaw_rad, cam->yaw_rad, yaw_rad, duration);
-    transition_add(&cam->pitch_rad, cam->pitch_rad, pitch_rad, duration);
-    transition_add(&cam->zoom, cam->zoom, zoom, duration);
-    transition_add(&scene->models[0].transform.rotation.y, scene->models[0].transform.rotation.y, maprot_rad, duration);
+    transition_add(instr->opcode, &cam->position.x, cam->position.x, x, duration);
+    transition_add(instr->opcode, &cam->position.y, cam->position.y, y, duration);
+    transition_add(instr->opcode, &cam->position.z, cam->position.z, z, duration);
+    transition_add(instr->opcode, &cam->yaw_rad, cam->yaw_rad, yaw_rad, duration);
+    transition_add(instr->opcode, &cam->pitch_rad, cam->pitch_rad, pitch_rad, duration);
+    transition_add(instr->opcode, &cam->zoom, cam->zoom, zoom, duration);
+    transition_add(instr->opcode, &scene->models[0].transform.rotation.y, scene->models[0].transform.rotation.y, maprot_rad, duration);
+}
+
+void fn_wait_for_instruction(const instruction_t* instr) {
+    waittype_e waittype = instr->params[0].value.u8;
+    vm_wait(waittype);
 }

@@ -40,10 +40,6 @@ void transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32
     t->target = target;
 }
 
-bool transition_active(void) {
-    return _state.transaction_count > 0;
-}
-
 bool transition_has_active(waittype_e type) {
     opcode_id_t opcodes[2];
     int count = 0;

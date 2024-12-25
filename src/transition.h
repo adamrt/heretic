@@ -25,5 +25,4 @@ typedef struct {
 
 void transition_update(void);
 void transition_add(opcode_id_t, void*, f32, f32, f32);
-bool transition_active(void);
 bool transition_has_active(waittype_e);
