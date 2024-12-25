@@ -36,8 +36,8 @@ static struct {
     bool show_window_map_texture;
     bool show_window_map_records;
 
-    bool show_window_scenario_text;
-    bool show_window_scenario_instructions;
+    bool show_window_event_text;
+    bool show_window_event_instructions;
 
     bool show_texture_resources;
 } _state;
@@ -59,8 +59,8 @@ void gui_init(void) {
     _state.show_window_map_texture = false;
     _state.show_window_map_records = true;
 
-    _state.show_window_scenario_text = true;
-    _state.show_window_scenario_instructions = true;
+    _state.show_window_event_text = true;
+    _state.show_window_event_instructions = true;
 
     _state.show_window_frame_bin = false;
     _state.show_window_font_bin = false;
@@ -206,9 +206,9 @@ static void _draw_game_font_image(void) {
     igEnd();
 }
 
-static void _draw_scenario_text(void) {
+static void _draw_event_text(void) {
     scene_t* scene = scene_get_internals();
-    igBegin("Scenario Text", &_state.show_window_scenario_text, 0);
+    igBegin("Event Text", &_state.show_window_event_text, 0);
     if (scene->event.message_count == 0) {
         igText("No messages");
         igEnd();
@@ -236,16 +236,16 @@ static void _draw_scene(void) {
 
     if (igRadioButton("Events", scene->mode == MODE_EVENT)) {
         scene->mode = MODE_EVENT;
-        _state.show_window_scenario_instructions = true;
-        _state.show_window_scenario_text = true;
+        _state.show_window_event_instructions = true;
+        _state.show_window_event_text = true;
         _state.show_window_map_texture = false;
         _state.show_window_map_lights = true;
     }
     igSameLine();
     if (igRadioButton("Maps", scene->mode == MODE_MAP)) {
         scene->mode = MODE_MAP;
-        _state.show_window_scenario_instructions = false;
-        _state.show_window_scenario_text = false;
+        _state.show_window_event_instructions = false;
+        _state.show_window_event_text = false;
         _state.show_window_map_texture = true;
         _state.show_window_map_lights = true;
     }
@@ -375,9 +375,9 @@ void _row_instr_camera(instruction_t* instr) {
     igText("%0.2f", parse_zoom(instr->params[6].value.i16));
 }
 
-static void _draw_scenario_instructions(void) {
+static void _draw_event_instructions(void) {
     scene_t* scene = scene_get_internals();
-    igBegin("Scenario Instructions", &_state.show_window_scenario_instructions, 0);
+    igBegin("Event Instructions", &_state.show_window_event_instructions, 0);
     if (igBeginTable("", 13, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
         igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 200, 0);
         igTableSetupColumnEx("Action", ImGuiTableColumnFlags_WidthFixed, 50, 0);
@@ -465,12 +465,12 @@ static void _draw(void) {
         }
         igEndMenu();
     }
-    if (igBeginMenu("Scenario")) {
+    if (igBeginMenu("Event")) {
         if (igMenuItem("Text")) {
-            _state.show_window_scenario_text = !_state.show_window_scenario_text;
+            _state.show_window_event_text = !_state.show_window_event_text;
         }
         if (igMenuItem("Instructions")) {
-            _state.show_window_scenario_instructions = !_state.show_window_scenario_instructions;
+            _state.show_window_event_instructions = !_state.show_window_event_instructions;
         }
         igEndMenu();
     }
@@ -510,11 +510,11 @@ static void _draw(void) {
         _draw_scene();
     }
 
-    if (_state.show_window_scenario_instructions) {
-        _draw_scenario_instructions();
+    if (_state.show_window_event_instructions) {
+        _draw_event_instructions();
     }
-    if (_state.show_window_scenario_text) {
-        _draw_scenario_text();
+    if (_state.show_window_event_text) {
+        _draw_event_text();
     }
 
     if (_state.show_window_map_records) {
