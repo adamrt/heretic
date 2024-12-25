@@ -400,7 +400,7 @@ static void _draw_event_instructions(void) {
             igTableNextRow();
 
             // Highlight the current instruction
-            if (i == (usize)vm_get_current_instruction()) {
+            if ((i + 1) == (usize)vm_get_current_instruction()) {
                 igTableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(70, 130, 180, 255), -1);
             }
 
