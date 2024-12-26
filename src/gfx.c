@@ -82,7 +82,7 @@ void gfx_render_end(void) {
     sg_commit();
 }
 
-void gfx_render_model(model_t* model, lighting_t* lighting) {
+void gfx_render_model(const model_t* model, const lighting_t* lighting) {
     mat4s model_mat = model_matrix(model->transform);
 
     vs_standard_params_t vs_params = {
@@ -126,7 +126,7 @@ void gfx_render_model(model_t* model, lighting_t* lighting) {
     sg_draw(0, model->vertex_count, 1);
 }
 
-model_t gfx_map_to_model(map_t* map) {
+model_t gfx_map_to_model(const map_t* map) {
     vertices_t vertices = geometry_to_vertices(&map->mesh.geometry);
 
     sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {

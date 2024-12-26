@@ -184,7 +184,7 @@ static vec3s read_normal(span_t* span) {
     return (vec3s) { { x, y, z } };
 }
 
-void merge_meshes(mesh_t* dst, mesh_t* src) {
+void merge_meshes(mesh_t* dst, const mesh_t* src) {
     ASSERT(dst != NULL, "Destination mesh is NULL");
     ASSERT(src != NULL, "Source mesh is NULL");
 
@@ -213,10 +213,9 @@ void merge_meshes(mesh_t* dst, mesh_t* src) {
     }
 }
 
-vertices_t geometry_to_vertices(geometry_t* geometry) {
+vertices_t geometry_to_vertices(const geometry_t* geometry) {
     vertices_t vertices = { 0 };
 
-    // 10 triangles = 30 offset
     int vcount = 0;
 
     for (int i = 0; i < geometry->tex_tri_count; i++) {
@@ -256,7 +255,7 @@ vertices_t geometry_to_vertices(geometry_t* geometry) {
     return vertices;
 }
 
-vec3s vertices_centered(vertices_t* vertices) {
+vec3s vertices_centered(const vertices_t* vertices) {
     f32 min_x = FLT_MAX;
     f32 max_x = -FLT_MAX;
     f32 min_y = FLT_MAX;

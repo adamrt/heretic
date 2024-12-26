@@ -31,10 +31,10 @@ typedef struct {
 void gfx_init(void);
 void gfx_shutdown(void);
 void gfx_render_begin(void);
-void gfx_render_model(model_t*, lighting_t*);
+void gfx_render_model(const model_t*, const lighting_t*);
 void gfx_render_end(void);
 void gfx_scale_change(void);
-model_t gfx_map_to_model(map_t*);
+model_t gfx_map_to_model(const map_t*);
 
 sg_image gfx_get_color_image(void);
 
