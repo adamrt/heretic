@@ -141,7 +141,6 @@ static void _scene_map_unload(void) {
 
     _state.model_count--;
     sg_destroy_image(_state.models[_state.model_count].texture);
-    sg_destroy_image(_state.models[_state.model_count].grayscale);
     sg_destroy_image(_state.models[_state.model_count].palette);
     sg_destroy_buffer(_state.models[_state.model_count].vbuf);
     sg_destroy_buffer(_state.models[_state.model_count].ibuf);

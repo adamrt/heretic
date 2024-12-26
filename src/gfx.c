@@ -141,14 +141,6 @@ model_t gfx_map_to_model(map_t* map) {
         .data.subimage[0][0] = SG_RANGE(map->texture.data),
     });
 
-    texture_t grayscale_texture = texture_grascale(&map->texture);
-    sg_image grayscale = sg_make_image(&(sg_image_desc) {
-        .width = TEXTURE_WIDTH,
-        .height = TEXTURE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(grayscale_texture.data),
-    });
-
     sg_image palette = sg_make_image(&(sg_image_desc) {
         .width = PALETTE_WIDTH,
         .height = PALETTE_HEIGHT,
@@ -167,7 +159,6 @@ model_t gfx_map_to_model(map_t* map) {
         },
         .vbuf = vbuf,
         .texture = texture,
-        .grayscale = grayscale,
         .palette = palette,
     };
     return model;

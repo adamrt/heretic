@@ -35,7 +35,6 @@ static struct {
     bool show_window_scene;
 
     bool show_window_map_lights;
-    bool show_window_map_texture;
     bool show_window_map_records;
 
     bool show_window_event_text;
@@ -58,7 +57,6 @@ void gui_init(void) {
     _state.show_window_scene = true;
 
     _state.show_window_map_lights = false;
-    _state.show_window_map_texture = false;
     _state.show_window_map_records = false;
 
     _state.show_window_event_text = true;
@@ -151,16 +149,6 @@ static void _draw_map_records(void) {
             }
         }
         igEndTable();
-    }
-    igEnd();
-}
-
-static void _draw_map_texture(void) {
-    scene_t* scene = scene_get_internals();
-    igBegin("Map Texture", &_state.show_window_map_texture, 0);
-    ImVec2 dims = { 256 * 2, 1024 * 2 };
-    if (scene->models[0].palette.id != SG_INVALID_ID) {
-        igImage(simgui_imtextureid(scene->models[0].grayscale), dims);
     }
     igEnd();
 }
@@ -287,7 +275,6 @@ static void _draw_scene(void) {
         scene->mode = MODE_EVENT;
         _state.show_window_event_instructions = true;
         _state.show_window_event_text = true;
-        _state.show_window_map_texture = false;
         _state.show_window_map_lights = false;
         _state.show_window_map_records = false;
     }
@@ -296,7 +283,6 @@ static void _draw_scene(void) {
         scene->mode = MODE_MAP;
         _state.show_window_event_instructions = false;
         _state.show_window_event_text = false;
-        _state.show_window_map_texture = true;
         _state.show_window_map_lights = true;
         _state.show_window_map_records = true;
     }
@@ -537,9 +523,6 @@ static void _draw(void) {
         if (igMenuItem("Lights")) {
             _state.show_window_map_lights = !_state.show_window_map_lights;
         }
-        if (igMenuItem("Texture")) {
-            _state.show_window_map_texture = !_state.show_window_map_texture;
-        }
         igEndMenu();
     }
     if (igBeginMenu("Sprites")) {
@@ -585,10 +568,6 @@ static void _draw(void) {
 
     if (_state.show_window_map_lights) {
         _draw_map_lights();
-    }
-
-    if (_state.show_window_map_texture) {
-        _draw_map_texture();
     }
 
     if (_state.show_window_font_bin) {

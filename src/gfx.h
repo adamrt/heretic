@@ -22,7 +22,6 @@ typedef struct {
     sg_buffer vbuf;
     sg_buffer ibuf;
     sg_image texture;
-    sg_image grayscale;
     sg_image palette;
     transform_t transform;
     int vertex_count;
