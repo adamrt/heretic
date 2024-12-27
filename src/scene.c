@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "map.h"
 #include "sokol_gfx.h"
 
 #include "cglm/types-struct.h"
@@ -7,6 +8,7 @@
 
 #include "background.h"
 #include "event.h"
+#include "gfx.h"
 #include "memory.h"
 #include "scenario.h"
 #include "scene.h"
@@ -42,8 +44,8 @@ void scene_update(void) {
 void scene_render(void) {
     gfx_render_begin();
     {
-        background_render(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
-        gfx_render_model(&_state.model, &_state.map->mesh.lighting);
+        background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
+        gfx_render_model(&_state.model);
     }
     gfx_render_end();
 }
@@ -51,8 +53,8 @@ void scene_render(void) {
 void scene_load_map(int num, map_state_t map_state) {
     _scene_map_unload();
 
-    map_t* map = read_map(num, map_state);
-    model_t model = gfx_map_to_model(map);
+    map_t* map = read_map(num);
+    model_t model = map_make_model(map, map_state);
 
     _state.map = map;
     _state.model = model;
@@ -130,13 +132,9 @@ static void _scene_switch(switch_e dir) {
 }
 
 static void _scene_map_unload(void) {
-    if (_state.map == NULL) {
-        return;
+    if (_state.map) {
+        memory_free(_state.map);
     }
-
-    memory_free(_state.map->map_data);
-    memory_free(_state.map);
-
     sg_destroy_image(_state.model.texture);
     sg_destroy_image(_state.model.palette);
     sg_destroy_buffer(_state.model.vbuf);

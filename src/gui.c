@@ -114,8 +114,8 @@ static void _draw_map_records(void) {
         igTableSetupColumnEx("Pallete", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
         igTableHeadersRow();
 
-        for (int i = 0; i < scene->map->map_data->record_count; i++) {
-            map_record_t r = scene->map->map_data->records[i];
+        for (int i = 0; i < scene->map->record_count; i++) {
+            map_record_t r = scene->map->records[i];
             if (!_state.show_texture_resources && r.type == FILETYPE_TEXTURE) {
                 continue;
             }
@@ -349,14 +349,14 @@ static void _draw_map_lights(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Map Lights", &_state.show_window_map_lights, 0);
 
-    vec4s* ambient = &scene->map->mesh.lighting.ambient_color;
+    vec4s* ambient = &scene->model.lighting.ambient_color;
     igText("Ambient");
     igColorEdit4("Color", (float*)ambient->raw, ImGuiColorEditFlags_Float);
-    igDragFloat("Strength", &scene->map->mesh.lighting.ambient_strength);
+    igDragFloat("Strength", &scene->model.lighting.ambient_strength);
     igSeparator();
 
     for (int i = 0; i < 3; i++) {
-        light_t* l = &scene->map->mesh.lighting.lights[i];
+        light_t* l = &scene->model.lighting.lights[i];
         if (!l->valid) {
             continue;
         }

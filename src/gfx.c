@@ -4,7 +4,7 @@
 #include "cglm/struct/vec4.h"
 
 #include "lighting.h"
-#include "mesh.h"
+#include "model.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -82,7 +82,7 @@ void gfx_render_end(void) {
     sg_commit();
 }
 
-void gfx_render_model(const model_t* model, const lighting_t* lighting) {
+void gfx_render_model(const model_t* model) {
     mat4s model_mat = model_matrix(model->transform);
 
     vs_standard_params_t vs_params = {
@@ -92,13 +92,13 @@ void gfx_render_model(const model_t* model, const lighting_t* lighting) {
     };
 
     fs_standard_params_t fs_params;
-    fs_params.u_ambient_color = lighting->ambient_color;
-    fs_params.u_ambient_strength = lighting->ambient_strength;
+    fs_params.u_ambient_color = model->lighting.ambient_color;
+    fs_params.u_ambient_strength = model->lighting.ambient_strength;
 
     int light_count = 0;
     for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {
 
-        light_t light = lighting->lights[i];
+        light_t light = model->lighting.lights[i];
         if (!light.valid) {
             continue;
         }
@@ -124,44 +124,6 @@ void gfx_render_model(const model_t* model, const lighting_t* lighting) {
     sg_apply_uniforms(0, &SG_RANGE(vs_params));
     sg_apply_uniforms(1, &SG_RANGE(fs_params));
     sg_draw(0, model->vertex_count, 1);
-}
-
-model_t gfx_map_to_model(const map_t* map) {
-    vertices_t vertices = geometry_to_vertices(&map->mesh.geometry);
-
-    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(vertices),
-        .label = "mesh-vertices",
-    });
-
-    sg_image texture = sg_make_image(&(sg_image_desc) {
-        .width = TEXTURE_WIDTH,
-        .height = TEXTURE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map->texture.data),
-    });
-
-    sg_image palette = sg_make_image(&(sg_image_desc) {
-        .width = PALETTE_WIDTH,
-        .height = PALETTE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(map->mesh.palette.data),
-    });
-
-    vec3s centered_translation = vertices_centered(&vertices);
-
-    model_t model = {
-        .vertex_count = map->mesh.geometry.vertex_count,
-        .center = centered_translation,
-        .transform = {
-            .translation = centered_translation, // Centering for now as it seems better.
-            .scale = { { 1.0f, 1.0f, 1.0f } },
-        },
-        .vbuf = vbuf,
-        .texture = texture,
-        .palette = palette,
-    };
-    return model;
 }
 
 void gfx_shutdown(void) {

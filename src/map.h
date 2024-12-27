@@ -3,12 +3,12 @@
 #include "defines.h"
 #include "map_record.h"
 #include "mesh.h"
+#include "model.h"
 #include "texture.h"
 
 #define MAP_COUNT 128
 
-// map_data_t represents all the data for a specific map.
-// This has all the different states a map can have.
+// map_t is a struct that contains all the data for a map for all scenarios.
 typedef struct {
     map_record_t records[MAP_RECORD_MAX_NUM];
 
@@ -20,28 +20,18 @@ typedef struct {
     int record_count;
     int texture_count;
     int alt_mesh_count;
-} map_data_t;
-
-// map_t represents map data for a specific map state.
-// The map_data is all possible data for a map.
-// The mesh and texture are the data for the specific state.
-// The vertices are the mesh data converted to vertices for the shader.
-typedef struct {
-    map_state_t map_state;
-    map_data_t* map_data;
-
-    mesh_t mesh;
-    texture_t texture;
 } map_t;
 
+map_t* read_map(int);
+model_t map_make_model(const map_t*, map_state_t);
+
+// map_desc_t is a struct that contains information about a map.
+// This lets us know if we can use the map and where on the disk it is.
 typedef struct {
     u8 id;
     u16 sector;
     bool valid;
     const char* name;
 } map_desc_t;
-
-map_t* read_map(int, map_state_t);
-map_data_t* read_map_data(int);
 
 extern map_desc_t map_list[];

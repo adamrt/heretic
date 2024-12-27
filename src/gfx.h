@@ -1,8 +1,7 @@
 #pragma once
 
-#include "cglm/types-struct.h"
 #include "lighting.h"
-#include "map.h"
+#include "model.h"
 #include "sokol_gfx.h"
 
 #define GFX_WINDOW_WIDTH  (1920)
@@ -11,30 +10,12 @@
 #define GFX_RENDER_WIDTH  (256 * 2)
 #define GFX_RENDER_HEIGHT (240 * 2)
 
-typedef struct {
-    vec3s translation;
-    vec3s rotation;
-    vec3s scale;
-} transform_t;
-
-// model_t represents a renderable model
-typedef struct {
-    sg_buffer vbuf;
-    sg_buffer ibuf;
-    sg_image texture;
-    sg_image palette;
-    transform_t transform;
-    int vertex_count;
-    vec3s center;
-} model_t;
-
 void gfx_init(void);
 void gfx_shutdown(void);
 void gfx_render_begin(void);
-void gfx_render_model(const model_t*, const lighting_t*);
+void gfx_render_model(const model_t*);
 void gfx_render_end(void);
 void gfx_scale_change(void);
-model_t gfx_map_to_model(const map_t*);
 
 sg_image gfx_get_color_image(void);
 

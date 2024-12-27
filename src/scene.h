@@ -3,8 +3,10 @@
 #include <stdbool.h>
 
 #include "event.h"
-#include "gfx.h"
+#include "lighting.h"
 #include "map.h"
+#include "map_record.h"
+#include "model.h"
 
 typedef enum {
     MODE_EVENT,
@@ -14,8 +16,8 @@ typedef enum {
 typedef struct {
     mode_e mode;
 
-    map_t* map;
     model_t model;
+    map_t* map;
 
     int current_scenario_id;
     int current_map;

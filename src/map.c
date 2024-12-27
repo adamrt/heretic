@@ -1,59 +1,93 @@
-#include "map.h"
+#include "gfx.h"
+#include "sokol_gfx.h"
+
 #include "io.h"
+#include "map.h"
 #include "memory.h"
 #include "texture.h"
 #include "util.h"
 
-map_t* read_map(int num, map_state_t map_state) {
-    map_t* map = memory_allocate(sizeof(map_t));
-    map->map_state = map_state;
-
-    map_data_t* map_data = read_map_data(num);
-    map->map_data = map_data;
-
-    if (map_data->primary_mesh.valid) {
-        map->mesh = map_data->primary_mesh;
+model_t map_make_model(const map_t* map, map_state_t map_state) {
+    mesh_t final_mesh = { 0 };
+    texture_t final_texture = { 0 };
+    if (map->primary_mesh.valid) {
+        final_mesh = map->primary_mesh;
     } else {
-        map->mesh = map_data->override_mesh;
+        final_mesh = map->override_mesh;
     }
 
-    for (int i = 0; i < map_data->alt_mesh_count; i++) {
-        mesh_t alt_mesh = map_data->alt_meshes[i];
+    for (int i = 0; i < map->alt_mesh_count; i++) {
+        mesh_t alt_mesh = map->alt_meshes[i];
         if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
-            merge_meshes(&map->mesh, &alt_mesh);
+            merge_meshes(&final_mesh, &alt_mesh);
             break;
         }
     }
 
-    for (int i = 0; i < map_data->texture_count; i++) {
-        texture_t texture = map_data->textures[i];
+    for (int i = 0; i < map->texture_count; i++) {
+        texture_t texture = map->textures[i];
 
         if (texture.valid && map_state_eq(texture.map_state, map_state)) {
-            map->texture = texture;
+            final_texture = texture;
             break;
         }
         if (texture.valid && map_state_default(texture.map_state)) {
-            if (!map->texture.valid) {
-                map->texture = texture;
+            if (!final_texture.valid) {
+                final_texture = texture;
             }
         }
     }
 
-    ASSERT(map->mesh.valid, "Map mesh is invalid");
-    ASSERT(map->texture.valid, "Map texture is invalid");
+    ASSERT(final_mesh.valid, "Map mesh is invalid");
+    ASSERT(final_texture.valid, "Map texture is invalid");
 
-    return map;
+    vertices_t vertices = geometry_to_vertices(&final_mesh.geometry);
+
+    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(vertices),
+        .label = "mesh-vertices",
+    });
+
+    sg_image texture = sg_make_image(&(sg_image_desc) {
+        .width = TEXTURE_WIDTH,
+        .height = TEXTURE_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(final_texture.data),
+    });
+
+    sg_image palette = sg_make_image(&(sg_image_desc) {
+        .width = PALETTE_WIDTH,
+        .height = PALETTE_HEIGHT,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(final_mesh.palette.data),
+    });
+
+    vec3s centered_translation = vertices_centered(&vertices);
+
+    model_t model = {
+        .vertex_count = final_mesh.geometry.vertex_count,
+        .lighting = final_mesh.lighting,
+        .center = centered_translation,
+        .transform = {
+            .translation = centered_translation, // Centering for now as it seems better.
+            .scale = { { 1.0f, 1.0f, 1.0f } },
+        },
+        .vbuf = vbuf,
+        .texture = texture,
+        .palette = palette,
+    };
+    return model;
 }
 
-map_data_t* read_map_data(int num) {
+map_t* read_map(int num) {
     bytes_t gnsfile = io_read_file_bytes(map_list[num].sector, MAP_FILE_MAX_SIZE);
     span_t gnsspan = { gnsfile.data, MAP_FILE_MAX_SIZE, 0 };
 
-    map_data_t* map_data = memory_allocate(sizeof(map_data_t));
-    map_data->record_count = read_map_records(&gnsspan, map_data->records);
+    map_t* map = memory_allocate(sizeof(map_t));
+    map->record_count = read_map_records(&gnsspan, map->records);
 
-    for (int i = 0; i < map_data->record_count; i++) {
-        map_record_t* record = &map_data->records[i];
+    for (int i = 0; i < map->record_count; i++) {
+        map_record_t* record = &map->records[i];
 
         bytes_t file_contents = io_read_file_bytes(record->sector, record->length);
         span_t file = { file_contents.data, record->length, 0 };
@@ -62,25 +96,25 @@ map_data_t* read_map_data(int num) {
         case FILETYPE_TEXTURE: {
             texture_t texture = read_texture(&file);
             texture.map_state = record->state;
-            map_data->textures[map_data->texture_count++] = texture;
+            map->textures[map->texture_count++] = texture;
             break;
         }
         case FILETYPE_MESH_PRIMARY:
             // There always only one primary mesh file and it uses default state.
             ASSERT(map_state_default(record->state), "Primary mesh file has non-default state");
 
-            map_data->primary_mesh = read_mesh(&file);
-            record->vertex_count = map_data->primary_mesh.geometry.vertex_count;
-            record->light_count = map_data->primary_mesh.lighting.light_count;
-            record->valid_palette = map_data->primary_mesh.palette.valid;
+            map->primary_mesh = read_mesh(&file);
+            record->vertex_count = map->primary_mesh.geometry.vertex_count;
+            record->light_count = map->primary_mesh.lighting.light_count;
+            record->valid_palette = map->primary_mesh.palette.valid;
 
-            ASSERT(map_data->primary_mesh.valid, "Primary mesh is invalid");
+            ASSERT(map->primary_mesh.valid, "Primary mesh is invalid");
             break;
 
         case FILETYPE_MESH_ALT: {
             mesh_t alt_mesh = read_mesh(&file);
             alt_mesh.map_state = record->state;
-            map_data->alt_meshes[map_data->alt_mesh_count++] = alt_mesh;
+            map->alt_meshes[map->alt_mesh_count++] = alt_mesh;
             record->vertex_count = alt_mesh.geometry.vertex_count;
             record->light_count = alt_mesh.lighting.light_count;
             record->valid_palette = alt_mesh.palette.valid;
@@ -91,10 +125,10 @@ map_data_t* read_map_data(int num) {
             // If there is an override file, there is only one and it uses default state.
             ASSERT(map_state_default(record->state), "Oerride must be default map state");
 
-            map_data->override_mesh = read_mesh(&file);
-            record->vertex_count = map_data->override_mesh.geometry.vertex_count;
-            record->light_count = map_data->override_mesh.lighting.light_count;
-            record->valid_palette = map_data->override_mesh.palette.valid;
+            map->override_mesh = read_mesh(&file);
+            record->vertex_count = map->override_mesh.geometry.vertex_count;
+            record->light_count = map->override_mesh.lighting.light_count;
+            record->valid_palette = map->override_mesh.palette.valid;
             break;
         }
 
@@ -103,7 +137,7 @@ map_data_t* read_map_data(int num) {
         }
     }
 
-    return map_data;
+    return map;
 }
 
 map_desc_t map_list[MAP_COUNT] = {
