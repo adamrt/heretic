@@ -491,6 +491,9 @@ static void _draw(void) {
     is_hovered = false;
     ImVec2 dims = { GFX_RENDER_WIDTH + 10, GFX_RENDER_HEIGHT + 10 };
 
+    // This creates a parent dockspace to attach to
+    igDockSpaceOverViewport();
+
     igBeginMainMenuBar();
     if (igBeginMenu("File")) {
         if (igMenuItem("Show Demo Window")) {
