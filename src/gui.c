@@ -388,7 +388,7 @@ void _row_instr_camera(instruction_t* instr) {
     if (igButton("MoveTo")) {
         vec3s pos = { { x, y, z } };
         camera_set_freefly(pos, yaw, pitch, zoom);
-        scene->models[0].transform.rotation.y = maprot;
+        scene->model.transform.rotation.y = maprot;
     }
 
     igTableSetColumnIndex(2);

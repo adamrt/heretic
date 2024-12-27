@@ -15,8 +15,7 @@ typedef struct {
     mode_e mode;
 
     map_t* map;
-    model_t models[10];
-    int model_count;
+    model_t model;
 
     int current_scenario_id;
     int current_map;

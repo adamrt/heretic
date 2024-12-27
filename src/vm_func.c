@@ -58,7 +58,7 @@ void fn_camera(const instruction_t* instr) {
     transition_add(instr->opcode, &cam->yaw_rad, cam->yaw_rad, yaw_rad, duration);
     transition_add(instr->opcode, &cam->pitch_rad, cam->pitch_rad, pitch_rad, duration);
     transition_add(instr->opcode, &cam->zoom, cam->zoom, zoom, duration);
-    transition_add(instr->opcode, &scene->models[0].transform.rotation.y, scene->models[0].transform.rotation.y, maprot_rad, duration);
+    transition_add(instr->opcode, &scene->model.transform.rotation.y, scene->model.transform.rotation.y, maprot_rad, duration);
 }
 
 void fn_wait_for_instruction(const instruction_t* instr) {

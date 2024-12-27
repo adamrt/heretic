@@ -43,9 +43,7 @@ void scene_render(void) {
     gfx_render_begin();
     {
         background_render(_state.map->mesh.lighting.bg_top, _state.map->mesh.lighting.bg_bottom);
-        for (int i = 0; i < _state.model_count; i++) {
-            gfx_render_model(&_state.models[i], &_state.map->mesh.lighting);
-        }
+        gfx_render_model(&_state.model, &_state.map->mesh.lighting);
     }
     gfx_render_end();
 }
@@ -57,7 +55,7 @@ void scene_load_map(int num, map_state_t map_state) {
     model_t model = gfx_map_to_model(map);
 
     _state.map = map;
-    _state.models[_state.model_count++] = model;
+    _state.model = model;
     _state.current_map = num;
 }
 
@@ -76,7 +74,7 @@ void scene_load_scenario(int scenario_id) {
 }
 
 void scene_set_map_rotation(f32 maprot) {
-    _state.models[0].transform.rotation.y = maprot;
+    _state.model.transform.rotation.y = maprot;
 }
 
 event_t scene_get_event(void) { return _state.event; }
@@ -139,9 +137,8 @@ static void _scene_map_unload(void) {
     memory_free(_state.map->map_data);
     memory_free(_state.map);
 
-    _state.model_count--;
-    sg_destroy_image(_state.models[_state.model_count].texture);
-    sg_destroy_image(_state.models[_state.model_count].palette);
-    sg_destroy_buffer(_state.models[_state.model_count].vbuf);
-    sg_destroy_buffer(_state.models[_state.model_count].ibuf);
+    sg_destroy_image(_state.model.texture);
+    sg_destroy_image(_state.model.palette);
+    sg_destroy_buffer(_state.model.vbuf);
+    sg_destroy_buffer(_state.model.ibuf);
 }
