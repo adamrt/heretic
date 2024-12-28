@@ -28,8 +28,8 @@ static void _draw(void);
 
 static struct {
     bool show_window_demo;
-    bool show_window_frame_bin;
     bool show_window_font_bin;
+    bool show_window_frame_bin;
     bool show_window_item_bin;
     bool show_window_unit_bin;
     bool show_window_evtface_bin;
@@ -64,11 +64,11 @@ void gui_init(void) {
     _state.show_window_event_text = true;
     _state.show_window_event_instructions = true;
 
+    _state.show_window_font_bin = false;
     _state.show_window_frame_bin = false;
     _state.show_window_item_bin = false;
     _state.show_window_unit_bin = false;
     _state.show_window_evtface_bin = false;
-    _state.show_window_font_bin = false;
 
     _state.show_texture_resources = false;
 
@@ -156,6 +156,13 @@ static void _draw_map_records(void) {
     igEnd();
 }
 
+static void _draw_game_font_image(void) {
+    igBegin("FONT.BIN", &_state.show_window_font_bin, 0);
+    ImVec2 dims = { FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT };
+    igImage(simgui_imtextureid(font_get_atlas_image()), dims);
+    igEnd();
+}
+
 static void _draw_game_frame_image(void) {
     igBegin("FRAME.BIN", &_state.show_window_frame_bin, 0);
     ImVec2 dims = { 256 * 2, 288 * 2 };
@@ -183,37 +190,6 @@ static void _draw_game_frame_image(void) {
     igSeparator();
 
     sg_image image = sprite_get_paletted_image(F_EVENT__FRAME_BIN, current_item);
-    igImage(simgui_imtextureid(image), dims);
-    igEnd();
-}
-
-static void _draw_game_unit_image(void) {
-    igBegin("UNIT.BIN", &_state.show_window_unit_bin, 0);
-    ImVec2 dims = { 256 * 2, 480 * 2 };
-    // We have an array of unit labels
-    static int current_item = 0;
-    char buf[32];
-    snprintf(buf, sizeof(buf), "Palette %d", current_item);
-
-    // The preview label is items[current_item], which is shown before opening
-    if (igBeginCombo("Palette##combo", buf, 0)) {
-        for (int i = 0; i < 128; i++) {
-            bool is_selected = (current_item == i);
-
-            snprintf(buf, sizeof(buf), "Palette %d", i);
-            if (igSelectable(buf)) {
-                current_item = i;
-            }
-
-            if (is_selected)
-                igSetItemDefaultFocus();
-        }
-        igEndCombo();
-    }
-
-    igSeparator();
-
-    sg_image image = sprite_get_paletted_image(F_EVENT__UNIT_BIN, current_item);
     igImage(simgui_imtextureid(image), dims);
     igEnd();
 }
@@ -249,17 +225,41 @@ static void _draw_game_item_image(void) {
     igEnd();
 }
 
+static void _draw_game_unit_image(void) {
+    igBegin("UNIT.BIN", &_state.show_window_unit_bin, 0);
+    ImVec2 dims = { 256 * 2, 480 * 2 };
+    // We have an array of unit labels
+    static int current_item = 0;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Palette %d", current_item);
+
+    // The preview label is items[current_item], which is shown before opening
+    if (igBeginCombo("Palette##combo", buf, 0)) {
+        for (int i = 0; i < 128; i++) {
+            bool is_selected = (current_item == i);
+
+            snprintf(buf, sizeof(buf), "Palette %d", i);
+            if (igSelectable(buf)) {
+                current_item = i;
+            }
+
+            if (is_selected)
+                igSetItemDefaultFocus();
+        }
+        igEndCombo();
+    }
+
+    igSeparator();
+
+    sg_image image = sprite_get_paletted_image(F_EVENT__UNIT_BIN, current_item);
+    igImage(simgui_imtextureid(image), dims);
+    igEnd();
+}
+
 static void _draw_game_evtface_image(void) {
     igBegin("EVTFACE.BIN Palette", &_state.show_window_evtface_bin, 0);
     ImVec2 dims = { 256 * 2, 384 * 2 };
     igImage(simgui_imtextureid(sprite_get_evtface_bin()), dims);
-    igEnd();
-}
-
-static void _draw_game_font_image(void) {
-    igBegin("FONT.BIN", &_state.show_window_font_bin, 0);
-    ImVec2 dims = { FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT };
-    igImage(simgui_imtextureid(font_get_atlas_image()), dims);
     igEnd();
 }
 

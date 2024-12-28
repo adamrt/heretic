@@ -24,15 +24,15 @@ static struct {
 typedef struct {
     int tex_width;
     int tex_height;
-    int pal_width;
-    int pal_height;
+    int tex_offset;
+    int pal_count;
     int pal_offset;
 } paletted_image_4bpp_desc_t;
 
 const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
-    [F_EVENT__FRAME_BIN] = { 256, 288, 16, 22, 36864 },
-    [F_EVENT__ITEM_BIN] = { 256, 256, 16, 16, 32768 },
-    [F_EVENT__UNIT_BIN] = { 256, 480, 16, 128, 61440 },
+    [F_EVENT__FRAME_BIN] = { 256, 288, 0, 22, 36864 },
+    [F_EVENT__ITEM_BIN] = { 256, 256, 0, 16, 32768 },
+    [F_EVENT__UNIT_BIN] = { 256, 480, 0, 128, 61440 },
 };
 
 static texture_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
@@ -166,8 +166,12 @@ sg_image sprite_get_evtface_bin(void) {
 // Shared functions
 //
 
-static texture_t _read_palette(span_t* span, const int width, const int height, const usize offset) {
-    const int dims = width * height;
+static texture_t _read_palette(span_t* span, const int count, const usize offset) {
+    constexpr int palette_width = 16; // This is always the case
+
+    const int width = palette_width;
+    const int height = count;
+    const int dims = palette_width * count;
     const int size = dims * 4;
     const int size_on_disk = dims / 2;
 
@@ -230,7 +234,7 @@ static texture_t _read_sprite_with_palette(span_t* span, const int width, const 
 }
 
 static texture_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
-    texture_t palette = _read_palette(span, desc.pal_width, desc.pal_height, desc.pal_offset);
+    texture_t palette = _read_palette(span, desc.pal_count, desc.pal_offset);
     texture_t texture = _read_sprite_with_palette(span, desc.tex_width, desc.tex_height, palette, pindex);
     texture_destroy(palette);
     return texture;
