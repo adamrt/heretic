@@ -21,6 +21,8 @@
 #define ITEM_BIN_LEN       (33280)
 #define EVTFACE_BIN_SECTOR (5707)
 #define EVTFACE_BIN_LEN    (65536)
+#define UNIT_BIN_SECTOR    (5739)
+#define UNIT_BIN_LEN       (65536)
 
 static struct {
     FILE* file;
@@ -30,6 +32,7 @@ static struct {
     u8 font_bin[FONT_BIN_LEN];
     u8 frame_bin[FRAME_BIN_LEN];
     u8 item_bin[ITEM_BIN_LEN];
+    u8 unit_bin[UNIT_BIN_LEN];
     u8 evtface_bin[EVTFACE_BIN_LEN];
 } _state;
 
@@ -43,6 +46,7 @@ void io_init(void) {
     io_read_file(FONT_BIN_SECTOR, FONT_BIN_LEN, _state.font_bin);
     io_read_file(FRAME_BIN_SECTOR, FRAME_BIN_LEN, _state.frame_bin);
     io_read_file(ITEM_BIN_SECTOR, ITEM_BIN_LEN, _state.item_bin);
+    io_read_file(UNIT_BIN_SECTOR, UNIT_BIN_LEN, _state.unit_bin);
     io_read_file(EVTFACE_BIN_SECTOR, EVTFACE_BIN_LEN, _state.evtface_bin);
 }
 
@@ -104,3 +108,4 @@ span_t io_file_font_bin(void) { return (span_t) { .data = _state.font_bin, .size
 span_t io_file_frame_bin(void) { return (span_t) { .data = _state.frame_bin, .size = FRAME_BIN_LEN }; }
 span_t io_file_item_bin(void) { return (span_t) { .data = _state.item_bin, .size = ITEM_BIN_LEN }; }
 span_t io_file_evtface_bin(void) { return (span_t) { .data = _state.evtface_bin, .size = EVTFACE_BIN_LEN }; }
+span_t io_file_unit_bin(void) { return (span_t) { .data = _state.unit_bin, .size = UNIT_BIN_LEN }; }

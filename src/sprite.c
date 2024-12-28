@@ -2,263 +2,231 @@
 #include "sprite.h"
 #include "cglm/types-struct.h"
 #include "io.h"
+#include "memory.h"
 #include "span.h"
 #include "texture.h"
 
 #include "defines.h"
 
-#define FRAME_SIZE        (SPRITE_FRAME_WIDTH * SPRITE_FRAME_HEIGHT) // 58,368
-#define FRAME_NBYTES_RGBA (FRAME_SIZE * 4)                           // 233,472
-#define FRAME_NBYTES_RAW  (FRAME_SIZE / 2)                           // 29,184
-
-#define FRAME_PALETTE_SIZE        (SPRITE_FRAME_PALETTE_WIDTH * SPRITE_FRAME_PALETTE_HEIGHT) // 352
-#define FRAME_PALETTE_NBYTES_RGBA (FRAME_PALETTE_SIZE * 4)                                   // 1,408
-#define FRAME_PALETTE_NBYTES_RAW  (FRAME_PALETTE_SIZE / 2)                                   // 176
-
-#define ITEM_SIZE        (SPRITE_ITEM_WIDTH * SPRITE_ITEM_HEIGHT) // 58,368
-#define ITEM_NBYTES_RGBA (ITEM_SIZE * 4)                          // 233,472
-#define ITEM_NBYTES_RAW  (ITEM_SIZE / 2)                          // 29,184
-
-#define ITEM_PALETTE_SIZE        (SPRITE_ITEM_PALETTE_WIDTH * SPRITE_ITEM_PALETTE_HEIGHT) //
-#define ITEM_PALETTE_NBYTES_RGBA (ITEM_PALETTE_SIZE * 4)                                  //
-#define ITEM_PALETTE_NBYTES_RAW  (ITEM_PALETTE_SIZE / 2)                                  //
-
-#define EVTFACE_SIZE        (SPRITE_EVTFACE_WIDTH * SPRITE_EVTFACE_HEIGHT) // 256*384 = 98,304
-#define EVTFACE_NBYTES_RGBA (EVTFACE_SIZE * 4)                             // 393,216
-#define EVTFACE_NBYTES_RAW  (EVTFACE_SIZE / 2)                             // 29,184
-
-typedef struct {
-    u8 data[FRAME_NBYTES_RGBA];
-    bool valid;
-} sprite_frame_t;
-
-typedef struct {
-    u8 data[FRAME_PALETTE_NBYTES_RGBA];
-    bool valid;
-} sprite_frame_palette_t;
-
-typedef struct {
-    u8 data[ITEM_NBYTES_RGBA];
-    bool valid;
-} sprite_item_t;
-
-typedef struct {
-    u8 data[ITEM_PALETTE_NBYTES_RGBA];
-    bool valid;
-} sprite_item_palette_t;
-
-typedef struct {
-    u8 data[EVTFACE_NBYTES_RGBA];
-    bool valid;
-} sprite_evtface_image_t;
-
 static struct {
-    sg_image sprite_frame_image;
-    sg_image sprite_frame_palette_image;
-    sprite_frame_palette_t frame_palette;
+    sg_image sprite_frame;
+    sg_image sprite_item;
+    sg_image sprite_evtface;
+    sg_image sprite_unit;
 
-    sg_image sprite_item_image;
-    sg_image sprite_item_palette_image;
-    sprite_item_palette_t item_palette;
-
-    sg_image sprite_evtface_image;
+    int frame_palette_idx;
+    int item_palette_idx;
+    int unit_palette_idx;
 } _state;
 
-static sprite_frame_t read_sprite_frame(span_t*, int);
-static sprite_frame_palette_t read_sprite_frame_palette(span_t*);
-static sprite_item_t read_sprite_item(span_t*, int);
-static sprite_item_palette_t read_sprite_item_palette(span_t*);
-static sprite_evtface_image_t read_sprite_evtface(span_t*);
+static texture_t sprite_read_palette(span_t*, const int, const int, const usize);
+static texture_t sprite_read_sprite_with_palette(span_t*, const int, const int, const texture_t, const usize);
+static texture_t read_sprite_frame(span_t*, int);
+static texture_t read_sprite_item(span_t*, int);
+static texture_t read_sprite_unit(span_t*, int);
+static texture_t read_sprite_evtface(span_t*);
 
 void sprite_init(void) {
-    span_t span = io_file_frame_bin();
-    _state.frame_palette = read_sprite_frame_palette(&span);
-    sprite_set_frame_palette(0);
+    _state.frame_palette_idx = 0;
+    _state.item_palette_idx = 0;
+    _state.unit_palette_idx = 0;
+
+    span_t span = io_file_evtface_bin();
+    texture_t evtface = read_sprite_evtface(&span);
+    _state.sprite_evtface = texture_to_sg_image(evtface);
+    texture_destroy(evtface);
+
+    span = io_file_frame_bin();
+    texture_t frame = read_sprite_frame(&span, _state.frame_palette_idx);
+    _state.sprite_frame = texture_to_sg_image(frame);
+    texture_destroy(frame);
 
     span = io_file_item_bin();
-    _state.item_palette = read_sprite_item_palette(&span);
-    sprite_set_item_palette(0);
+    texture_t item = read_sprite_item(&span, _state.item_palette_idx);
+    _state.sprite_item = texture_to_sg_image(item);
+    texture_destroy(item);
 
-    span = io_file_evtface_bin();
-    sprite_evtface_image_t evtface = read_sprite_evtface(&span);
-
-    _state.sprite_evtface_image = sg_make_image(&(sg_image_desc) {
-        .width = SPRITE_EVTFACE_WIDTH,
-        .height = SPRITE_EVTFACE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(evtface.data),
-        .label = "evtface-image",
-    });
+    span = io_file_unit_bin();
+    texture_t unit = read_sprite_unit(&span, _state.unit_palette_idx);
+    _state.sprite_unit = texture_to_sg_image(unit);
+    texture_destroy(unit);
 }
 
 void sprite_shutdown(void) {
-    sg_destroy_image(_state.sprite_frame_image);
-    sg_destroy_image(_state.sprite_frame_palette_image);
-    sg_destroy_image(_state.sprite_item_image);
-    sg_destroy_image(_state.sprite_item_palette_image);
-    sg_destroy_image(_state.sprite_evtface_image);
+    sg_destroy_image(_state.sprite_frame);
+    sg_destroy_image(_state.sprite_item);
+    sg_destroy_image(_state.sprite_unit);
+    sg_destroy_image(_state.sprite_evtface);
 }
 
-static sprite_frame_t read_sprite_frame(span_t* span, int palette_idx) {
-    sprite_frame_t frame = { 0 };
+texture_t read_sprite_item_palette(span_t* span) {
+    const int width = 16;
+    const int height = 16;
+    const int offset = 32768;
+    return sprite_read_palette(span, width, height, offset);
+}
 
-    span->offset = 0;
+static texture_t read_sprite_item(span_t* span, int palette_idx) {
+    const int width = 256;
+    const int height = 256;
+    texture_t palette = read_sprite_item_palette(span);
+    texture_t texture = sprite_read_sprite_with_palette(span, width, height, palette, palette_idx);
+    texture_destroy(palette);
+    return texture;
+}
 
-    u8* palette = _state.frame_palette.data;
-    usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * frame_index
+texture_t read_sprite_frame_palette(span_t* span) {
+    const int width = 16;
+    const int height = 22;
+    const int offset = 0x9000;
+    return sprite_read_palette(span, width, height, offset);
+}
 
-    usize write_idx = 0;
-    for (int i = 0; i < FRAME_NBYTES_RAW; i++) {
-        u8 raw_pixel = span_read_u8(span);
-        u8 right = ((raw_pixel & 0x0F));
-        u8 left = ((raw_pixel & 0xF0) >> 4);
+texture_t read_sprite_frame(span_t* span, int palette_idx) {
+    const int width = 256;
+    const int height = 288;
+    texture_t palette = read_sprite_frame_palette(span);
+    texture_t texture = sprite_read_sprite_with_palette(span, width, height, palette, palette_idx);
+    texture_destroy(palette);
+    return texture;
+}
 
-        for (int j = 0; j < 4; j++) {
-            frame.data[write_idx++] = palette[right * 4 + palette_offset + j];
+texture_t read_sprite_unit_palette(span_t* span) {
+    const int width = 16;
+    const int height = 128;
+    const int offset = 61440;
+    return sprite_read_palette(span, width, height, offset);
+}
+
+texture_t read_sprite_unit(span_t* span, int palette_idx) {
+    const int width = 256;
+    const int height = 480;
+    texture_t palette = read_sprite_unit_palette(span);
+    texture_t texture = sprite_read_sprite_with_palette(span, width, height, palette, palette_idx);
+    texture_destroy(palette);
+    return texture;
+}
+
+sg_image sprite_get_frame_image(int palette_idx) {
+    if (_state.frame_palette_idx != palette_idx) {
+        if (_state.sprite_frame.id != SG_INVALID_ID) {
+            sg_destroy_image(_state.sprite_frame);
         }
-        for (int j = 0; j < 4; j++) {
-            frame.data[write_idx++] = palette[left * 4 + palette_offset + j];
-        }
+        span_t span = io_file_frame_bin();
+        texture_t frame = read_sprite_frame(&span, palette_idx);
+        _state.sprite_frame = texture_to_sg_image(frame);
+        texture_destroy(frame);
+        _state.frame_palette_idx = palette_idx;
     }
-
-    frame.valid = true;
-    return frame;
+    return _state.sprite_frame;
 }
 
-sprite_frame_palette_t read_sprite_frame_palette(span_t* span) {
-    sprite_frame_palette_t palette = { 0 };
+sg_image sprite_get_item_image(int palette_idx) {
+    if (_state.item_palette_idx != palette_idx) {
+        if (_state.sprite_item.id != SG_INVALID_ID) {
+            sg_destroy_image(_state.sprite_item);
+        }
+        span_t span = io_file_item_bin();
+        texture_t item = read_sprite_item(&span, palette_idx);
+        _state.sprite_item = texture_to_sg_image(item);
+        texture_destroy(item);
+        _state.item_palette_idx = palette_idx;
+    }
+    return _state.sprite_item;
+}
 
-    span->offset = 0x9000;
+sg_image sprite_get_unit_image(int palette_idx) {
+    if (_state.unit_palette_idx != palette_idx) {
+        if (_state.sprite_unit.id != SG_INVALID_ID) {
+            sg_destroy_image(_state.sprite_unit);
+        }
+        span_t span = io_file_unit_bin();
+        texture_t unit = read_sprite_unit(&span, palette_idx);
+        _state.sprite_unit = texture_to_sg_image(unit);
+        texture_destroy(unit);
+        _state.unit_palette_idx = palette_idx;
+    }
+    return _state.sprite_unit;
+}
+
+static texture_t sprite_read_palette(span_t* span, const int width, const int height, const usize offset) {
+    const int dims = width * height;
+    const int size = dims * 4;
+    const int size_on_disk = dims / 2;
+
+    span->offset = offset;
+
+    u8* data = memory_allocate(size);
 
     usize write_idx = 0;
-    for (int i = 0; i < FRAME_PALETTE_NBYTES_RAW * 2; i++) {
+    for (int i = 0; i < size_on_disk * 2; i++) {
         vec4s c = read_rgb15(span); // reading 2 at a time
-        palette.data[write_idx++] = c.r;
-        palette.data[write_idx++] = c.g;
-        palette.data[write_idx++] = c.b;
-        palette.data[write_idx++] = c.a;
+        data[write_idx++] = c.r;
+        data[write_idx++] = c.g;
+        data[write_idx++] = c.b;
+        data[write_idx++] = c.a;
     }
 
-    palette.valid = true;
+    texture_t palette = {
+        .width = width,
+        .height = height,
+        .data = data,
+        .size = size,
+        .valid = true
+    };
+
     return palette;
 }
 
-void sprite_set_frame_palette(int index) {
-    sg_destroy_image(_state.sprite_frame_image);
-
-    span_t span = io_file_frame_bin();
-    sprite_frame_t frame = read_sprite_frame(&span, index);
-
-    _state.sprite_frame_palette_image = sg_make_image(&(sg_image_desc) {
-        .width = SPRITE_FRAME_PALETTE_WIDTH,
-        .height = SPRITE_FRAME_PALETTE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(_state.frame_palette.data),
-        .label = "frame-palette",
-    });
-
-    _state.sprite_frame_image = sg_make_image(&(sg_image_desc) {
-        .width = SPRITE_FRAME_WIDTH,
-        .height = SPRITE_FRAME_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(frame.data),
-        .label = "frame-image",
-    });
-}
-
-sg_image sprite_get_frame_image(void) {
-    return _state.sprite_frame_image;
-}
-
-sg_image sprite_get_frame_palette_image(void) {
-    return _state.sprite_frame_palette_image;
-}
-
-static sprite_item_t read_sprite_item(span_t* span, int palette_idx) {
-    sprite_item_t item = { 0 };
+texture_t sprite_read_sprite_with_palette(span_t* span, const int width, const int height, const texture_t palette, const usize palette_idx) {
+    const int dims = width * height;
+    const int size = dims * 4;
+    const int size_on_disk = dims / 2;
 
     span->offset = 0;
+    u8* data = memory_allocate(size);
 
-    u8* palette = _state.item_palette.data;
     usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * item_index
 
     usize write_idx = 0;
-    for (int i = 0; i < ITEM_NBYTES_RAW; i++) {
+    for (int i = 0; i < size_on_disk; i++) {
         u8 raw_pixel = span_read_u8(span);
         u8 right = ((raw_pixel & 0x0F));
         u8 left = ((raw_pixel & 0xF0) >> 4);
 
         for (int j = 0; j < 4; j++) {
-            item.data[write_idx++] = palette[right * 4 + palette_offset + j];
+            data[write_idx++] = palette.data[right * 4 + palette_offset + j];
         }
         for (int j = 0; j < 4; j++) {
-            item.data[write_idx++] = palette[left * 4 + palette_offset + j];
+            data[write_idx++] = palette.data[left * 4 + palette_offset + j];
         }
     }
 
-    item.valid = true;
-    return item;
+    texture_t texture = {
+        .width = width,
+        .height = height,
+        .data = data,
+        .size = size,
+        .valid = true
+    };
+    return texture;
 }
 
-sprite_item_palette_t read_sprite_item_palette(span_t* span) {
-    sprite_item_palette_t palette = { 0 };
-
-    span->offset = 32768;
-
-    usize write_idx = 0;
-    for (int i = 0; i < ITEM_PALETTE_NBYTES_RAW * 2; i++) {
-        vec4s c = read_rgb15(span); // reading 2 at a time
-        palette.data[write_idx++] = c.r;
-        palette.data[write_idx++] = c.g;
-        palette.data[write_idx++] = c.b;
-        palette.data[write_idx++] = c.a;
-    }
-
-    palette.valid = true;
-    return palette;
-}
-
-void sprite_set_item_palette(int index) {
-    sg_destroy_image(_state.sprite_item_image);
-
-    span_t span = io_file_item_bin();
-    sprite_item_t item = read_sprite_item(&span, index);
-
-    _state.sprite_item_palette_image = sg_make_image(&(sg_image_desc) {
-        .width = SPRITE_ITEM_PALETTE_WIDTH,
-        .height = SPRITE_ITEM_PALETTE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(_state.item_palette.data),
-        .label = "item-palette",
-    });
-
-    _state.sprite_item_image = sg_make_image(&(sg_image_desc) {
-        .width = SPRITE_ITEM_WIDTH,
-        .height = SPRITE_ITEM_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(item.data),
-        .label = "item-image",
-    });
-}
-
-sg_image sprite_get_item_image(void) {
-    return _state.sprite_item_image;
-}
-
-sg_image sprite_get_item_palette_image(void) {
-    return _state.sprite_item_palette_image;
-}
-static sprite_evtface_image_t read_sprite_evtface(span_t* span) {
-    sprite_evtface_image_t evtface = { 0 };
+static texture_t read_sprite_evtface(span_t* span) {
+    const int width = 256;
+    const int height = 384;
+    const int dims = width * height;
+    const int size = dims * 4;
 
     // Basic dimensions
     const int rows_of_portraits = 8;
     const int cols_of_portraits = 8;
     const int portrait_width = 32;
     const int portrait_height = 48;
-    const int image_width = 256;
     const int bytes_per_row = 8192;
     const int palette_offset = 6144; // per row
+
+    u8* data = memory_allocate(size);
 
     for (int portrait_row = 0; portrait_row < rows_of_portraits; portrait_row++) {
 
@@ -291,26 +259,32 @@ static sprite_evtface_image_t read_sprite_evtface(span_t* span) {
                     vec4s right_color = palette[right];
                     vec4s left_color = palette[left];
 
-                    int right_idx = (absolute_y * image_width + absolute_x1) * 4;
-                    evtface.data[right_idx + 0] = right_color.r;
-                    evtface.data[right_idx + 1] = right_color.g;
-                    evtface.data[right_idx + 2] = right_color.b;
-                    evtface.data[right_idx + 3] = right_color.a;
+                    int right_idx = (absolute_y * width + absolute_x1) * 4;
+                    data[right_idx + 0] = right_color.r;
+                    data[right_idx + 1] = right_color.g;
+                    data[right_idx + 2] = right_color.b;
+                    data[right_idx + 3] = right_color.a;
 
-                    int left_idx = (absolute_y * image_width + absolute_x2) * 4;
-                    evtface.data[left_idx + 0] = left_color.r;
-                    evtface.data[left_idx + 1] = left_color.g;
-                    evtface.data[left_idx + 2] = left_color.b;
-                    evtface.data[left_idx + 3] = left_color.a;
+                    int left_idx = (absolute_y * width + absolute_x2) * 4;
+                    data[left_idx + 0] = left_color.r;
+                    data[left_idx + 1] = left_color.g;
+                    data[left_idx + 2] = left_color.b;
+                    data[left_idx + 3] = left_color.a;
                 }
             }
         }
     }
 
-    evtface.valid = true;
+    texture_t evtface = {
+        .width = width,
+        .height = height,
+        .data = data,
+        .size = size,
+        .valid = true
+    };
     return evtface;
 }
 
 sg_image sprite_get_evtface_image(void) {
-    return _state.sprite_evtface_image;
+    return _state.sprite_evtface;
 }

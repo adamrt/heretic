@@ -48,19 +48,8 @@ model_t map_make_model(const map_t* map, map_state_t map_state) {
         .label = "mesh-vertices",
     });
 
-    sg_image texture = sg_make_image(&(sg_image_desc) {
-        .width = TEXTURE_WIDTH,
-        .height = TEXTURE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(final_texture.data),
-    });
-
-    sg_image palette = sg_make_image(&(sg_image_desc) {
-        .width = PALETTE_WIDTH,
-        .height = PALETTE_HEIGHT,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(final_mesh.palette.data),
-    });
+    sg_image texture = texture_to_sg_image(final_texture);
+    sg_image palette = texture_to_sg_image(final_mesh.palette);
 
     vec3s centered_translation = vertices_centered(&vertices);
 
@@ -77,6 +66,21 @@ model_t map_make_model(const map_t* map, map_state_t map_state) {
         .palette = palette,
     };
     return model;
+}
+
+void map_destroy(map_t* map) {
+    if (map == NULL) {
+        return;
+    }
+    for (int i = 0; i < map->texture_count; i++) {
+        texture_destroy(map->textures[i]);
+    }
+    for (int i = 0; i < map->alt_mesh_count; i++) {
+        texture_destroy(map->alt_meshes[i].palette);
+    }
+    texture_destroy(map->primary_mesh.palette);
+    texture_destroy(map->override_mesh.palette);
+    memory_free(map);
 }
 
 map_t* read_map(int num) {

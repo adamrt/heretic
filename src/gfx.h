@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lighting.h"
 #include "model.h"
 #include "sokol_gfx.h"
 

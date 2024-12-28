@@ -55,7 +55,7 @@ typedef struct {
     map_state_t map_state;
 
     geometry_t geometry;
-    palette_t palette;
+    texture_t palette;
     lighting_t lighting;
 
     bool valid;

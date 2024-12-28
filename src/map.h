@@ -23,6 +23,7 @@ typedef struct {
 } map_t;
 
 map_t* read_map(int);
+void map_destroy(map_t*);
 model_t map_make_model(const map_t*, map_state_t);
 
 // map_desc_t is a struct that contains information about a map.

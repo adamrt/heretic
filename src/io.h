@@ -15,3 +15,4 @@ span_t io_file_font_bin(void);
 span_t io_file_frame_bin(void);
 span_t io_file_item_bin(void);
 span_t io_file_evtface_bin(void);
+span_t io_file_unit_bin(void);

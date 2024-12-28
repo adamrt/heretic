@@ -1,8 +1,7 @@
 #pragma once
 
-#include "mesh.h"
+#include "lighting.h"
 #include "sokol_gfx.h"
-#include "texture.h"
 
 #include "cglm/types-struct.h"
 
@@ -25,3 +24,5 @@ typedef struct {
     int vertex_count;
     vec3s center;
 } model_t;
+
+void model_destroy(model_t);

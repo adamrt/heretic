@@ -3,7 +3,6 @@
 #include <stdbool.h>
 
 #include "event.h"
-#include "lighting.h"
 #include "map.h"
 #include "map_record.h"
 #include "model.h"

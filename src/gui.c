@@ -30,6 +30,7 @@ static struct {
     bool show_window_frame_bin;
     bool show_window_font_bin;
     bool show_window_item_bin;
+    bool show_window_unit_bin;
     bool show_window_evtface_bin;
 
     bool show_window_scene;
@@ -64,6 +65,7 @@ void gui_init(void) {
 
     _state.show_window_frame_bin = false;
     _state.show_window_item_bin = false;
+    _state.show_window_unit_bin = false;
     _state.show_window_evtface_bin = false;
     _state.show_window_font_bin = false;
 
@@ -169,7 +171,6 @@ static void _draw_game_frame_image(void) {
             snprintf(buf, sizeof(buf), "Palette %d", i);
             if (igSelectable(buf)) {
                 current_item = i;
-                sprite_set_frame_palette(i);
             }
 
             if (is_selected)
@@ -180,14 +181,37 @@ static void _draw_game_frame_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_frame_image()), dims);
+    igImage(simgui_imtextureid(sprite_get_frame_image(current_item)), dims);
     igEnd();
 }
 
-static void _draw_game_frame_palette_image(void) {
-    igBegin("FRAME.BIN Palette", &_state.show_window_frame_bin, 0);
-    ImVec2 dims = { 256 * 2, 16 * 22 * 2 };
-    igImage(simgui_imtextureid(sprite_get_frame_palette_image()), dims);
+static void _draw_game_unit_image(void) {
+    igBegin("UNIT.BIN", &_state.show_window_unit_bin, 0);
+    ImVec2 dims = { 256 * 2, 480 * 2 };
+    // We have an array of unit labels
+    static int current_item = 0;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Palette %d", current_item);
+
+    // The preview label is items[current_item], which is shown before opening
+    if (igBeginCombo("Palette##combo", buf, 0)) {
+        for (int i = 0; i < 128; i++) {
+            bool is_selected = (current_item == i);
+
+            snprintf(buf, sizeof(buf), "Palette %d", i);
+            if (igSelectable(buf)) {
+                current_item = i;
+            }
+
+            if (is_selected)
+                igSetItemDefaultFocus();
+        }
+        igEndCombo();
+    }
+
+    igSeparator();
+
+    igImage(simgui_imtextureid(sprite_get_unit_image(current_item)), dims);
     igEnd();
 }
 
@@ -201,13 +225,12 @@ static void _draw_game_item_image(void) {
 
     // The preview label is items[current_item], which is shown before opening
     if (igBeginCombo("Palette##combo", buf, 0)) {
-        for (int i = 0; i < SPRITE_ITEM_PALETTE_HEIGHT; i++) {
+        for (int i = 0; i < 16; i++) {
             bool is_selected = (current_item == i);
 
             snprintf(buf, sizeof(buf), "Palette %d", i);
             if (igSelectable(buf)) {
                 current_item = i;
-                sprite_set_item_palette(i);
             }
 
             if (is_selected)
@@ -218,14 +241,7 @@ static void _draw_game_item_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_item_image()), dims);
-    igEnd();
-}
-
-static void _draw_game_item_palette_image(void) {
-    igBegin("ITEM.BIN Palette", &_state.show_window_item_bin, 0);
-    ImVec2 dims = { 256 * 2, 16 * 16 * 2 };
-    igImage(simgui_imtextureid(sprite_get_item_palette_image()), dims);
+    igImage(simgui_imtextureid(sprite_get_item_image(current_item)), dims);
     igEnd();
 }
 
@@ -535,6 +551,9 @@ static void _draw(void) {
         if (igMenuItem("ITEM.BIN")) {
             _state.show_window_item_bin = !_state.show_window_item_bin;
         }
+        if (igMenuItem("UNIT.BIN")) {
+            _state.show_window_unit_bin = !_state.show_window_unit_bin;
+        }
         if (igMenuItem("EVTFACE.BIN")) {
             _state.show_window_evtface_bin = !_state.show_window_evtface_bin;
         }
@@ -579,12 +598,14 @@ static void _draw(void) {
 
     if (_state.show_window_frame_bin) {
         _draw_game_frame_image();
-        _draw_game_frame_palette_image();
     }
 
     if (_state.show_window_item_bin) {
         _draw_game_item_image();
-        _draw_game_item_palette_image();
+    }
+
+    if (_state.show_window_unit_bin) {
+        _draw_game_unit_image();
     }
 
     if (_state.show_window_evtface_bin) {

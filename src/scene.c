@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "map.h"
 #include "sokol_gfx.h"
 
@@ -9,7 +7,6 @@
 #include "background.h"
 #include "event.h"
 #include "gfx.h"
-#include "memory.h"
 #include "scenario.h"
 #include "scene.h"
 #include "util.h"
@@ -132,11 +129,6 @@ static void _scene_switch(switch_e dir) {
 }
 
 static void _scene_map_unload(void) {
-    if (_state.map) {
-        memory_free(_state.map);
-    }
-    sg_destroy_image(_state.model.texture);
-    sg_destroy_image(_state.model.palette);
-    sg_destroy_buffer(_state.model.vbuf);
-    sg_destroy_buffer(_state.model.ibuf);
+    map_destroy(_state.map);
+    model_destroy(_state.model);
 }
