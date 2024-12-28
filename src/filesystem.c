@@ -12,7 +12,12 @@ static struct {
     // This is useful for lazy loading files and not having to read the same
     // file multiple times.
     u8* cache[F_FILE_COUNT];
+    usize cached_count;
+    usize cached_size;
 } _state;
+
+usize filesystem_cached_count(void) { return _state.cached_count; }
+usize filesystem_cached_size(void) { return _state.cached_size; }
 
 // This is a list of description for all files in the filesystem.
 //
@@ -49,6 +54,9 @@ span_t filesystem_read_file(file_entry_e file) {
         u8* bytes = memory_allocate(file_list[file].size);
         _read_file(file, bytes);
         _state.cache[file] = bytes;
+
+        _state.cached_count++;
+        _state.cached_size += file_list[file].size;
     }
 
     span_t span = (span_t) {

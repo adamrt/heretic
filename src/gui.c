@@ -2,6 +2,7 @@
 #include "cglm/util.h"
 #include "cimgui.h"
 #include "event.h"
+#include "filesystem.h"
 #include "font.h"
 #include "map.h"
 #include "map_record.h"
@@ -348,15 +349,18 @@ static void _draw_scene(void) {
     }
 
     igNewLine();
-    if (igCollapsingHeader("Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
-        igNewLine();
-        igText("Memory Usage");
+    if (igCollapsingHeader("Memory", ImGuiTreeNodeFlags_DefaultOpen)) {
+        igText("Current Usage: %0.2fMB", BYTES_TO_MB(memory_state.usage_current));
+        igText("Total Usage: %0.2fMB", BYTES_TO_MB(memory_state.usage_total));
+        igText("Peak Usage: %0.2fMB", BYTES_TO_MB(memory_state.usage_peak));
+        igSeparator();
         igText("Current Allocations: %zu", memory_state.allocations_current);
         igText("Total Allocations: %zu", memory_state.allocations_total);
-        igText("Peak Usage: %zu (%0.2fMB)", memory_state.usage_peak, BYTES_TO_MB(memory_state.usage_peak));
-        igText("Total Usage: %zu (%0.2fMB)", memory_state.usage_total, BYTES_TO_MB(memory_state.usage_total));
-        igText("Current Usage: %zu (%0.2fMB)", memory_state.usage_current, BYTES_TO_MB(memory_state.usage_current));
-        igSeparator();
+    }
+    igNewLine();
+    if (igCollapsingHeader("Filesystem Cache", ImGuiTreeNodeFlags_DefaultOpen)) {
+        igText("Cached Size: %0.2fMB", BYTES_TO_MB(filesystem_cached_size()));
+        igText("Cached Files: %zu", filesystem_cached_count());
     }
     igEnd();
 }

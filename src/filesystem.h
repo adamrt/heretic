@@ -27,7 +27,11 @@ typedef enum {
 
 void filesystem_init(void);
 void filesystem_shutdown(void);
+
 span_t filesystem_read_file(file_entry_e);
 file_entry_e filesystem_entry_by_sector(u32);
+
+usize filesystem_cached_count(void);
+usize filesystem_cached_size(void);
 
 extern const file_desc_t file_list[F_FILE_COUNT];

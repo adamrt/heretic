@@ -83,15 +83,20 @@ void map_destroy(map_t* map) {
 }
 
 map_t* read_map(int num) {
-    file_entry_e map_file = map_list[num].file;
+
+    // Fetch the GNS file which contains pointers to the map's resources.
+    const file_entry_e map_file = map_list[num].file;
     span_t gnsspan = filesystem_read_file(map_file);
 
     map_t* map = memory_allocate(sizeof(map_t));
+
     map->record_count = read_map_records(&gnsspan, map->records);
 
     for (int i = 0; i < map->record_count; i++) {
         map_record_t* record = &map->records[i];
-        file_entry_e entry = filesystem_entry_by_sector(record->sector);
+
+        // Fetch the resource file
+        const file_entry_e entry = filesystem_entry_by_sector(record->sector);
         span_t file = filesystem_read_file(entry);
 
         switch (record->type) {
