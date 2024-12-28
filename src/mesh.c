@@ -14,7 +14,7 @@ static geometry_t read_geometry(span_t*);
 static vec2s process_tex_coords(f32 u, f32 v, u8 page);
 
 mesh_t read_mesh(span_t* span) {
-    mesh_t mesh = { 0 };
+    mesh_t mesh = {};
 
     mesh.geometry = read_geometry(span);
     mesh.palette = read_palette(span);
@@ -27,7 +27,7 @@ mesh_t read_mesh(span_t* span) {
 }
 
 static geometry_t read_geometry(span_t* span) {
-    geometry_t geometry = { 0 };
+    geometry_t geometry = {};
 
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
@@ -214,7 +214,7 @@ void merge_meshes(mesh_t* dst, const mesh_t* src) {
 }
 
 vertices_t geometry_to_vertices(const geometry_t* geometry) {
-    vertices_t vertices = { 0 };
+    vertices_t vertices = {};
 
     int vcount = 0;
 

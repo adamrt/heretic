@@ -52,7 +52,7 @@ texture_t read_palette(span_t* span) {
 
     u32 intra_file_ptr = span_readat_u32(span, 0x44);
     if (intra_file_ptr == 0) {
-        return (texture_t) { 0 };
+        return (texture_t) {};
     }
     span->offset = intra_file_ptr;
 
@@ -98,7 +98,7 @@ void texture_destroy(texture_t texture) {
 vec4s read_rgb15(span_t* span) {
     u16 val = span_read_u16(span);
 
-    vec4s color = { 0 };
+    vec4s color = {};
     color.r = (val & 0b0000000000011111) << 3;
     color.g = (val & 0b0000001111100000) >> 2;
     color.b = (val & 0b0111110000000000) >> 7;

@@ -31,7 +31,7 @@ void camera_freefly_motion(freefly_motion_t m) {
     f32 yaw_rad = _state.yaw_rad + glm_rad(m.yaw_deg);
     f32 pitch_rad = glm_clamp((_state.pitch_rad + glm_rad(m.pitch_deg)), -MAX_PHI, MAX_PHI);
 
-    vec3s forward = { { 0 } };
+    vec3s forward = {};
     forward.x = cosf(pitch_rad) * sinf(yaw_rad);
     forward.y = sinf(pitch_rad);
     forward.z = -cosf(pitch_rad) * cosf(yaw_rad);
@@ -114,7 +114,7 @@ mat4s camera_get_proj(void) {
 }
 
 static vec3s _to_cartesian(spherical_t s) {
-    vec3s pos = { 0 };
+    vec3s pos = {};
     pos.x = s.radius * cosf(s.phi_rad) * sinf(s.theta_rad);
     pos.y = s.radius * sinf(s.phi_rad);
     pos.z = s.radius * -cosf(s.phi_rad) * cosf(s.theta_rad);
@@ -122,7 +122,7 @@ static vec3s _to_cartesian(spherical_t s) {
 }
 
 static spherical_t _to_spherical(vec3s pos) {
-    spherical_t s = { 0 };
+    spherical_t s = {};
     s.radius = sqrtf(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
     s.theta_rad = atan2f(pos.x, -pos.z);
     s.phi_rad = asinf(pos.y / s.radius);

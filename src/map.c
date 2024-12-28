@@ -7,8 +7,8 @@
 #include "util.h"
 
 model_t map_make_model(const map_t* map, map_state_t map_state) {
-    mesh_t final_mesh = { 0 };
-    texture_t final_texture = { 0 };
+    mesh_t final_mesh = {};
+    texture_t final_texture = {};
     if (map->primary_mesh.valid) {
         final_mesh = map->primary_mesh;
     } else {

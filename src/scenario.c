@@ -16,12 +16,13 @@ scenario_t scenario_get_scenario(int id) {
         .data = file.data + SCENARIO_OFFSET + (id * SCENARIO_SIZE),
         .size = SCENARIO_SIZE,
     };
+    file.offset = SCENARIO_OFFSET + (id * SCENARIO_SIZE);
     scenario_t scenario = read_scenario(&span);
     return scenario;
 }
 
 static scenario_t read_scenario(span_t* span) {
-    scenario_t scenario = { 0 };
+    scenario_t scenario = {};
     scenario.event_id = span_readat_u16(span, 0);
     scenario.map_id = span_readat_u8(span, 2);
     scenario.weather = span_readat_u8(span, 3);

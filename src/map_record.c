@@ -7,9 +7,9 @@ map_record_t read_map_record(span_t* span) {
     span_read_bytes(span, MAP_RECORD_SIZE, bytes);
     usize sector = bytes[8] | bytes[9] << 8;
     usize length = (u32)(bytes[12]) | ((u32)(bytes[13]) << 8) | ((u32)(bytes[14]) << 16) | ((u32)(bytes[15]) << 24);
-    filetype_e type = (bytes[4] | (bytes[5] << 8));
-    time_e time = (bytes[3] >> 7) & 0x1;
-    weather_e weather = (bytes[3] >> 4) & 0x7;
+    filetype_e type = (filetype_e)(bytes[4] | (bytes[5] << 8));
+    time_e time = (time_e)((bytes[3] >> 7) & 0x1);
+    weather_e weather = (weather_e)((bytes[3] >> 4) & 0x7);
     int layout = bytes[2];
 
     map_record_t record = {

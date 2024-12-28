@@ -5,9 +5,9 @@ dialog_t parse_dialog(u8 byte) {
     const u8 ARROW_MASK = 0x0C;     // 00001100
     const u8 ALIGNMENT_MASK = 0x03; // 00000011
 
-    dialog_type_e type = (byte & TYPE_MASK) >> 4;
-    dialog_arrow_e arrow = (byte & ARROW_MASK) >> 2;
-    dialog_alignment_e alignment = byte & ALIGNMENT_MASK;
+    dialog_type_e type = (dialog_type_e)((byte & TYPE_MASK) >> 4);
+    dialog_arrow_e arrow = (dialog_arrow_e)((byte & ARROW_MASK) >> 2);
+    dialog_alignment_e alignment = (dialog_alignment_e)(byte & ALIGNMENT_MASK);
 
     dialog_t dialog = {
         .type = type,
@@ -23,7 +23,7 @@ dialog_opening_t parse_dialog_opening(u8 byte) {
     const u8 DARKEN_MASK = 0x04;         // 00000100 (Bit 2)
     const u8 TOGGLE_ARROW_MASK = 0x10;   // 00010000 (Bit 4)
 
-    dialog_opening_t dialog = { 0 };
+    dialog_opening_t dialog = {};
 
     if (byte & SPEED_PLUS_50_MASK) {
         dialog.speed = DIALOG_SPEED_PLUS_50;
