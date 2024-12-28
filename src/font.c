@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "filesystem.h"
 #include "sokol_gfx.h"
 
 #include "defines.h"
 #include "font.h"
-#include "io.h"
 
 static struct {
     sg_image font_atlas_image;
@@ -19,7 +19,7 @@ static int _compare_font_chars(const void*, const void*);
 static font_atlas_t read_font_atlas(span_t*);
 
 void font_init(void) {
-    span_t span = io_file_font_bin();
+    span_t span = filesystem_read_file(F_EVENT__FONT_BIN);
     font_atlas_t atlas = read_font_atlas(&span);
 
     _state.font_atlas_image = sg_make_image(&(sg_image_desc) {

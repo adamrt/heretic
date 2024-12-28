@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "io.h"
+#include "filesystem.h"
 #include "scenario.h"
 #include "span.h"
 #include "util.h"
@@ -11,7 +11,7 @@ static scenario_t read_scenario(span_t*);
 
 scenario_t scenario_get_scenario(int id) {
     ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
-    span_t file = io_file_attack_out();
+    span_t file = filesystem_read_file(F_EVENT__ATTACK_OUT);
     span_t span = {
         .data = file.data + SCENARIO_OFFSET + (id * SCENARIO_SIZE),
         .size = SCENARIO_SIZE,

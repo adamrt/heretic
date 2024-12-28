@@ -1,7 +1,7 @@
 // https://ffhacktics.com/wiki/EVENT/FRAME.BIN
 #include "sprite.h"
 #include "cglm/types-struct.h"
-#include "io.h"
+#include "filesystem.h"
 #include "memory.h"
 #include "span.h"
 #include "texture.h"
@@ -64,7 +64,7 @@ sg_image sprite_get_frame_bin(int palette_idx) {
         sg_destroy_image(_state.sprite_frame);
     }
 
-    span_t span = io_file_frame_bin();
+    span_t span = filesystem_read_file(F_EVENT__FRAME_BIN);
     texture_t texture = _read_frame_bin(&span, palette_idx);
     _state.sprite_frame = texture_to_sg_image(texture);
     texture_destroy(texture);
@@ -101,7 +101,7 @@ sg_image sprite_get_item_bin(int palette_idx) {
         sg_destroy_image(_state.sprite_item);
     }
 
-    span_t span = io_file_item_bin();
+    span_t span = filesystem_read_file(F_EVENT__ITEM_BIN);
     texture_t texture = _read_texture_item_bin(&span, palette_idx);
     _state.sprite_item = texture_to_sg_image(texture);
     texture_destroy(texture);
@@ -138,7 +138,7 @@ sg_image sprite_get_unit_bin(int palette_idx) {
         sg_destroy_image(_state.sprite_unit);
     }
 
-    span_t span = io_file_unit_bin();
+    span_t span = filesystem_read_file(F_EVENT__UNIT_BIN);
     texture_t texture = _read_texture_unit_bin(&span, palette_idx);
     _state.sprite_unit = texture_to_sg_image(texture);
     texture_destroy(texture);
@@ -230,7 +230,7 @@ sg_image sprite_get_evtface_bin(void) {
         return _state.sprite_evtface;
     }
 
-    span_t span = io_file_evtface_bin();
+    span_t span = filesystem_read_file(F_EVENT__EVTFACE_BIN);
     texture_t texture = _read_texture_evtface_bin(&span);
     _state.sprite_evtface = texture_to_sg_image(texture);
 

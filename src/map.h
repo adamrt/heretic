@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defines.h"
+#include "filesystem.h"
 #include "map_record.h"
 #include "mesh.h"
 #include "model.h"
@@ -30,7 +31,7 @@ model_t map_make_model(const map_t*, map_state_t);
 // This lets us know if we can use the map and where on the disk it is.
 typedef struct {
     u8 id;
-    u16 sector;
+    file_entry_e file;
     bool valid;
     const char* name;
 } map_desc_t;

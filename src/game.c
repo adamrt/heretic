@@ -1,10 +1,10 @@
 #include "game.h"
 #include "background.h"
 #include "camera.h"
+#include "filesystem.h"
 #include "font.h"
 #include "gfx.h"
 #include "gui.h"
-#include "io.h"
 #include "memory.h"
 #include "scene.h"
 #include "sprite.h"
@@ -19,7 +19,7 @@
 // data_init opens the FFT bin file and loads the default scene. It is called
 // during game_init() for native builds, and after file upload on a wasm build.
 void data_init(void) {
-    io_init();
+    filesystem_init();
     font_init();
     sprite_init();
     scene_init();
@@ -41,8 +41,8 @@ void game_init(void) {
 
 void game_shutdown(void) {
     scene_shutdown();
-    io_shutdown();
-    font_init();
+    filesystem_shutdown();
+    font_shutdown();
     sprite_shutdown();
     gui_shutdown();
     background_shutdown();

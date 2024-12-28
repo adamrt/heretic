@@ -61,12 +61,12 @@ add_executable(heretic
     src/camera.c
     src/dialog.c
     src/event.c
+    src/filesystem.c
     src/font.c
     src/game.c
     src/gfx.c
     src/gui.c
     src/instruction.c
-    src/io.c
     src/lighting.c
     src/map.c
     src/map_record.c

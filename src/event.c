@@ -2,8 +2,8 @@
 
 #include "defines.h"
 #include "event.h"
+#include "filesystem.h"
 #include "instruction.h"
-#include "io.h"
 #include "message.h"
 #include "span.h"
 #include "util.h"
@@ -12,7 +12,7 @@ static event_t read_event(span_t*);
 
 event_t event_get_event(int id) {
     ASSERT(id < EVENT_COUNT, "Event id %d out of bounds", id);
-    span_t file = io_file_test_evt();
+    span_t file = filesystem_read_file(F_EVENT__TEST_EVT);
     span_t span = {
         .data = file.data + (id * EVENT_SIZE),
         .size = EVENT_SIZE,
