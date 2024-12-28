@@ -182,7 +182,8 @@ static void _draw_game_frame_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_frame_bin(current_item)), dims);
+    sg_image image = sprite_get_paletted_image(F_EVENT__FRAME_BIN, current_item);
+    igImage(simgui_imtextureid(image), dims);
     igEnd();
 }
 
@@ -212,7 +213,8 @@ static void _draw_game_unit_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_unit_bin(current_item)), dims);
+    sg_image image = sprite_get_paletted_image(F_EVENT__UNIT_BIN, current_item);
+    igImage(simgui_imtextureid(image), dims);
     igEnd();
 }
 
@@ -242,7 +244,8 @@ static void _draw_game_item_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_item_bin(current_item)), dims);
+    sg_image image = sprite_get_paletted_image(F_EVENT__ITEM_BIN, current_item);
+    igImage(simgui_imtextureid(image), dims);
     igEnd();
 }
 

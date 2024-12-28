@@ -1,6 +1,7 @@
 // https://ffhacktics.com/wiki/EVENT/FRAME.BIN
 #include "sprite.h"
 #include "cglm/types-struct.h"
+#include "cimgui.h"
 #include "filesystem.h"
 #include "memory.h"
 #include "span.h"
@@ -9,143 +10,65 @@
 #include "defines.h"
 
 static struct {
-    sg_image sprite_frame;
-    sg_image sprite_item;
-    sg_image sprite_unit;
-    sg_image sprite_evtface;
+    // There is some wasted space because space on the palette_idx and cache
+    // because only certain files have sprites, but this is easier to manage and
+    // reason about. they are only u8 and i32 respectively.
 
-    int frame_palette_idx;
-    int item_palette_idx;
-    int unit_palette_idx;
+    // current_palette_idx is the current palette index for each file.
+    u8 current_palette_idx[F_FILE_COUNT];
+
+    // cache the gpu texture for each file, they will be requested per frame.
+    sg_image cache[F_FILE_COUNT];
 } _state;
 
-// Reusable functions for reading sprites and their palettes.
-static texture_t _read_palette(span_t*, const int, const int, const usize);
-static texture_t _read_sprite_with_palette(span_t*, const int, const int, const texture_t, const usize);
+typedef struct {
+    int tex_width;
+    int tex_height;
+    int pal_width;
+    int pal_height;
+    int pal_offset;
+} paletted_image_4bpp_desc_t;
+
+const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
+    [F_EVENT__FRAME_BIN] = { 256, 288, 16, 22, 36864 },
+    [F_EVENT__ITEM_BIN] = { 256, 256, 16, 16, 32768 },
+    [F_EVENT__UNIT_BIN] = { 256, 480, 16, 128, 61440 },
+};
+
+static texture_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
 
 void sprite_init(void) {
-    // Set to invalid palettes so we can load them on first request
-    _state.frame_palette_idx = 999;
-    _state.item_palette_idx = 999;
-    _state.unit_palette_idx = 999;
+    // Initialize the palette index to -1 to make them currently invalid
+    for (usize i = 0; i < F_FILE_COUNT; i++) {
+        _state.current_palette_idx[i] = UINT8_MAX;
+    }
 }
 
 void sprite_shutdown(void) {
-    sg_destroy_image(_state.sprite_frame);
-    sg_destroy_image(_state.sprite_item);
-    sg_destroy_image(_state.sprite_unit);
-    sg_destroy_image(_state.sprite_evtface);
+    for (usize i = 0; i < F_FILE_COUNT; i++) {
+        if (_state.cache[i].id != SG_INVALID_ID) {
+            sg_destroy_image(_state.cache[i]);
+        }
+    }
 }
 
-//
-// FRAME.BIN
-//
-
-static texture_t _read_frame_bin(span_t* span, int palette_idx) {
-    constexpr int pal_width = 16;
-    constexpr int pal_height = 22;
-    constexpr int pal_offset = 36864;
-    texture_t palette = _read_palette(span, pal_width, pal_height, pal_offset);
-
-    constexpr int width = 256;
-    constexpr int height = 288;
-    texture_t texture = _read_sprite_with_palette(span, width, height, palette, palette_idx);
-
-    texture_destroy(palette);
-    return texture;
-}
-
-sg_image sprite_get_frame_bin(int palette_idx) {
-    if (_state.frame_palette_idx == palette_idx) {
-        return _state.sprite_frame;
+sg_image sprite_get_paletted_image(file_entry_e entry, int palette_idx) {
+    if (_state.current_palette_idx[entry] == palette_idx) {
+        return _state.cache[entry];
+    } else {
+        _state.current_palette_idx[entry] = palette_idx;
     }
 
-    if (_state.sprite_frame.id != SG_INVALID_ID) {
-        sg_destroy_image(_state.sprite_frame);
+    if (_state.cache[entry].id != SG_INVALID_ID) {
+        sg_destroy_image(_state.cache[entry]);
     }
 
-    span_t span = filesystem_read_file(F_EVENT__FRAME_BIN);
-    texture_t texture = _read_frame_bin(&span, palette_idx);
-    _state.sprite_frame = texture_to_sg_image(texture);
+    span_t span = filesystem_read_file(entry);
+    texture_t texture = _read_paletted_image_4bpp(&span, paletted_image_desc_list[entry], palette_idx);
+    _state.cache[entry] = texture_to_sg_image(texture);
     texture_destroy(texture);
 
-    _state.frame_palette_idx = palette_idx;
-
-    return _state.sprite_frame;
-}
-
-//
-// ITEM.BIN
-//
-
-static texture_t _read_texture_item_bin(span_t* span, int palette_idx) {
-    constexpr int pal_width = 16;
-    constexpr int pal_height = 16;
-    constexpr int pal_offset = 32768;
-    texture_t palette = _read_palette(span, pal_width, pal_height, pal_offset);
-
-    constexpr int tex_width = 256;
-    constexpr int tex_height = 256;
-    texture_t texture = _read_sprite_with_palette(span, tex_width, tex_height, palette, palette_idx);
-
-    texture_destroy(palette);
-    return texture;
-}
-
-sg_image sprite_get_item_bin(int palette_idx) {
-    if (_state.item_palette_idx == palette_idx) {
-        return _state.sprite_item;
-    }
-
-    if (_state.sprite_item.id != SG_INVALID_ID) {
-        sg_destroy_image(_state.sprite_item);
-    }
-
-    span_t span = filesystem_read_file(F_EVENT__ITEM_BIN);
-    texture_t texture = _read_texture_item_bin(&span, palette_idx);
-    _state.sprite_item = texture_to_sg_image(texture);
-    texture_destroy(texture);
-
-    _state.item_palette_idx = palette_idx;
-
-    return _state.sprite_item;
-}
-
-//
-// UNIT.BIN
-//
-
-static texture_t _read_texture_unit_bin(span_t* span, int palette_idx) {
-    constexpr int pal_width = 16;
-    constexpr int pal_height = 128;
-    constexpr int pal_offset = 61440;
-    texture_t palette = _read_palette(span, pal_width, pal_height, pal_offset);
-
-    constexpr int tex_width = 256;
-    constexpr int tex_height = 480;
-    texture_t texture = _read_sprite_with_palette(span, tex_width, tex_height, palette, palette_idx);
-
-    texture_destroy(palette);
-    return texture;
-}
-
-sg_image sprite_get_unit_bin(int palette_idx) {
-    if (_state.unit_palette_idx == palette_idx) {
-        return _state.sprite_unit;
-    }
-
-    if (_state.sprite_unit.id != SG_INVALID_ID) {
-        sg_destroy_image(_state.sprite_unit);
-    }
-
-    span_t span = filesystem_read_file(F_EVENT__UNIT_BIN);
-    texture_t texture = _read_texture_unit_bin(&span, palette_idx);
-    _state.sprite_unit = texture_to_sg_image(texture);
-    texture_destroy(texture);
-
-    _state.unit_palette_idx = palette_idx;
-
-    return _state.sprite_unit;
+    return _state.cache[entry];
 }
 
 //
@@ -226,15 +149,17 @@ static texture_t _read_texture_evtface_bin(span_t* span) {
 }
 
 sg_image sprite_get_evtface_bin(void) {
-    if (_state.sprite_evtface.id != SG_INVALID_ID) {
-        return _state.sprite_evtface;
+    file_entry_e entry = F_EVENT__EVTFACE_BIN;
+
+    if (_state.cache[entry].id != SG_INVALID_ID) {
+        return _state.cache[entry];
     }
 
-    span_t span = filesystem_read_file(F_EVENT__EVTFACE_BIN);
+    span_t span = filesystem_read_file(entry);
     texture_t texture = _read_texture_evtface_bin(&span);
-    _state.sprite_evtface = texture_to_sg_image(texture);
+    _state.cache[entry] = texture_to_sg_image(texture);
 
-    return _state.sprite_evtface;
+    return _state.cache[entry];
 }
 
 //
@@ -301,5 +226,12 @@ static texture_t _read_sprite_with_palette(span_t* span, const int width, const 
         .size = size,
         .valid = true
     };
+    return texture;
+}
+
+static texture_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
+    texture_t palette = _read_palette(span, desc.pal_width, desc.pal_height, desc.pal_offset);
+    texture_t texture = _read_sprite_with_palette(span, desc.tex_width, desc.tex_height, palette, pindex);
+    texture_destroy(palette);
     return texture;
 }
