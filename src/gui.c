@@ -27,12 +27,8 @@
 static void _draw(void);
 
 static struct {
-    bool show_window_demo;
-    bool show_window_font_bin;
-    bool show_window_frame_bin;
-    bool show_window_item_bin;
-    bool show_window_unit_bin;
-    bool show_window_evtface_bin;
+    bool show_sprite_window[F_FILE_COUNT];
+    u8 current_palette_idx[F_FILE_COUNT];
 
     bool show_window_scene;
 
@@ -43,6 +39,8 @@ static struct {
     bool show_window_event_instructions;
 
     bool show_texture_resources;
+
+    bool show_window_demo;
 } _state;
 
 static bool is_hovered = false;
@@ -57,21 +55,11 @@ void gui_init(void) {
     io->IniFilename = "imgui.ini";
 
     _state.show_window_scene = true;
-
     _state.show_window_map_lights = false;
     _state.show_window_map_records = false;
-
     _state.show_window_event_text = true;
     _state.show_window_event_instructions = true;
-
-    _state.show_window_font_bin = false;
-    _state.show_window_frame_bin = false;
-    _state.show_window_item_bin = false;
-    _state.show_window_unit_bin = false;
-    _state.show_window_evtface_bin = false;
-
     _state.show_texture_resources = false;
-
     _state.show_window_demo = false;
 }
 void gui_shutdown(void) {
@@ -157,28 +145,27 @@ static void _draw_map_records(void) {
 }
 
 static void _draw_game_font_image(void) {
-    igBegin("FONT.BIN", &_state.show_window_font_bin, 0);
+    igBegin("FONT.BIN", &_state.show_sprite_window[F_EVENT__FONT_BIN], 0);
     ImVec2 dims = { FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT };
     igImage(simgui_imtextureid(font_get_atlas_image()), dims);
     igEnd();
 }
 
-static void _draw_game_frame_image(void) {
-    igBegin("FRAME.BIN", &_state.show_window_frame_bin, 0);
-    ImVec2 dims = { 256 * 2, 288 * 2 };
-    // We have an array of item labels
-    static int current_item = 0;
-    char buf[32];
-    snprintf(buf, sizeof(buf), "Palette %d", current_item);
+static void _draw_paletted_image(file_entry_e entry, int width, int height) {
+    file_desc_t desc = file_list[entry];
+    igBegin(desc.name, &_state.show_sprite_window[entry], 0);
+    ImVec2 dims = { width * 2, height * 2 };
+    u8* selected = &_state.current_palette_idx[entry];
 
-    // The preview label is items[current_item], which is shown before opening
+    char buf[16];
+    snprintf(buf, sizeof(buf), "Palette %d", *selected);
     if (igBeginCombo("Palette##combo", buf, 0)) {
         for (int i = 0; i < 22; i++) {
-            bool is_selected = (current_item == i);
+            bool is_selected = (*selected == i);
 
             snprintf(buf, sizeof(buf), "Palette %d", i);
             if (igSelectable(buf)) {
-                current_item = i;
+                *selected = i;
             }
 
             if (is_selected)
@@ -189,75 +176,13 @@ static void _draw_game_frame_image(void) {
 
     igSeparator();
 
-    sg_image image = sprite_get_paletted_image(F_EVENT__FRAME_BIN, current_item);
-    igImage(simgui_imtextureid(image), dims);
-    igEnd();
-}
-
-static void _draw_game_item_image(void) {
-    igBegin("ITEM.BIN", &_state.show_window_item_bin, 0);
-    ImVec2 dims = { 256 * 2, 256 * 2 };
-    // We have an array of item labels
-    static int current_item = 0;
-    char buf[32];
-    snprintf(buf, sizeof(buf), "Palette %d", current_item);
-
-    // The preview label is items[current_item], which is shown before opening
-    if (igBeginCombo("Palette##combo", buf, 0)) {
-        for (int i = 0; i < 16; i++) {
-            bool is_selected = (current_item == i);
-
-            snprintf(buf, sizeof(buf), "Palette %d", i);
-            if (igSelectable(buf)) {
-                current_item = i;
-            }
-
-            if (is_selected)
-                igSetItemDefaultFocus();
-        }
-        igEndCombo();
-    }
-
-    igSeparator();
-
-    sg_image image = sprite_get_paletted_image(F_EVENT__ITEM_BIN, current_item);
-    igImage(simgui_imtextureid(image), dims);
-    igEnd();
-}
-
-static void _draw_game_unit_image(void) {
-    igBegin("UNIT.BIN", &_state.show_window_unit_bin, 0);
-    ImVec2 dims = { 256 * 2, 480 * 2 };
-    // We have an array of unit labels
-    static int current_item = 0;
-    char buf[32];
-    snprintf(buf, sizeof(buf), "Palette %d", current_item);
-
-    // The preview label is items[current_item], which is shown before opening
-    if (igBeginCombo("Palette##combo", buf, 0)) {
-        for (int i = 0; i < 128; i++) {
-            bool is_selected = (current_item == i);
-
-            snprintf(buf, sizeof(buf), "Palette %d", i);
-            if (igSelectable(buf)) {
-                current_item = i;
-            }
-
-            if (is_selected)
-                igSetItemDefaultFocus();
-        }
-        igEndCombo();
-    }
-
-    igSeparator();
-
-    sg_image image = sprite_get_paletted_image(F_EVENT__UNIT_BIN, current_item);
+    sg_image image = sprite_get_paletted_image(entry, *selected);
     igImage(simgui_imtextureid(image), dims);
     igEnd();
 }
 
 static void _draw_game_evtface_image(void) {
-    igBegin("EVTFACE.BIN Palette", &_state.show_window_evtface_bin, 0);
+    igBegin("EVTFACE.BIN Palette", &_state.show_sprite_window[F_EVENT__EVTFACE_BIN], 0);
     ImVec2 dims = { 256 * 2, 384 * 2 };
     igImage(simgui_imtextureid(sprite_get_evtface_bin()), dims);
     igEnd();
@@ -552,20 +477,20 @@ static void _draw(void) {
         igEndMenu();
     }
     if (igBeginMenu("Sprites")) {
+        if (igMenuItem("FONT.BIN")) {
+            _state.show_sprite_window[F_EVENT__FONT_BIN] = !_state.show_sprite_window[F_EVENT__FONT_BIN];
+        }
         if (igMenuItem("FRAME.BIN")) {
-            _state.show_window_frame_bin = !_state.show_window_frame_bin;
+            _state.show_sprite_window[F_EVENT__FRAME_BIN] = !_state.show_sprite_window[F_EVENT__FRAME_BIN];
         }
         if (igMenuItem("ITEM.BIN")) {
-            _state.show_window_item_bin = !_state.show_window_item_bin;
+            _state.show_sprite_window[F_EVENT__ITEM_BIN] = !_state.show_sprite_window[F_EVENT__ITEM_BIN];
         }
         if (igMenuItem("UNIT.BIN")) {
-            _state.show_window_unit_bin = !_state.show_window_unit_bin;
+            _state.show_sprite_window[F_EVENT__UNIT_BIN] = !_state.show_sprite_window[F_EVENT__UNIT_BIN];
         }
         if (igMenuItem("EVTFACE.BIN")) {
-            _state.show_window_evtface_bin = !_state.show_window_evtface_bin;
-        }
-        if (igMenuItem("FONT.BIN")) {
-            _state.show_window_font_bin = !_state.show_window_font_bin;
+            _state.show_sprite_window[F_EVENT__EVTFACE_BIN] = !_state.show_sprite_window[F_EVENT__EVTFACE_BIN];
         }
         igEndMenu();
     }
@@ -599,23 +524,23 @@ static void _draw(void) {
         _draw_map_lights();
     }
 
-    if (_state.show_window_font_bin) {
+    if (_state.show_sprite_window[F_EVENT__FONT_BIN]) {
         _draw_game_font_image();
     }
 
-    if (_state.show_window_frame_bin) {
-        _draw_game_frame_image();
+    if (_state.show_sprite_window[F_EVENT__FRAME_BIN]) {
+        _draw_paletted_image(F_EVENT__FRAME_BIN, 256, 288);
     }
 
-    if (_state.show_window_item_bin) {
-        _draw_game_item_image();
+    if (_state.show_sprite_window[F_EVENT__ITEM_BIN]) {
+        _draw_paletted_image(F_EVENT__ITEM_BIN, 256, 256);
     }
 
-    if (_state.show_window_unit_bin) {
-        _draw_game_unit_image();
+    if (_state.show_sprite_window[F_EVENT__UNIT_BIN]) {
+        _draw_paletted_image(F_EVENT__UNIT_BIN, 256, 480);
     }
 
-    if (_state.show_window_evtface_bin) {
+    if (_state.show_sprite_window[F_EVENT__EVTFACE_BIN]) {
         _draw_game_evtface_image();
     }
 
