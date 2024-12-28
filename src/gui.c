@@ -181,7 +181,7 @@ static void _draw_game_frame_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_frame_image(current_item)), dims);
+    igImage(simgui_imtextureid(sprite_get_frame_bin(current_item)), dims);
     igEnd();
 }
 
@@ -211,7 +211,7 @@ static void _draw_game_unit_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_unit_image(current_item)), dims);
+    igImage(simgui_imtextureid(sprite_get_unit_bin(current_item)), dims);
     igEnd();
 }
 
@@ -241,14 +241,14 @@ static void _draw_game_item_image(void) {
 
     igSeparator();
 
-    igImage(simgui_imtextureid(sprite_get_item_image(current_item)), dims);
+    igImage(simgui_imtextureid(sprite_get_item_bin(current_item)), dims);
     igEnd();
 }
 
 static void _draw_game_evtface_image(void) {
     igBegin("EVTFACE.BIN Palette", &_state.show_window_evtface_bin, 0);
     ImVec2 dims = { 256 * 2, 384 * 2 };
-    igImage(simgui_imtextureid(sprite_get_evtface_image()), dims);
+    igImage(simgui_imtextureid(sprite_get_evtface_bin()), dims);
     igEnd();
 }
 

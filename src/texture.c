@@ -8,11 +8,11 @@
 
 texture_t read_texture(span_t* span) {
     // Each pixel stored as 1/2 a byte
-    const int width = 256;
-    const int height = 1024;
-    const int dims = width * height;
-    const int size = dims * 4;
-    const int size_on_disk = (dims / 2);
+    constexpr int width = 256;
+    constexpr int height = 1024;
+    constexpr int dims = width * height;
+    constexpr int size = dims * 4;
+    constexpr int size_on_disk = (dims / 2);
 
     u8* data = memory_allocate(size);
 
@@ -45,10 +45,10 @@ texture_t read_texture(span_t* span) {
 }
 
 texture_t read_palette(span_t* span) {
-    const int width = 256;
-    const int height = 1;
-    const int dims = width * height;
-    const int size = dims * 4;
+    constexpr int width = 256;
+    constexpr int height = 1;
+    constexpr int dims = width * height;
+    constexpr int size = dims * 4;
 
     u32 intra_file_ptr = span_readat_u32(span, 0x44);
     if (intra_file_ptr == 0) {
@@ -77,23 +77,6 @@ texture_t read_palette(span_t* span) {
     return palette;
 }
 
-vec4s read_rgb15(span_t* span) {
-    u16 val = span_read_u16(span);
-
-    vec4s color = { 0 };
-    color.r = (val & 0x001F) << 3; // 0b0000000000011111
-    color.g = (val & 0x03E0) >> 2; // 0b0000001111100000
-    color.b = (val & 0x7C00) >> 7; // 0b0111110000000000
-    color.a = val == 0 ? 0x00 : 0xFF;
-    return color;
-}
-
-void texture_destroy(texture_t texture) {
-    if (texture.data != NULL) {
-        memory_free(texture.data);
-    }
-}
-
 sg_image texture_to_sg_image(texture_t texture) {
     return sg_make_image(&(sg_image_desc) {
         .width = texture.width,
@@ -104,4 +87,21 @@ sg_image texture_to_sg_image(texture_t texture) {
         },
         .pixel_format = SG_PIXELFORMAT_RGBA8,
     });
+}
+
+void texture_destroy(texture_t texture) {
+    if (texture.data != NULL) {
+        memory_free(texture.data);
+    }
+}
+
+vec4s read_rgb15(span_t* span) {
+    u16 val = span_read_u16(span);
+
+    vec4s color = { 0 };
+    color.r = (val & 0b0000000000011111) << 3;
+    color.g = (val & 0b0000001111100000) >> 2;
+    color.b = (val & 0b0111110000000000) >> 7;
+    color.a = (val == 0) ? 0x00 : 0xFF;
+    return color;
 }

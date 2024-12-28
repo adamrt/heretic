@@ -11,45 +11,23 @@
 static struct {
     sg_image sprite_frame;
     sg_image sprite_item;
-    sg_image sprite_evtface;
     sg_image sprite_unit;
+    sg_image sprite_evtface;
 
     int frame_palette_idx;
     int item_palette_idx;
     int unit_palette_idx;
 } _state;
 
-static texture_t sprite_read_palette(span_t*, const int, const int, const usize);
-static texture_t sprite_read_sprite_with_palette(span_t*, const int, const int, const texture_t, const usize);
-static texture_t read_sprite_frame(span_t*, int);
-static texture_t read_sprite_item(span_t*, int);
-static texture_t read_sprite_unit(span_t*, int);
-static texture_t read_sprite_evtface(span_t*);
+// Reusable functions for reading sprites and their palettes.
+static texture_t _read_palette(span_t*, const int, const int, const usize);
+static texture_t _read_sprite_with_palette(span_t*, const int, const int, const texture_t, const usize);
 
 void sprite_init(void) {
-    _state.frame_palette_idx = 0;
-    _state.item_palette_idx = 0;
-    _state.unit_palette_idx = 0;
-
-    span_t span = io_file_evtface_bin();
-    texture_t evtface = read_sprite_evtface(&span);
-    _state.sprite_evtface = texture_to_sg_image(evtface);
-    texture_destroy(evtface);
-
-    span = io_file_frame_bin();
-    texture_t frame = read_sprite_frame(&span, _state.frame_palette_idx);
-    _state.sprite_frame = texture_to_sg_image(frame);
-    texture_destroy(frame);
-
-    span = io_file_item_bin();
-    texture_t item = read_sprite_item(&span, _state.item_palette_idx);
-    _state.sprite_item = texture_to_sg_image(item);
-    texture_destroy(item);
-
-    span = io_file_unit_bin();
-    texture_t unit = read_sprite_unit(&span, _state.unit_palette_idx);
-    _state.sprite_unit = texture_to_sg_image(unit);
-    texture_destroy(unit);
+    // Set to invalid palettes so we can load them on first request
+    _state.frame_palette_idx = 999;
+    _state.item_palette_idx = 999;
+    _state.unit_palette_idx = 999;
 }
 
 void sprite_shutdown(void) {
@@ -59,172 +37,134 @@ void sprite_shutdown(void) {
     sg_destroy_image(_state.sprite_evtface);
 }
 
-texture_t read_sprite_item_palette(span_t* span) {
-    const int width = 16;
-    const int height = 16;
-    const int offset = 32768;
-    return sprite_read_palette(span, width, height, offset);
-}
+//
+// FRAME.BIN
+//
 
-static texture_t read_sprite_item(span_t* span, int palette_idx) {
-    const int width = 256;
-    const int height = 256;
-    texture_t palette = read_sprite_item_palette(span);
-    texture_t texture = sprite_read_sprite_with_palette(span, width, height, palette, palette_idx);
+static texture_t _read_frame_bin(span_t* span, int palette_idx) {
+    constexpr int pal_width = 16;
+    constexpr int pal_height = 22;
+    constexpr int pal_offset = 36864;
+    texture_t palette = _read_palette(span, pal_width, pal_height, pal_offset);
+
+    constexpr int width = 256;
+    constexpr int height = 288;
+    texture_t texture = _read_sprite_with_palette(span, width, height, palette, palette_idx);
+
     texture_destroy(palette);
     return texture;
 }
 
-texture_t read_sprite_frame_palette(span_t* span) {
-    const int width = 16;
-    const int height = 22;
-    const int offset = 0x9000;
-    return sprite_read_palette(span, width, height, offset);
-}
-
-texture_t read_sprite_frame(span_t* span, int palette_idx) {
-    const int width = 256;
-    const int height = 288;
-    texture_t palette = read_sprite_frame_palette(span);
-    texture_t texture = sprite_read_sprite_with_palette(span, width, height, palette, palette_idx);
-    texture_destroy(palette);
-    return texture;
-}
-
-texture_t read_sprite_unit_palette(span_t* span) {
-    const int width = 16;
-    const int height = 128;
-    const int offset = 61440;
-    return sprite_read_palette(span, width, height, offset);
-}
-
-texture_t read_sprite_unit(span_t* span, int palette_idx) {
-    const int width = 256;
-    const int height = 480;
-    texture_t palette = read_sprite_unit_palette(span);
-    texture_t texture = sprite_read_sprite_with_palette(span, width, height, palette, palette_idx);
-    texture_destroy(palette);
-    return texture;
-}
-
-sg_image sprite_get_frame_image(int palette_idx) {
-    if (_state.frame_palette_idx != palette_idx) {
-        if (_state.sprite_frame.id != SG_INVALID_ID) {
-            sg_destroy_image(_state.sprite_frame);
-        }
-        span_t span = io_file_frame_bin();
-        texture_t frame = read_sprite_frame(&span, palette_idx);
-        _state.sprite_frame = texture_to_sg_image(frame);
-        texture_destroy(frame);
-        _state.frame_palette_idx = palette_idx;
+sg_image sprite_get_frame_bin(int palette_idx) {
+    if (_state.frame_palette_idx == palette_idx) {
+        return _state.sprite_frame;
     }
+
+    if (_state.sprite_frame.id != SG_INVALID_ID) {
+        sg_destroy_image(_state.sprite_frame);
+    }
+
+    span_t span = io_file_frame_bin();
+    texture_t texture = _read_frame_bin(&span, palette_idx);
+    _state.sprite_frame = texture_to_sg_image(texture);
+    texture_destroy(texture);
+
+    _state.frame_palette_idx = palette_idx;
+
     return _state.sprite_frame;
 }
 
-sg_image sprite_get_item_image(int palette_idx) {
-    if (_state.item_palette_idx != palette_idx) {
-        if (_state.sprite_item.id != SG_INVALID_ID) {
-            sg_destroy_image(_state.sprite_item);
-        }
-        span_t span = io_file_item_bin();
-        texture_t item = read_sprite_item(&span, palette_idx);
-        _state.sprite_item = texture_to_sg_image(item);
-        texture_destroy(item);
-        _state.item_palette_idx = palette_idx;
-    }
-    return _state.sprite_item;
-}
+//
+// ITEM.BIN
+//
 
-sg_image sprite_get_unit_image(int palette_idx) {
-    if (_state.unit_palette_idx != palette_idx) {
-        if (_state.sprite_unit.id != SG_INVALID_ID) {
-            sg_destroy_image(_state.sprite_unit);
-        }
-        span_t span = io_file_unit_bin();
-        texture_t unit = read_sprite_unit(&span, palette_idx);
-        _state.sprite_unit = texture_to_sg_image(unit);
-        texture_destroy(unit);
-        _state.unit_palette_idx = palette_idx;
-    }
-    return _state.sprite_unit;
-}
+static texture_t _read_texture_item_bin(span_t* span, int palette_idx) {
+    constexpr int pal_width = 16;
+    constexpr int pal_height = 16;
+    constexpr int pal_offset = 32768;
+    texture_t palette = _read_palette(span, pal_width, pal_height, pal_offset);
 
-static texture_t sprite_read_palette(span_t* span, const int width, const int height, const usize offset) {
-    const int dims = width * height;
-    const int size = dims * 4;
-    const int size_on_disk = dims / 2;
+    constexpr int tex_width = 256;
+    constexpr int tex_height = 256;
+    texture_t texture = _read_sprite_with_palette(span, tex_width, tex_height, palette, palette_idx);
 
-    span->offset = offset;
-
-    u8* data = memory_allocate(size);
-
-    usize write_idx = 0;
-    for (int i = 0; i < size_on_disk * 2; i++) {
-        vec4s c = read_rgb15(span); // reading 2 at a time
-        data[write_idx++] = c.r;
-        data[write_idx++] = c.g;
-        data[write_idx++] = c.b;
-        data[write_idx++] = c.a;
-    }
-
-    texture_t palette = {
-        .width = width,
-        .height = height,
-        .data = data,
-        .size = size,
-        .valid = true
-    };
-
-    return palette;
-}
-
-texture_t sprite_read_sprite_with_palette(span_t* span, const int width, const int height, const texture_t palette, const usize palette_idx) {
-    const int dims = width * height;
-    const int size = dims * 4;
-    const int size_on_disk = dims / 2;
-
-    span->offset = 0;
-    u8* data = memory_allocate(size);
-
-    usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * item_index
-
-    usize write_idx = 0;
-    for (int i = 0; i < size_on_disk; i++) {
-        u8 raw_pixel = span_read_u8(span);
-        u8 right = ((raw_pixel & 0x0F));
-        u8 left = ((raw_pixel & 0xF0) >> 4);
-
-        for (int j = 0; j < 4; j++) {
-            data[write_idx++] = palette.data[right * 4 + palette_offset + j];
-        }
-        for (int j = 0; j < 4; j++) {
-            data[write_idx++] = palette.data[left * 4 + palette_offset + j];
-        }
-    }
-
-    texture_t texture = {
-        .width = width,
-        .height = height,
-        .data = data,
-        .size = size,
-        .valid = true
-    };
+    texture_destroy(palette);
     return texture;
 }
 
-static texture_t read_sprite_evtface(span_t* span) {
-    const int width = 256;
-    const int height = 384;
-    const int dims = width * height;
-    const int size = dims * 4;
+sg_image sprite_get_item_bin(int palette_idx) {
+    if (_state.item_palette_idx == palette_idx) {
+        return _state.sprite_item;
+    }
+
+    if (_state.sprite_item.id != SG_INVALID_ID) {
+        sg_destroy_image(_state.sprite_item);
+    }
+
+    span_t span = io_file_item_bin();
+    texture_t texture = _read_texture_item_bin(&span, palette_idx);
+    _state.sprite_item = texture_to_sg_image(texture);
+    texture_destroy(texture);
+
+    _state.item_palette_idx = palette_idx;
+
+    return _state.sprite_item;
+}
+
+//
+// UNIT.BIN
+//
+
+static texture_t _read_texture_unit_bin(span_t* span, int palette_idx) {
+    constexpr int pal_width = 16;
+    constexpr int pal_height = 128;
+    constexpr int pal_offset = 61440;
+    texture_t palette = _read_palette(span, pal_width, pal_height, pal_offset);
+
+    constexpr int tex_width = 256;
+    constexpr int tex_height = 480;
+    texture_t texture = _read_sprite_with_palette(span, tex_width, tex_height, palette, palette_idx);
+
+    texture_destroy(palette);
+    return texture;
+}
+
+sg_image sprite_get_unit_bin(int palette_idx) {
+    if (_state.unit_palette_idx == palette_idx) {
+        return _state.sprite_unit;
+    }
+
+    if (_state.sprite_unit.id != SG_INVALID_ID) {
+        sg_destroy_image(_state.sprite_unit);
+    }
+
+    span_t span = io_file_unit_bin();
+    texture_t texture = _read_texture_unit_bin(&span, palette_idx);
+    _state.sprite_unit = texture_to_sg_image(texture);
+    texture_destroy(texture);
+
+    _state.unit_palette_idx = palette_idx;
+
+    return _state.sprite_unit;
+}
+
+//
+// EVTFACE.BIN
+//
+
+static texture_t _read_texture_evtface_bin(span_t* span) {
+    constexpr int width = 256;
+    constexpr int height = 384;
+    constexpr int dims = width * height;
+    constexpr int size = dims * 4;
 
     // Basic dimensions
-    const int rows_of_portraits = 8;
-    const int cols_of_portraits = 8;
-    const int portrait_width = 32;
-    const int portrait_height = 48;
-    const int bytes_per_row = 8192;
-    const int palette_offset = 6144; // per row
+    constexpr int rows_of_portraits = 8;
+    constexpr int cols_of_portraits = 8;
+    constexpr int portrait_width = 32;
+    constexpr int portrait_height = 48;
+    constexpr int bytes_per_row = 8192;
+    constexpr int palette_offset = 6144; // per row
 
     u8* data = memory_allocate(size);
 
@@ -285,6 +225,81 @@ static texture_t read_sprite_evtface(span_t* span) {
     return evtface;
 }
 
-sg_image sprite_get_evtface_image(void) {
+sg_image sprite_get_evtface_bin(void) {
+    if (_state.sprite_evtface.id != SG_INVALID_ID) {
+        return _state.sprite_evtface;
+    }
+
+    span_t span = io_file_evtface_bin();
+    texture_t texture = _read_texture_evtface_bin(&span);
+    _state.sprite_evtface = texture_to_sg_image(texture);
+
     return _state.sprite_evtface;
+}
+
+//
+// Shared functions
+//
+
+static texture_t _read_palette(span_t* span, const int width, const int height, const usize offset) {
+    const int dims = width * height;
+    const int size = dims * 4;
+    const int size_on_disk = dims / 2;
+
+    span->offset = offset;
+
+    u8* data = memory_allocate(size);
+
+    usize write_idx = 0;
+    for (int i = 0; i < size_on_disk * 2; i++) {
+        vec4s c = read_rgb15(span); // reading 2 at a time
+        data[write_idx++] = c.r;
+        data[write_idx++] = c.g;
+        data[write_idx++] = c.b;
+        data[write_idx++] = c.a;
+    }
+
+    texture_t palette = {
+        .width = width,
+        .height = height,
+        .data = data,
+        .size = size,
+        .valid = true
+    };
+
+    return palette;
+}
+
+static texture_t _read_sprite_with_palette(span_t* span, const int width, const int height, const texture_t palette, const usize palette_idx) {
+    const int dims = width * height;
+    const int size = dims * 4;
+    const int size_on_disk = dims / 2;
+
+    span->offset = 0;
+    u8* data = memory_allocate(size);
+
+    usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * item_index
+
+    usize write_idx = 0;
+    for (int i = 0; i < size_on_disk; i++) {
+        u8 raw_pixel = span_read_u8(span);
+        u8 right = ((raw_pixel & 0x0F));
+        u8 left = ((raw_pixel & 0xF0) >> 4);
+
+        for (int j = 0; j < 4; j++) {
+            data[write_idx++] = palette.data[right * 4 + palette_offset + j];
+        }
+        for (int j = 0; j < 4; j++) {
+            data[write_idx++] = palette.data[left * 4 + palette_offset + j];
+        }
+    }
+
+    texture_t texture = {
+        .width = width,
+        .height = height,
+        .data = data,
+        .size = size,
+        .valid = true
+    };
+    return texture;
 }

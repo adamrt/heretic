@@ -7,7 +7,10 @@
 void sprite_init(void);
 void sprite_shutdown(void);
 
-sg_image sprite_get_frame_image(int palette_id);
-sg_image sprite_get_item_image(int palette_id);
-sg_image sprite_get_evtface_image(void);
-sg_image sprite_get_unit_image(int palette_id);
+// Paletted
+sg_image sprite_get_frame_bin(int);
+sg_image sprite_get_item_bin(int);
+sg_image sprite_get_unit_bin(int);
+
+// Non-paletted
+sg_image sprite_get_evtface_bin(void);
