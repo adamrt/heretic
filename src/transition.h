@@ -6,7 +6,7 @@
 #include "opcode.h"
 #include "vm.h"
 
-#define TRANSITION_MAX 64
+constexpr int TRANSITION_MAX = 64;
 
 // Transition struct to simplify interpolation of values.
 typedef struct {

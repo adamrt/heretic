@@ -7,8 +7,8 @@
 #include "instruction.h"
 #include "message.h"
 
-#define EVENT_SIZE  (8192)
-#define EVENT_COUNT (491)
+constexpr int EVENT_SIZE = 8192;
+constexpr int EVENT_COUNT = 491;
 
 // An event is a list of text and instructions for a particular scenario.
 //

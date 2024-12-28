@@ -64,7 +64,7 @@ static font_atlas_t read_font_atlas(span_t* span) {
         int char_start_x = atlas_col * FONT_CHAR_WIDTH;
         int char_start_y = atlas_row * FONT_CHAR_HEIGHT;
 
-        for (int byte_idx = 0; byte_idx < BYTES_PER_CHAR; ++byte_idx) {
+        for (int byte_idx = 0; byte_idx < FONT_BYTES_PER_CHAR; ++byte_idx) {
             u8 byte = span_read_u8(span);
 
             for (int k = 6; k >= 0; k -= 2) {

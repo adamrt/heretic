@@ -4,7 +4,7 @@
 #include "span.h"
 #include "util.h"
 
-#define SPAN_MAX_BYTES (131072)
+constexpr int SPAN_MAX_BYTES = 131072;
 
 void span_read_bytes(span_t* f, usize size, u8* out_bytes) {
     ASSERT(size <= SPAN_MAX_BYTES, "Too many bytes requested.");

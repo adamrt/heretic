@@ -6,11 +6,11 @@
 #include "span.h"
 #include "texture.h"
 
-#define MESH_MAX_TEX_TRIS    (512)
-#define MESH_MAX_TEX_QUADS   (768)
-#define MESH_MAX_UNTEX_TRIS  (64)
-#define MESH_MAX_UNTEX_QUADS (256)
-#define MESH_MAX_VERTICES    (7620)
+constexpr int MESH_MAX_TEX_TRIS = 512;
+constexpr int MESH_MAX_TEX_QUADS = 768;
+constexpr int MESH_MAX_UNTEX_TRIS = 64;
+constexpr int MESH_MAX_UNTEX_QUADS = 256;
+constexpr int MESH_MAX_VERTICES = 7620;
 
 typedef struct {
     vec3s position;

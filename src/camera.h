@@ -6,12 +6,12 @@
 
 #include "defines.h"
 
-#define CAMERA_DIST_MIN    (0.1f)
-#define CAMERA_DIST_MAX    (1000.0f)
-#define CAMERA_ZOOM_MIN    (0.1f)
-#define CAMERA_ZOOM_MAX    (3.0f)
-#define CAMERA_FRUSTUM_MIN (0.1f)
-#define CAMERA_FRUSTUM_MAX (512.0f)
+constexpr f32 CAMERA_DIST_MIN = 0.1f;
+constexpr f32 CAMERA_DIST_MAX = 1000.0f;
+constexpr f32 CAMERA_ZOOM_MIN = 0.1f;
+constexpr f32 CAMERA_ZOOM_MAX = 3.0f;
+constexpr f32 CAMERA_FRUSTUM_MIN = 0.1f;
+constexpr f32 CAMERA_FRUSTUM_MAX = 512.0f;
 
 typedef struct {
     vec3s position;

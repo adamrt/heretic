@@ -6,9 +6,9 @@
 #include "defines.h"
 #include "span.h"
 
-#define MAP_FILE_MAX_SIZE  (2388)
-#define MAP_RECORD_MAX_NUM (100)
-#define MAP_RECORD_SIZE    (20)
+constexpr int MAP_FILE_MAX_SIZE = 2388;
+constexpr int MAP_RECORD_MAX_NUM = 100;
+constexpr int MAP_RECORD_SIZE = 20;
 
 typedef enum {
     FILETYPE_NONE = 0x0000,

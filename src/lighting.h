@@ -7,7 +7,7 @@
 #include "defines.h"
 #include "span.h"
 
-#define LIGHTING_MAX_LIGHTS (3)
+constexpr int LIGHTING_MAX_LIGHTS = 3;
 
 typedef struct {
     vec3s direction;

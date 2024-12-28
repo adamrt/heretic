@@ -5,7 +5,7 @@
 #include "span.h"
 #include "util.h"
 
-#define SCENARIO_OFFSET (0x10938)
+constexpr int SCENARIO_OFFSET = 0x10938;
 
 static scenario_t read_scenario(span_t*);
 

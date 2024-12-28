@@ -3,11 +3,11 @@
 #include "model.h"
 #include "sokol_gfx.h"
 
-#define GFX_WINDOW_WIDTH  (1920)
-#define GFX_WINDOW_HEIGHT (1280)
+constexpr int GFX_WINDOW_WIDTH = 1920;
+constexpr int GFX_WINDOW_HEIGHT = 1280;
 
-#define GFX_RENDER_WIDTH  (256 * 2)
-#define GFX_RENDER_HEIGHT (240 * 2)
+constexpr int GFX_RENDER_WIDTH = 256 * 2;
+constexpr int GFX_RENDER_HEIGHT = 240 * 2;
 
 void gfx_init(void);
 void gfx_shutdown(void);

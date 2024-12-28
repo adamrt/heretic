@@ -5,8 +5,8 @@
 #include "event.h"
 #include "map_record.h"
 
-#define SCENARIO_COUNT (491)
-#define SCENARIO_SIZE  (24)
+constexpr int SCENARIO_COUNT = 491;
+constexpr int SCENARIO_SIZE = 24;
 
 typedef struct {
     int event_id;

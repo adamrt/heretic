@@ -2,7 +2,7 @@
 
 #include "defines.h"
 
-#define OPCODE_PARAM_MAX (14)
+constexpr int OPCODE_PARAM_MAX = 14;
 
 // clang-format off
 typedef enum {
