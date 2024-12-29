@@ -29,6 +29,8 @@ static void _draw(void);
 static struct {
     bool show_sprite_window[F_FILE_COUNT];
     u8 current_palette_idx[F_FILE_COUNT];
+    // Event face has 8 rows, each with their own palette.
+    u8 current_palette_idx_evtface[16];
 
     bool show_window_scene;
 
@@ -181,10 +183,37 @@ static void _draw_paletted_image(file_entry_e entry, int width, int height) {
     igEnd();
 }
 
-static void _draw_game_evtface_image(void) {
-    igBegin("EVTFACE.BIN Palette", &_state.show_sprite_window[F_EVENT__EVTFACE_BIN], 0);
-    ImVec2 dims = { 256 * 2, 384 * 2 };
-    igImage(simgui_imtextureid(sprite_get_evtface_bin()), dims);
+static void _draw_game_evtface_image(int row_idx) {
+    file_entry_e entry = F_EVENT__EVTFACE_BIN;
+    file_desc_t desc = file_list[entry];
+    ImVec2 dims = { 256 * 2, 48 * 2 };
+
+    igBegin(desc.name, &_state.show_sprite_window[entry], 0);
+    igPushIDInt(row_idx);
+
+    char buf[16];
+    u8* selected = &_state.current_palette_idx[row_idx];
+    snprintf(buf, sizeof(buf), "Palette %d", *selected);
+    if (igBeginCombo("Palette##combo", buf, 0)) {
+        for (int i = 0; i < 8; i++) {
+            bool is_selected = (*selected == i);
+
+            snprintf(buf, sizeof(buf), "Palette %d", i);
+            if (igSelectable(buf)) {
+                *selected = i;
+            }
+
+            if (is_selected)
+                igSetItemDefaultFocus();
+        }
+        igEndCombo();
+    }
+    igPopID();
+
+    igSeparator();
+
+    sg_image image = sprite_get_evtface_bin(row_idx, *selected);
+    igImage(simgui_imtextureid(image), dims);
     igEnd();
 }
 
@@ -541,7 +570,9 @@ static void _draw(void) {
     }
 
     if (_state.show_sprite_window[F_EVENT__EVTFACE_BIN]) {
-        _draw_game_evtface_image();
+        for (int i = 0; i < 8; i++) {
+            _draw_game_evtface_image(i);
+        }
     }
 
     if (_state.show_window_demo) {

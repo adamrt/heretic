@@ -1,13 +1,14 @@
 // https://ffhacktics.com/wiki/EVENT/FRAME.BIN
-#include "sprite.h"
+#include <string.h>
+
 #include "cglm/types-struct.h"
-#include "cimgui.h"
+
+#include "defines.h"
 #include "filesystem.h"
 #include "memory.h"
 #include "span.h"
+#include "sprite.h"
 #include "texture.h"
-
-#include "defines.h"
 
 static struct {
     // There is some wasted space because space on the palette_idx and cache
@@ -19,6 +20,14 @@ static struct {
 
     // cache the gpu texture for each file, they will be requested per frame.
     sg_image cache[F_FILE_COUNT];
+
+    // These are the same as above but they are for sprites that have multiple
+    // rows, each with thier own palette. We must track the palette index for
+    // each row and cache the texture for each row. Currently only used for
+    // EVTFACE.BIN, but most likely will be expanded for other files when we
+    // find them.
+    u8 current_palette_idx_evtface[8][8];
+    sg_image cache_evtface[8];
 } _state;
 
 typedef struct {
@@ -37,6 +46,8 @@ const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
     [F_EVENT__UNIT_BIN] = { 256, 480, 0, 128, 61440, 0 },
 };
 
+static texture_t _read_palette(span_t*, int, usize);
+static texture_t _read_sprite_with_palette(span_t*, int, int, int, texture_t, usize);
 static texture_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
 
 void sprite_init(void) {
@@ -44,12 +55,23 @@ void sprite_init(void) {
     for (usize i = 0; i < F_FILE_COUNT; i++) {
         _state.current_palette_idx[i] = UINT8_MAX;
     }
+
+    for (usize row = 0; row < 8; row++) {
+        for (usize col = 0; col < 8; col++) {
+            _state.current_palette_idx_evtface[row][col] = UINT8_MAX;
+        }
+    }
 }
 
 void sprite_shutdown(void) {
     for (usize i = 0; i < F_FILE_COUNT; i++) {
         if (_state.cache[i].id != SG_INVALID_ID) {
             sg_destroy_image(_state.cache[i]);
+        }
+    }
+    for (usize row = 0; row < 8; row++) {
+        if (_state.cache_evtface[row].id != SG_INVALID_ID) {
+            sg_destroy_image(_state.cache_evtface[row]);
         }
     }
 }
@@ -77,91 +99,70 @@ sg_image sprite_get_paletted_image(file_entry_e entry, int palette_idx) {
 // EVTFACE.BIN
 //
 
-static texture_t _read_texture_evtface_bin(span_t* span) {
+// This reads a single row of portraits. Each row has it's own palette at the end.
+// We read them as individual rows so we can apply the palette per row.
+static texture_t _read_texture_row_evtface_bin(span_t* span, int row, int palette_idx) {
     constexpr int width = 256;
-    constexpr int height = 384;
+    constexpr int height = 48;
     constexpr int dims = width * height;
     constexpr int size = dims * 4;
 
     // Basic dimensions
-    constexpr int rows_of_portraits = 8;
-    constexpr int cols_of_portraits = 8;
+    constexpr int cols = 8;
     constexpr int portrait_width = 32;
     constexpr int portrait_height = 48;
     constexpr int bytes_per_row = 8192;
+    constexpr int bytes_per_portrait = 768;
     constexpr int palette_offset = 6144; // per row
 
     u8* data = memory_allocate(size);
 
-    for (int portrait_row = 0; portrait_row < rows_of_portraits; portrait_row++) {
+    u32 pal_offset = row * bytes_per_row + palette_offset;
+    texture_t palette = _read_palette(span, 16, pal_offset);
 
-        // Jump to the palette offset of the new row and read it
-        span->offset = portrait_row * bytes_per_row + palette_offset;
-        vec4s palette[16];
-        for (int i = 0; i < 16; i++) {
-            palette[i] = read_rgb15(span);
+    for (int col = 0; col < cols; col++) {
+        int tex_offset = row * bytes_per_row + col * bytes_per_portrait;
+        texture_t portrait_texture = _read_sprite_with_palette(span, portrait_width, portrait_height, tex_offset, palette, palette_idx);
+        int dest_x = col * portrait_width;
+
+        for (int y = 0; y < portrait_height; y++) {
+            int src_index = y * portrait_width * 4;
+            int dest_index = y * width * 4 + dest_x * 4;
+            memcpy(&data[dest_index], &portrait_texture.data[src_index], portrait_width * 4);
         }
-
-        for (int portrait_col = 0; portrait_col < cols_of_portraits; portrait_col++) {
-            span->offset = portrait_row * bytes_per_row + portrait_col * 768; // Jump to the portrait offset of the new row
-
-            // The top-left of this portrait
-            int base_x = portrait_col * portrait_width;
-            int base_y = portrait_row * portrait_height;
-
-            for (int py = 0; py < portrait_height; py++) {
-                for (int px = 0; px < (portrait_width / 2); px++) {
-                    u8 raw_byte = span_read_u8(span);
-                    u8 right = (raw_byte & 0x0F);
-                    u8 left = (raw_byte & 0xF0) >> 4;
-
-                    // Actual X positions in the image
-                    int absolute_x1 = base_x + (px * 2);
-                    int absolute_x2 = absolute_x1 + 1;
-                    int absolute_y = base_y + py;
-
-                    // Lookup color from the local palette
-                    vec4s right_color = palette[right];
-                    vec4s left_color = palette[left];
-
-                    int right_idx = (absolute_y * width + absolute_x1) * 4;
-                    data[right_idx + 0] = right_color.r;
-                    data[right_idx + 1] = right_color.g;
-                    data[right_idx + 2] = right_color.b;
-                    data[right_idx + 3] = right_color.a;
-
-                    int left_idx = (absolute_y * width + absolute_x2) * 4;
-                    data[left_idx + 0] = left_color.r;
-                    data[left_idx + 1] = left_color.g;
-                    data[left_idx + 2] = left_color.b;
-                    data[left_idx + 3] = left_color.a;
-                }
-            }
-        }
+        texture_destroy(portrait_texture);
     }
 
-    texture_t evtface = {
+    texture_destroy(palette);
+
+    texture_t row_texture = {
         .width = width,
         .height = height,
         .data = data,
         .size = size,
         .valid = true
     };
-    return evtface;
+    return row_texture;
 }
 
-sg_image sprite_get_evtface_bin(void) {
+sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
     file_entry_e entry = F_EVENT__EVTFACE_BIN;
+    if (_state.current_palette_idx_evtface[row_idx][palette_idx] == palette_idx) {
+        return _state.cache_evtface[row_idx];
+    } else {
+        _state.current_palette_idx_evtface[row_idx][palette_idx] = palette_idx;
+    }
 
-    if (_state.cache[entry].id != SG_INVALID_ID) {
-        return _state.cache[entry];
+    if (_state.cache_evtface[row_idx].id != SG_INVALID_ID) {
+        sg_destroy_image(_state.cache_evtface[row_idx]);
     }
 
     span_t span = filesystem_read_file(entry);
-    texture_t texture = _read_texture_evtface_bin(&span);
-    _state.cache[entry] = texture_to_sg_image(texture);
+    texture_t texture = _read_texture_row_evtface_bin(&span, row_idx, palette_idx);
+    _state.cache_evtface[row_idx] = texture_to_sg_image(texture);
+    texture_destroy(texture);
 
-    return _state.cache[entry];
+    return _state.cache_evtface[row_idx];
 }
 
 //
