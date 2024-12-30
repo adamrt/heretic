@@ -2,9 +2,9 @@
 
 #include "cglm/types-struct.h"
 
+#include "image.h"
 #include "lighting.h"
 #include "span.h"
-#include "texture.h"
 
 constexpr int MESH_MAX_TEX_TRIS = 512;
 constexpr int MESH_MAX_TEX_QUADS = 768;
@@ -55,7 +55,7 @@ typedef struct {
     map_state_t map_state;
 
     geometry_t geometry;
-    texture_t palette;
+    image_t palette;
     lighting_t lighting;
 
     bool valid;

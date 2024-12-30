@@ -1,9 +1,18 @@
-#include "camera.h"
-#include "cglm/util.h"
+#include <string.h>
+
 #include "cimgui.h"
+#include "sokol_app.h"
+#include "sokol_gfx.h"
+#include "sokol_glue.h"
+#include "sokol_imgui.h"
+#include "sokol_log.h"
+
+#include "camera.h"
 #include "event.h"
 #include "filesystem.h"
 #include "font.h"
+#include "gfx.h"
+#include "gui.h"
 #include "map.h"
 #include "map_record.h"
 #include "memory.h"
@@ -11,18 +20,9 @@
 #include "opcode.h"
 #include "parse.h"
 #include "scene.h"
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_imgui.h"
-#include "sokol_log.h"
-
-#include "gfx.h"
-#include "gui.h"
 #include "sprite.h"
 #include "util.h"
 #include "vm.h"
-#include <string.h>
 
 static void _draw(void);
 

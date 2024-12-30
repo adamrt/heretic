@@ -5,10 +5,10 @@
 
 #include "defines.h"
 #include "filesystem.h"
+#include "image.h"
 #include "memory.h"
 #include "span.h"
 #include "sprite.h"
-#include "texture.h"
 
 static struct {
     // There is some wasted space because space on the palette_idx and cache
@@ -46,9 +46,8 @@ const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
     [F_EVENT__UNIT_BIN] = { 256, 480, 0, 128, 61440, 0 },
 };
 
-static texture_t _read_palette(span_t*, int, usize);
-static texture_t _read_sprite_with_palette(span_t*, int, int, int, texture_t, usize);
-static texture_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
+static image_t _read_paletted_sprite(span_t*, int, int, int, image_t, usize);
+static image_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
 
 void sprite_init(void) {
     // Initialize the palette index to -1 to make them currently invalid
@@ -88,9 +87,9 @@ sg_image sprite_get_paletted_image(file_entry_e entry, int palette_idx) {
     }
 
     span_t span = filesystem_read_file(entry);
-    texture_t texture = _read_paletted_image_4bpp(&span, paletted_image_desc_list[entry], palette_idx);
-    _state.cache[entry] = texture_to_sg_image(texture);
-    texture_destroy(texture);
+    image_t image = _read_paletted_image_4bpp(&span, paletted_image_desc_list[entry], palette_idx);
+    _state.cache[entry] = image_to_texture(image);
+    image_destroy(image);
 
     return _state.cache[entry];
 }
@@ -101,7 +100,7 @@ sg_image sprite_get_paletted_image(file_entry_e entry, int palette_idx) {
 
 // This reads a single row of portraits. Each row has it's own palette at the end.
 // We read them as individual rows so we can apply the palette per row.
-static texture_t _read_texture_row_evtface_bin(span_t* span, int row, int palette_idx) {
+static image_t _read_image_row_evtface_bin(span_t* span, int row, int palette_idx) {
     constexpr int width = 256;
     constexpr int height = 48;
     constexpr int dims = width * height;
@@ -118,31 +117,31 @@ static texture_t _read_texture_row_evtface_bin(span_t* span, int row, int palett
     u8* data = memory_allocate(size);
 
     u32 pal_offset = row * bytes_per_row + palette_offset;
-    texture_t palette = _read_palette(span, 16, pal_offset);
+    image_t palette = image_read_rgb15_image(span, 16, 16, pal_offset);
 
     for (int col = 0; col < cols; col++) {
         int tex_offset = row * bytes_per_row + col * bytes_per_portrait;
-        texture_t portrait_texture = _read_sprite_with_palette(span, portrait_width, portrait_height, tex_offset, palette, palette_idx);
+        image_t portrait_image = _read_paletted_sprite(span, portrait_width, portrait_height, tex_offset, palette, palette_idx);
         int dest_x = col * portrait_width;
 
         for (int y = 0; y < portrait_height; y++) {
             int src_index = y * portrait_width * 4;
             int dest_index = y * width * 4 + dest_x * 4;
-            memcpy(&data[dest_index], &portrait_texture.data[src_index], portrait_width * 4);
+            memcpy(&data[dest_index], &portrait_image.data[src_index], portrait_width * 4);
         }
-        texture_destroy(portrait_texture);
+        image_destroy(portrait_image);
     }
 
-    texture_destroy(palette);
+    image_destroy(palette);
 
-    texture_t row_texture = {
+    image_t row_image = {
         .width = width,
         .height = height,
         .data = data,
         .size = size,
         .valid = true
     };
-    return row_texture;
+    return row_image;
 }
 
 sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
@@ -158,9 +157,9 @@ sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
     }
 
     span_t span = filesystem_read_file(entry);
-    texture_t texture = _read_texture_row_evtface_bin(&span, row_idx, palette_idx);
-    _state.cache_evtface[row_idx] = texture_to_sg_image(texture);
-    texture_destroy(texture);
+    image_t image = _read_image_row_evtface_bin(&span, row_idx, palette_idx);
+    _state.cache_evtface[row_idx] = image_to_texture(image);
+    image_destroy(image);
 
     return _state.cache_evtface[row_idx];
 }
@@ -169,40 +168,7 @@ sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
 // Shared functions
 //
 
-static texture_t _read_palette(span_t* span, int count, usize offset) {
-    constexpr int palette_width = 16; // This is always the case
-
-    const int width = palette_width;
-    const int height = count;
-    const int dims = palette_width * count;
-    const int size = dims * 4;
-    const int size_on_disk = dims / 2;
-
-    span->offset = offset;
-
-    u8* data = memory_allocate(size);
-
-    usize write_idx = 0;
-    for (int i = 0; i < size_on_disk * 2; i++) {
-        vec4s c = read_rgb15(span); // reading 2 at a time
-        data[write_idx++] = c.r;
-        data[write_idx++] = c.g;
-        data[write_idx++] = c.b;
-        data[write_idx++] = c.a;
-    }
-
-    texture_t palette = {
-        .width = width,
-        .height = height,
-        .data = data,
-        .size = size,
-        .valid = true
-    };
-
-    return palette;
-}
-
-static texture_t _read_sprite_with_palette(span_t* span, int width, int height, int offset, texture_t palette, usize palette_idx) {
+static image_t _read_paletted_sprite(span_t* span, int width, int height, int offset, image_t palette, usize palette_idx) {
     const int dims = width * height;
     const int size = dims * 4;
     const int size_on_disk = dims / 2;
@@ -226,19 +192,19 @@ static texture_t _read_sprite_with_palette(span_t* span, int width, int height, 
         }
     }
 
-    texture_t texture = {
+    image_t image = {
         .width = width,
         .height = height,
         .data = data,
         .size = size,
         .valid = true
     };
-    return texture;
+    return image;
 }
 
-static texture_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
-    texture_t palette = _read_palette(span, desc.pal_count, desc.pal_offset);
-    texture_t texture = _read_sprite_with_palette(span, desc.tex_width, desc.tex_height, desc.tex_offset, palette, pindex);
-    texture_destroy(palette);
-    return texture;
+static image_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
+    image_t palette = image_read_rgb15_image(span, 16, desc.pal_count, desc.pal_offset);
+    image_t image = _read_paletted_sprite(span, desc.tex_width, desc.tex_height, desc.tex_offset, palette, pindex);
+    image_destroy(palette);
+    return image;
 }

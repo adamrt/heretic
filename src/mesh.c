@@ -4,9 +4,9 @@
 #include "cglm/util.h"
 
 #include "defines.h"
+#include "image.h"
 #include "lighting.h"
 #include "mesh.h"
-#include "texture.h"
 #include "util.h"
 
 static vec3s read_normal(span_t*);
@@ -17,7 +17,7 @@ mesh_t read_mesh(span_t* span) {
     mesh_t mesh = {};
 
     mesh.geometry = read_geometry(span);
-    mesh.palette = read_palette(span);
+    mesh.palette = image_read_map_palette(span);
     mesh.lighting = read_lighting(span);
 
     bool is_valid = mesh.geometry.valid || mesh.palette.valid || mesh.lighting.valid;

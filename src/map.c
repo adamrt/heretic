@@ -1,14 +1,14 @@
 #include "filesystem.h"
 #include "sokol_gfx.h"
 
+#include "image.h"
 #include "map.h"
 #include "memory.h"
-#include "texture.h"
 #include "util.h"
 
 model_t map_make_model(const map_t* map, map_state_t map_state) {
     mesh_t final_mesh = {};
-    texture_t final_texture = {};
+    image_t final_texture = {};
     if (map->primary_mesh.valid) {
         final_mesh = map->primary_mesh;
     } else {
@@ -24,7 +24,7 @@ model_t map_make_model(const map_t* map, map_state_t map_state) {
     }
 
     for (int i = 0; i < map->texture_count; i++) {
-        texture_t texture = map->textures[i];
+        image_t texture = map->textures[i];
 
         if (texture.valid && map_state_eq(texture.map_state, map_state)) {
             final_texture = texture;
@@ -47,8 +47,8 @@ model_t map_make_model(const map_t* map, map_state_t map_state) {
         .label = "mesh-vertices",
     });
 
-    sg_image texture = texture_to_sg_image(final_texture);
-    sg_image palette = texture_to_sg_image(final_mesh.palette);
+    sg_image texture = image_to_texture(final_texture);
+    sg_image palette = image_to_texture(final_mesh.palette);
 
     vec3s centered_translation = vertices_centered(&vertices);
 
@@ -72,13 +72,13 @@ void map_destroy(map_t* map) {
         return;
     }
     for (int i = 0; i < map->texture_count; i++) {
-        texture_destroy(map->textures[i]);
+        image_destroy(map->textures[i]);
     }
     for (int i = 0; i < map->alt_mesh_count; i++) {
-        texture_destroy(map->alt_meshes[i].palette);
+        image_destroy(map->alt_meshes[i].palette);
     }
-    texture_destroy(map->primary_mesh.palette);
-    texture_destroy(map->override_mesh.palette);
+    image_destroy(map->primary_mesh.palette);
+    image_destroy(map->override_mesh.palette);
     memory_free(map);
 }
 
@@ -101,7 +101,7 @@ map_t* read_map(int num) {
 
         switch (record->type) {
         case FILETYPE_TEXTURE: {
-            texture_t texture = read_texture(&file);
+            image_t texture = image_read_map_texture(&file);
             texture.map_state = record->state;
             map->textures[map->texture_count++] = texture;
             break;

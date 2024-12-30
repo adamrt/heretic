@@ -2,10 +2,10 @@
 
 #include "defines.h"
 #include "filesystem.h"
+#include "image.h"
 #include "map_record.h"
 #include "mesh.h"
 #include "model.h"
-#include "texture.h"
 
 #define MAP_COUNT 128
 
@@ -16,7 +16,7 @@ typedef struct {
     mesh_t primary_mesh;
     mesh_t override_mesh;
     mesh_t alt_meshes[20];
-    texture_t textures[20];
+    image_t textures[20];
 
     int record_count;
     int texture_count;

@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "cglm/types-struct.h"
 #include "defines.h"
 #include "map_record.h"
 #include "model.h"
@@ -16,12 +15,11 @@ typedef struct {
     u8* data;
     usize size;
     bool valid;
-} texture_t;
+} image_t;
 
-void texture_destroy(texture_t);
-
-texture_t read_texture(span_t*);
-texture_t read_palette(span_t*);
-vec4s read_rgb15(span_t* span);
-
-sg_image texture_to_sg_image(texture_t);
+void image_destroy(image_t);
+image_t image_read_map_texture(span_t*);
+image_t image_read_map_palette(span_t*);
+image_t image_read_4bpp_image(span_t*, int, int, int);
+image_t image_read_rgb15_image(span_t*, int, int, int);
+sg_image image_to_texture(image_t);

@@ -66,6 +66,7 @@ add_executable(heretic
     src/game.c
     src/gfx.c
     src/gui.c
+    src/image.c
     src/instruction.c
     src/lighting.c
     src/map.c
@@ -80,7 +81,6 @@ add_executable(heretic
     src/scene.c
     src/span.c
     src/sprite.c
-    src/texture.c
     src/time.c
     src/transition.c
     src/vm.c
