@@ -16,6 +16,8 @@
 #    include <emscripten/emscripten.h>
 #endif
 
+static bool data_initialized = false;
+
 // data_init opens the FFT bin file and loads the default scene. It is called
 // during game_init() for native builds, and after file upload on a wasm build.
 void data_init(void) {
@@ -23,6 +25,7 @@ void data_init(void) {
     font_init();
     sprite_init();
     scene_init();
+    data_initialized = true;
 }
 
 void game_init(void) {
@@ -51,6 +54,9 @@ void game_shutdown(void) {
 }
 
 void game_update(void) {
+    if (!data_initialized) {
+        return;
+    }
     time_update();
     vm_update();
     transition_update();
