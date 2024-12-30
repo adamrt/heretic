@@ -79,9 +79,16 @@ void main() {
         return;
     }
 
-    vec4 tex_color = texture(sampler2D(u_texture, u_sampler), v_uv) * 255.0;
-    uint palette_pos = uint(v_palette_index * 16 + tex_color.r);
-    vec4 color = texture(sampler2D(u_palette, u_sampler), vec2(float(palette_pos) / 255.0, 0.0));
+    // Get the index color from the palette
+    vec4 tex_color = texture(sampler2D(u_texture, u_sampler), v_uv);
+    // Scale the index color from 0.0-1.0 to 0-255
+    float palette_x = float(uint(tex_color.r * 255.0));
+    float palette_y = float(uint(v_palette_index));
+
+    // Scale the x and y back down to 0.0-1.0; There are 16x16 colors in the palette.
+    vec2 uv = vec2(palette_x / 16, palette_y / 16);
+
+    vec4 color = texture(sampler2D(u_palette, u_sampler), uv);
     if (color.a < 0.5)
         discard;
 

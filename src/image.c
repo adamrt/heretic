@@ -13,7 +13,6 @@ image_t image_read_rgb15_image(span_t* span, int width, int height, int offset) 
     const int size_on_disk = dims / 2;
 
     span->offset = offset;
-
     u8* data = memory_allocate(size);
 
     usize write_idx = 0;
@@ -25,7 +24,7 @@ image_t image_read_rgb15_image(span_t* span, int width, int height, int offset) 
         data[write_idx++] = c.a;
     }
 
-    image_t palette = {
+    image_t image = {
         .width = width,
         .height = height,
         .data = data,
@@ -33,7 +32,7 @@ image_t image_read_rgb15_image(span_t* span, int width, int height, int offset) 
         .valid = true
     };
 
-    return palette;
+    return image;
 }
 
 image_t image_read_4bpp_image(span_t* span, int width, int height, int offset) {
@@ -67,8 +66,8 @@ image_t image_read_4bpp_image(span_t* span, int width, int height, int offset) {
     };
     return image;
 }
+
 image_t image_read_map_texture(span_t* span) {
-    // Each pixel stored as 1/2 a byte
     constexpr int width = 256;
     constexpr int height = 1024;
 
@@ -76,8 +75,8 @@ image_t image_read_map_texture(span_t* span) {
 }
 
 image_t image_read_map_palette(span_t* span) {
-    constexpr int width = 256;
-    constexpr int height = 1;
+    constexpr int width = 16;
+    constexpr int height = 16;
 
     u32 intra_file_ptr = span_readat_u32(span, 0x44);
     if (intra_file_ptr == 0) {
