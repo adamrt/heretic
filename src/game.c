@@ -75,6 +75,9 @@ void game_input(const sapp_event* event) {
         case SAPP_KEYCODE_ESCAPE:
             sapp_request_quit();
             break;
+        case SAPP_KEYCODE_SPACE:
+            sapp_lock_mouse(false);
+            break;
         case SAPP_KEYCODE_K:
             scene_next();
             break;
