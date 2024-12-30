@@ -9,15 +9,16 @@
 #include "mesh.h"
 #include "util.h"
 
-static vec3s read_normal(span_t*);
-static geometry_t read_geometry(span_t*);
-static vec2s process_tex_coords(f32 u, f32 v, u8 page);
+static geometry_t _read_geometry(span_t*);
+static image_t _read_palette(span_t*);
+static vec3s _read_normal(span_t*);
+static vec2s _process_tex_coords(f32 u, f32 v, u8 page);
 
 mesh_t read_mesh(span_t* span) {
     mesh_t mesh = {};
 
-    mesh.geometry = read_geometry(span);
-    mesh.palette = image_read_map_palette(span);
+    mesh.geometry = _read_geometry(span);
+    mesh.palette = _read_palette(span);
     mesh.lighting = read_lighting(span);
 
     bool is_valid = mesh.geometry.valid || mesh.palette.valid || mesh.lighting.valid;
@@ -26,7 +27,7 @@ mesh_t read_mesh(span_t* span) {
     return mesh;
 }
 
-static geometry_t read_geometry(span_t* span) {
+static geometry_t _read_geometry(span_t* span) {
     geometry_t geometry = {};
 
     // 0x40 is always the location of the primary mesh pointer.
@@ -83,17 +84,17 @@ static geometry_t read_geometry(span_t* span) {
 
     // Triangle normals
     for (int i = 0; i < N; i++) {
-        geometry.tex_tris[i].a.normal = read_normal(span);
-        geometry.tex_tris[i].b.normal = read_normal(span);
-        geometry.tex_tris[i].c.normal = read_normal(span);
+        geometry.tex_tris[i].a.normal = _read_normal(span);
+        geometry.tex_tris[i].b.normal = _read_normal(span);
+        geometry.tex_tris[i].c.normal = _read_normal(span);
     };
 
     // Quad normals
     for (int i = 0; i < P; i++) {
-        geometry.tex_quads[i].a.normal = read_normal(span);
-        geometry.tex_quads[i].b.normal = read_normal(span);
-        geometry.tex_quads[i].c.normal = read_normal(span);
-        geometry.tex_quads[i].d.normal = read_normal(span);
+        geometry.tex_quads[i].a.normal = _read_normal(span);
+        geometry.tex_quads[i].b.normal = _read_normal(span);
+        geometry.tex_quads[i].c.normal = _read_normal(span);
+        geometry.tex_quads[i].d.normal = _read_normal(span);
     };
 
     // Triangle UV
@@ -109,9 +110,9 @@ static geometry_t read_geometry(span_t* span) {
         f32 cu = span_read_u8(span);
         f32 cv = span_read_u8(span);
 
-        vec2s a = process_tex_coords(au, av, page);
-        vec2s b = process_tex_coords(bu, bv, page);
-        vec2s c = process_tex_coords(cu, cv, page);
+        vec2s a = _process_tex_coords(au, av, page);
+        vec2s b = _process_tex_coords(bu, bv, page);
+        vec2s c = _process_tex_coords(cu, cv, page);
 
         geometry.tex_tris[i].a.uv = a;
         geometry.tex_tris[i].a.palette_index = palette;
@@ -139,10 +140,10 @@ static geometry_t read_geometry(span_t* span) {
         f32 du = span_read_u8(span);
         f32 dv = span_read_u8(span);
 
-        vec2s a = process_tex_coords(au, av, page);
-        vec2s b = process_tex_coords(bu, bv, page);
-        vec2s c = process_tex_coords(cu, cv, page);
-        vec2s d = process_tex_coords(du, dv, page);
+        vec2s a = _process_tex_coords(au, av, page);
+        vec2s b = _process_tex_coords(bu, bv, page);
+        vec2s c = _process_tex_coords(cu, cv, page);
+        vec2s d = _process_tex_coords(du, dv, page);
 
         geometry.tex_quads[i].a.uv = a;
         geometry.tex_quads[i].a.palette_index = palette;
@@ -173,7 +174,7 @@ vec3s read_position(span_t* span) {
     return (vec3s) { { x, y, z } };
 }
 
-static vec3s read_normal(span_t* span) {
+static vec3s _read_normal(span_t* span) {
     f32 x = span_read_f16(span);
     f32 y = span_read_f16(span);
     f32 z = span_read_f16(span);
@@ -291,8 +292,18 @@ vec3s vertices_centered(const vertices_t* vertices) {
 //    of a single page (256).
 // 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
 //    divide them by their max to get a 0.0-1.0 value.
-static vec2s process_tex_coords(f32 u, f32 v, u8 page) {
+static vec2s _process_tex_coords(f32 u, f32 v, u8 page) {
     u = u / 255.0f;
     v = (v + (page * 256)) / 1023.0f;
     return (vec2s) { { u, v } };
+}
+
+static image_t _read_palette(span_t* span) {
+    constexpr int width = 16;
+    constexpr int height = 16;
+    u32 intra_file_ptr = span_readat_u32(span, 0x44);
+    if (intra_file_ptr == 0) {
+        return (image_t) {};
+    }
+    return image_read_rgb15_image(span, width, height, intra_file_ptr);
 }

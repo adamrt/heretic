@@ -17,7 +17,5 @@ typedef struct {
 } image_t;
 
 void image_destroy(image_t);
-image_t image_read_map_texture(span_t*);
-image_t image_read_map_palette(span_t*);
 image_t image_read_4bpp_image(span_t*, int, int, int);
 image_t image_read_rgb15_image(span_t*, int, int, int);

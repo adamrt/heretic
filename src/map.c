@@ -7,6 +7,12 @@
 #include "texture.h"
 #include "util.h"
 
+static image_t _read_map_texture(span_t* span) {
+    constexpr int width = 256;
+    constexpr int height = 1024;
+    return image_read_4bpp_image(span, width, height, span->offset);
+}
+
 model_t map_make_model(const map_t* map, map_state_t map_state) {
     mesh_t final_mesh = {};
     image_t final_texture = {};
@@ -102,7 +108,7 @@ map_t* read_map(int num) {
 
         switch (record->type) {
         case FILETYPE_TEXTURE: {
-            image_t texture = image_read_map_texture(&file);
+            image_t texture = _read_map_texture(&file);
             texture.map_state = record->state;
             map->textures[map->texture_count++] = texture;
             break;

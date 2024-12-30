@@ -67,25 +67,6 @@ image_t image_read_4bpp_image(span_t* span, int width, int height, int offset) {
     return image;
 }
 
-image_t image_read_map_texture(span_t* span) {
-    constexpr int width = 256;
-    constexpr int height = 1024;
-
-    return image_read_4bpp_image(span, width, height, span->offset);
-}
-
-image_t image_read_map_palette(span_t* span) {
-    constexpr int width = 16;
-    constexpr int height = 16;
-
-    u32 intra_file_ptr = span_readat_u32(span, 0x44);
-    if (intra_file_ptr == 0) {
-        return (image_t) {};
-    }
-
-    return image_read_rgb15_image(span, width, height, intra_file_ptr);
-}
-
 void image_destroy(image_t image) {
     if (image.data != NULL) {
         memory_free(image.data);
