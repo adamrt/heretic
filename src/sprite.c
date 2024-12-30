@@ -167,39 +167,21 @@ texture_t sprite_get_evtface_bin_texture(int row_idx, int palette_idx) {
 // Shared functions
 //
 
-// FIXME: This should use the image_read_paletted_image_4bpp function then apply the
-// palette to the image.
 static image_t _read_paletted_sprite(span_t* span, int width, int height, int offset, image_t palette, usize palette_idx) {
     const int dims = width * height;
-    const int size = dims * 4;
-    const int size_on_disk = dims / 2;
 
-    span->offset = offset;
-    u8* data = memory_allocate(size);
-
+    image_t image = image_read_4bpp_image(span, width, height, offset);
     usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * item_index
 
-    usize write_idx = 0;
-    for (int i = 0; i < size_on_disk; i++) {
-        u8 raw_pixel = span_read_u8(span);
-        u8 right = ((raw_pixel & 0x0F));
-        u8 left = ((raw_pixel & 0xF0) >> 4);
-
-        for (int j = 0; j < 4; j++) {
-            data[write_idx++] = palette.data[right * 4 + palette_offset + j];
-        }
-        for (int j = 0; j < 4; j++) {
-            data[write_idx++] = palette.data[left * 4 + palette_offset + j];
-        }
+    // image is an RGBA image with 4 bytes per pixel. Each color's RGBA are all
+    // the same value (the palette index). So we loop over each 4th pixel and index
+    // the palette to get the RGBA values, and copy the palettes RGBA values to the
+    // original index image.
+    for (int i = 0; i < dims * 4; i = i + 4) {
+        u8 pixel = image.data[i];
+        memcpy(&image.data[i], &palette.data[pixel * 4 + palette_offset], 4);
     }
 
-    image_t image = {
-        .width = width,
-        .height = height,
-        .data = data,
-        .size = size,
-        .valid = true
-    };
     return image;
 }
 
