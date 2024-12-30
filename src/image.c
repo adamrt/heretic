@@ -3,7 +3,6 @@
 #include "defines.h"
 #include "image.h"
 #include "memory.h"
-#include "model.h"
 #include "span.h"
 
 static vec4s _read_rgb15(span_t* span);
@@ -88,21 +87,9 @@ image_t image_read_map_palette(span_t* span) {
     return image_read_rgb15_image(span, width, height, intra_file_ptr);
 }
 
-sg_image image_to_texture(image_t texture) {
-    return sg_make_image(&(sg_image_desc) {
-        .width = texture.width,
-        .height = texture.height,
-        .data.subimage[0][0] = {
-            .size = texture.size,
-            .ptr = texture.data,
-        },
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-    });
-}
-
-void image_destroy(image_t texture) {
-    if (texture.data != NULL) {
-        memory_free(texture.data);
+void image_destroy(image_t image) {
+    if (image.data != NULL) {
+        memory_free(image.data);
     }
 }
 

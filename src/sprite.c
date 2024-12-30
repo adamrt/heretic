@@ -1,14 +1,13 @@
 // https://ffhacktics.com/wiki/EVENT/FRAME.BIN
 #include <string.h>
 
-#include "cglm/types-struct.h"
-
 #include "defines.h"
 #include "filesystem.h"
 #include "image.h"
 #include "memory.h"
 #include "span.h"
 #include "sprite.h"
+#include "texture.h"
 
 static struct {
     // There is some wasted space because space on the palette_idx and cache
@@ -19,7 +18,7 @@ static struct {
     u8 current_palette_idx[F_FILE_COUNT];
 
     // cache the gpu texture for each file, they will be requested per frame.
-    sg_image cache[F_FILE_COUNT];
+    texture_t cache[F_FILE_COUNT];
 
     // These are the same as above but they are for sprites that have multiple
     // rows, each with thier own palette. We must track the palette index for
@@ -27,7 +26,7 @@ static struct {
     // EVTFACE.BIN, but most likely will be expanded for other files when we
     // find them.
     u8 current_palette_idx_evtface[8][8];
-    sg_image cache_evtface[8];
+    texture_t cache_evtface[8];
 } _state;
 
 typedef struct {
@@ -64,31 +63,31 @@ void sprite_init(void) {
 
 void sprite_shutdown(void) {
     for (usize i = 0; i < F_FILE_COUNT; i++) {
-        if (_state.cache[i].id != SG_INVALID_ID) {
-            sg_destroy_image(_state.cache[i]);
+        if (texture_valid(_state.cache[i])) {
+            texture_destroy(_state.cache[i]);
         }
     }
     for (usize row = 0; row < 8; row++) {
-        if (_state.cache_evtface[row].id != SG_INVALID_ID) {
-            sg_destroy_image(_state.cache_evtface[row]);
+        if (texture_valid(_state.cache_evtface[row])) {
+            texture_destroy(_state.cache_evtface[row]);
         }
     }
 }
 
-sg_image sprite_get_paletted_image(file_entry_e entry, int palette_idx) {
+texture_t sprite_get_paletted_texture(file_entry_e entry, int palette_idx) {
     if (_state.current_palette_idx[entry] == palette_idx) {
         return _state.cache[entry];
     } else {
         _state.current_palette_idx[entry] = palette_idx;
     }
 
-    if (_state.cache[entry].id != SG_INVALID_ID) {
-        sg_destroy_image(_state.cache[entry]);
+    if (texture_valid(_state.cache[entry])) {
+        texture_destroy(_state.cache[entry]);
     }
 
     span_t span = filesystem_read_file(entry);
     image_t image = _read_paletted_image_4bpp(&span, paletted_image_desc_list[entry], palette_idx);
-    _state.cache[entry] = image_to_texture(image);
+    _state.cache[entry] = texture_create(image);
     image_destroy(image);
 
     return _state.cache[entry];
@@ -144,7 +143,7 @@ static image_t _read_image_row_evtface_bin(span_t* span, int row, int palette_id
     return row_image;
 }
 
-sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
+texture_t sprite_get_evtface_bin_texture(int row_idx, int palette_idx) {
     file_entry_e entry = F_EVENT__EVTFACE_BIN;
     if (_state.current_palette_idx_evtface[row_idx][palette_idx] == palette_idx) {
         return _state.cache_evtface[row_idx];
@@ -152,13 +151,13 @@ sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
         _state.current_palette_idx_evtface[row_idx][palette_idx] = palette_idx;
     }
 
-    if (_state.cache_evtface[row_idx].id != SG_INVALID_ID) {
-        sg_destroy_image(_state.cache_evtface[row_idx]);
+    if (texture_valid(_state.cache_evtface[row_idx])) {
+        texture_destroy(_state.cache_evtface[row_idx]);
     }
 
     span_t span = filesystem_read_file(entry);
     image_t image = _read_image_row_evtface_bin(&span, row_idx, palette_idx);
-    _state.cache_evtface[row_idx] = image_to_texture(image);
+    _state.cache_evtface[row_idx] = texture_create(image);
     image_destroy(image);
 
     return _state.cache_evtface[row_idx];
@@ -168,6 +167,8 @@ sg_image sprite_get_evtface_bin(int row_idx, int palette_idx) {
 // Shared functions
 //
 
+// FIXME: This should use the image_read_paletted_image_4bpp function then apply the
+// palette to the image.
 static image_t _read_paletted_sprite(span_t* span, int width, int height, int offset, image_t palette, usize palette_idx) {
     const int dims = width * height;
     const int size = dims * 4;

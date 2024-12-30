@@ -4,6 +4,7 @@
 #include "sokol_gfx.h"
 
 #include "cglm/types-struct.h"
+#include "texture.h"
 
 typedef struct {
     vec3s translation;
@@ -15,8 +16,9 @@ typedef struct {
 typedef struct {
     sg_buffer vbuf;
     sg_buffer ibuf;
-    sg_image texture;
-    sg_image palette;
+
+    texture_t texture;
+    texture_t palette;
 
     lighting_t lighting;
 

@@ -4,6 +4,7 @@
 #include "image.h"
 #include "map.h"
 #include "memory.h"
+#include "texture.h"
 #include "util.h"
 
 model_t map_make_model(const map_t* map, map_state_t map_state) {
@@ -47,8 +48,8 @@ model_t map_make_model(const map_t* map, map_state_t map_state) {
         .label = "mesh-vertices",
     });
 
-    sg_image texture = image_to_texture(final_texture);
-    sg_image palette = image_to_texture(final_mesh.palette);
+    texture_t texture = texture_create(final_texture);
+    texture_t palette = texture_create(final_mesh.palette);
 
     vec3s centered_translation = vertices_centered(&vertices);
 

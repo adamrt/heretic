@@ -114,8 +114,8 @@ void gfx_render_model(const model_t* model) {
         .index_buffer = model->ibuf,
         .samplers[SMP_u_sampler] = _state.sampler,
         .images = {
-            [IMG_u_texture] = model->texture,
-            [IMG_u_palette] = model->palette,
+            [IMG_u_texture] = model->texture.gpu_image,
+            [IMG_u_palette] = model->palette.gpu_image,
         },
     };
 

@@ -5,7 +5,6 @@
 
 #include "defines.h"
 #include "map_record.h"
-#include "model.h"
 #include "span.h"
 
 typedef struct {
@@ -22,4 +21,3 @@ image_t image_read_map_texture(span_t*);
 image_t image_read_map_palette(span_t*);
 image_t image_read_4bpp_image(span_t*, int, int, int);
 image_t image_read_rgb15_image(span_t*, int, int, int);
-sg_image image_to_texture(image_t);

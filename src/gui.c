@@ -178,8 +178,8 @@ static void _draw_paletted_image(file_entry_e entry, int width, int height) {
 
     igSeparator();
 
-    sg_image image = sprite_get_paletted_image(entry, *selected);
-    igImage(simgui_imtextureid(image), dims);
+    texture_t texture = sprite_get_paletted_texture(entry, *selected);
+    igImage(texture_imgui_id(texture), dims);
     igEnd();
 }
 
@@ -212,8 +212,8 @@ static void _draw_game_evtface_image(int row_idx) {
 
     igSeparator();
 
-    sg_image image = sprite_get_evtface_bin(row_idx, *selected);
-    igImage(simgui_imtextureid(image), dims);
+    texture_t texture = sprite_get_evtface_bin_texture(row_idx, *selected);
+    igImage(texture_imgui_id(texture), dims);
     igEnd();
 }
 
