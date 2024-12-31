@@ -3,8 +3,6 @@
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/vec4.h"
 
-#include "lighting.h"
-#include "model.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -15,6 +13,8 @@
 #include "camera.h"
 #include "gfx.h"
 #include "gui.h"
+#include "lighting.h"
+#include "model.h"
 #include "shape.h"
 
 // Global gfx state
@@ -22,7 +22,6 @@ static gfx_t _state;
 
 // Forward declarations
 static void _init(void);
-static mat4s model_matrix(transform_t);
 
 // There are two passes so we can render the offscreen image to a fullscreen
 // quad. The offscreen is rendered in a lower resolution and then upscaled to
@@ -191,16 +190,6 @@ static void _init(void) {
 
 sg_buffer gfx_get_quad_vbuf(void) {
     return _state.quad_vbuf;
-}
-
-static mat4s model_matrix(transform_t transform) {
-    mat4s model_matrix = glms_mat4_identity();
-    model_matrix = glms_translate(model_matrix, transform.translation);
-    model_matrix = glms_rotate_x(model_matrix, transform.rotation.x);
-    model_matrix = glms_rotate_y(model_matrix, transform.rotation.y);
-    model_matrix = glms_rotate_z(model_matrix, transform.rotation.z);
-    model_matrix = glms_scale(model_matrix, transform.scale);
-    return model_matrix;
 }
 
 sg_image gfx_get_color_image(void) {

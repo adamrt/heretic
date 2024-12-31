@@ -28,3 +28,4 @@ typedef struct {
 } model_t;
 
 void model_destroy(model_t);
+mat4s model_matrix(transform_t);
