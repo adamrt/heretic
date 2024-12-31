@@ -98,6 +98,12 @@ void main() {
 
 
 @vs background_vs
+
+// This is necessary because the Y-axis is flipped in OpenGL.
+@glsl_options flip_vert_y
+// This is necessary because the clip space is different in Metal.
+@msl_options fixup_clipspace
+
 in vec3 a_position;
 
 out vec2 v_uv;

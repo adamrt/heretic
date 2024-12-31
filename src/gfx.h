@@ -20,7 +20,8 @@ sg_image gfx_get_color_image(void);
 
 sg_sampler gfx_get_sampler(void);
 sg_buffer gfx_get_quad_vbuf(void);
-sg_buffer gfx_get_quad_ibuf(void);
+
+sg_face_winding gfx_get_face_winding(void);
 
 int gfx_get_scale_divisor(void);
 void gfx_set_scale_divisor(int);
@@ -28,7 +29,6 @@ void gfx_set_scale_divisor(int);
 typedef struct {
     sg_sampler sampler;
     sg_buffer quad_vbuf;
-    sg_buffer quad_ibuf;
     sg_pipeline pipeline;
     sg_image color_image;
     sg_image depth_image;

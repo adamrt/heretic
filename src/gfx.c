@@ -24,8 +24,6 @@ static gfx_t _state;
 static void _init(void);
 static mat4s model_matrix(transform_t);
 
-static sg_face_winding face_winding;
-
 // There are two passes so we can render the offscreen image to a fullscreen
 // quad. The offscreen is rendered in a lower resolution and then upscaled to
 // the window size to keep the pixelated look.
@@ -34,13 +32,6 @@ void gfx_init(void) {
         .environment = sglue_environment(),
         .logger.func = slog_func,
     });
-
-    sg_backend backend = sg_query_backend();
-    if (backend == SG_BACKEND_D3D11 || backend == SG_BACKEND_METAL_MACOS) {
-        face_winding = SG_FACEWINDING_CW;
-    } else {
-        face_winding = SG_FACEWINDING_CCW;
-    }
 
     _init();
 }
@@ -175,12 +166,6 @@ static void _init(void) {
         .label = "quad-vertices",
     });
 
-    _state.quad_ibuf = sg_make_buffer(&(sg_buffer_desc) {
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = SG_RANGE(shape_quad_indices),
-        .label = "quad-indices",
-    });
-
     _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .attrs = {
@@ -192,7 +177,7 @@ static void _init(void) {
             },
         },
         .shader = sg_make_shader(standard_shader_desc(sg_query_backend())),
-        .face_winding = face_winding,
+        .face_winding = gfx_get_face_winding(),
         .cull_mode = SG_CULLMODE_BACK,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
@@ -208,10 +193,6 @@ sg_buffer gfx_get_quad_vbuf(void) {
     return _state.quad_vbuf;
 }
 
-sg_buffer gfx_get_quad_ibuf(void) {
-    return _state.quad_ibuf;
-}
-
 static mat4s model_matrix(transform_t transform) {
     mat4s model_matrix = glms_mat4_identity();
     model_matrix = glms_translate(model_matrix, transform.translation);
@@ -224,4 +205,22 @@ static mat4s model_matrix(transform_t transform) {
 
 sg_image gfx_get_color_image(void) {
     return _state.color_image;
+}
+
+// API specific winding order. This is required because OpenGL uses CCW order
+// for font-facing triangles, while Metal and DirectX use CW for front-facing
+// triangles.
+sg_face_winding gfx_get_face_winding(void) {
+    sg_backend backend = sg_query_backend();
+    // Return the appropriate face winding order based on the backend
+    switch (backend) {
+    case SG_BACKEND_D3D11:
+    case SG_BACKEND_METAL_MACOS:
+    case SG_BACKEND_METAL_IOS:
+        return SG_FACEWINDING_CW;
+    case SG_BACKEND_GLCORE:
+    case SG_BACKEND_GLES3:
+    default:
+        return SG_FACEWINDING_CCW;
+    }
 }

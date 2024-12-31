@@ -20,8 +20,8 @@ void background_init(void) {
             },
         },
         .shader = sg_make_shader(background_shader_desc(sg_query_backend())),
-        .index_type = SG_INDEXTYPE_UINT16,
-        .cull_mode = SG_CULLMODE_NONE,
+        .face_winding = gfx_get_face_winding(),
+        .cull_mode = SG_CULLMODE_BACK,
         .depth = {
             // Disable write and compare so thebg doesn't affect the depth buffer.
             .pixel_format = SG_PIXELFORMAT_DEPTH,
@@ -34,7 +34,6 @@ void background_init(void) {
 
     _state.bindings = (sg_bindings) {
         .vertex_buffers[0] = gfx_get_quad_vbuf(),
-        .index_buffer = gfx_get_quad_ibuf(),
     };
 }
 
