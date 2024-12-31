@@ -12,6 +12,7 @@ void vm_init(void) {
     _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = fn_display_message;
     _state.handlers[OPCODE_ID_CAMERA] = fn_camera;
     _state.handlers[OPCODE_ID_WAITFORINSTRUCTION] = fn_wait_for_instruction;
+    _state.handlers[OPCODE_ID_WARPUNIT] = fn_warp_unit;
 }
 
 void vm_reset(void) {

@@ -44,7 +44,7 @@ void scene_render(void) {
     {
         background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
         gfx_render_model(&_state.model);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             if (texture_valid(_state.sprites_3d[i].texture)) {
                 sprite_render_3d(&_state.sprites_3d[i]);
             }
@@ -79,20 +79,6 @@ void scene_load_scenario(int scenario_id) {
 
     _state.event = event_get_event(scenario.event_id);
     scene_load_map(scenario.map_id, scenario_state);
-
-    texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
-
-    f32 z = -30.0f;
-    for (int i = 0; i < 5; i++) {
-        transform_t tranform = {
-            .translation = { { -23.0f, 23.0f, z } },
-            .rotation = { { 0.0f, 0.0f, 0.0f } },
-            .scale = { { 15.0f, 15.0f, 15.0f } },
-        };
-        sprite_t sprite = sprite_create_3d(texture, (vec2s) { { 24.0f * i, 0.0f } }, (vec2s) { { 24.0f, 40.0f } }, tranform);
-        _state.sprites_3d[i] = sprite;
-        z += 30.0f;
-    }
 }
 
 void scene_set_map_rotation(f32 maprot) {

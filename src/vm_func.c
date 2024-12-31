@@ -84,3 +84,23 @@ void fn_wait_for_instruction(const instruction_t* instr) {
     waittype_e waittype = instr->params[0].value.u8;
     vm_wait(waittype);
 }
+
+void fn_warp_unit(const instruction_t* instr) {
+    u8 unit_id = instr->params[0].value.u8;
+    u8 unused = instr->params[1].value.u8; // always 0x00
+    u8 tile_x = instr->params[2].value.u8;
+    u8 tile_y = instr->params[3].value.u8;
+    u8 elevation = instr->params[4].value.u8; // 0x00 lower, 0x01 upper
+    u8 facing = instr->params[5].value.u8;    // 0x00 south, 0x01 west, 0x02 north, 0x03 east
+
+    texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
+    sprite_t* sprite = &scene_get_internals()->sprites_3d[unit_id];
+    transform_t transform = {
+        .translation = { { tile_x * 24.0f, elevation * 5.0f, tile_y * 24.0f } },
+        .rotation = { { 0.0f, facing * 90.0f, 0.0f } },
+        .scale = { { 15.0f, 15.0f, 15.0f } }
+    };
+    *sprite = sprite_create_3d(texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32.0f, 40.0f } }, transform);
+
+    (void)unused;
+}
