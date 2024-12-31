@@ -1,13 +1,23 @@
 // https://ffhacktics.com/wiki/EVENT/FRAME.BIN
 #include <string.h>
 
+#include "cglm/struct/mat4.h"
+
+#include "mesh.h"
+#include "sokol_gfx.h"
+
+#include "shader.glsl.h"
+
+#include "camera.h"
 #include "defines.h"
 #include "filesystem.h"
+#include "gfx.h"
 #include "image.h"
 #include "memory.h"
 #include "span.h"
 #include "sprite.h"
 #include "texture.h"
+#include "util.h"
 
 static struct {
     // There is some wasted space because space on the palette_idx and cache
@@ -27,6 +37,9 @@ static struct {
     // find them.
     u8 current_palette_idx_evtface[8][8];
     texture_t cache_evtface[8];
+
+    sg_pipeline pipeline;
+    sg_bindings bindings;
 } _state;
 
 typedef struct {
@@ -59,6 +72,39 @@ void sprite_init(void) {
             _state.current_palette_idx_evtface[row][col] = UINT8_MAX;
         }
     }
+
+    _state.bindings = (sg_bindings) {
+        .vertex_buffers[0] = gfx_get_quad_vbuf(),
+        .samplers[SMP_u_sampler] = gfx_get_sampler(),
+    };
+
+    _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+        .layout = {
+            .buffers[0].stride = sizeof(vertex_t),
+            .attrs = {
+                [ATTR_sprite_a_position].format = SG_VERTEXFORMAT_FLOAT3,
+                [ATTR_sprite_a_uv].offset = offsetof(vertex_t, uv),
+                [ATTR_sprite_a_uv].format = SG_VERTEXFORMAT_FLOAT2,
+            },
+        },
+        .shader = sg_make_shader(sprite_shader_desc(sg_query_backend())),
+        .face_winding = gfx_get_face_winding(),
+        .cull_mode = SG_CULLMODE_NONE,
+        .depth = {
+            // Disable write and compare so thebg doesn't affect the depth buffer.
+            .pixel_format = SG_PIXELFORMAT_DEPTH,
+            .compare = SG_COMPAREFUNC_LESS,
+            .write_enabled = true,
+        },
+        .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
+        .colors[0].blend = {
+            .enabled = true,
+            .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+            .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .op_rgb = SG_BLENDOP_ADD,
+        },
+        .label = "sprite-pipeline",
+    });
 }
 
 void sprite_shutdown(void) {
@@ -72,6 +118,64 @@ void sprite_shutdown(void) {
             texture_destroy(_state.cache_evtface[row]);
         }
     }
+}
+
+sprite_t sprite_create(texture_t texture, vec2s min, vec2s size, transform_t transform) {
+    vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
+    vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
+
+    sprite_t sprite = {
+        .texture = texture,
+        .uv_min = uv_min,
+        .uv_max = uv_max,
+        .transform = transform,
+    };
+    return sprite;
+}
+
+void sprite_render(const sprite_t* sprite) {
+    // Get the sprite's model matrix (translation and scale)
+    mat4s model_mat = model_matrix(sprite->transform);
+
+    // Retrieve the camera's view matrix
+    mat4s view_mat = camera_get_view();
+
+    // Extract and transpose the rotational part of the view matrix
+    mat4s rotation_only = glms_mat4_identity();
+    rotation_only.col[0] = (vec4s) { { view_mat.col[0].x, view_mat.col[0].y, view_mat.col[0].z, 0.0f } };
+    rotation_only.col[1] = (vec4s) { { view_mat.col[1].x, view_mat.col[1].y, view_mat.col[1].z, 0.0f } };
+    rotation_only.col[2] = (vec4s) { { view_mat.col[2].x, view_mat.col[2].y, view_mat.col[2].z, 0.0f } };
+
+    mat4s inv_view_rot = glms_mat4_transpose(rotation_only);
+
+    // Build the billboard matrix: rotation + translation + scale
+    mat4s billboard_mat = inv_view_rot;
+
+    // Apply scale
+    vec3s scale = sprite->transform.scale;
+    billboard_mat.col[0] = glms_vec4_scale(billboard_mat.col[0], scale.x);
+    billboard_mat.col[1] = glms_vec4_scale(billboard_mat.col[1], scale.y);
+    billboard_mat.col[2] = glms_vec4_scale(billboard_mat.col[2], scale.z);
+
+    // Preserve translation from the model matrix
+    billboard_mat.col[3] = model_mat.col[3];
+
+    vs_sprite_params_t vs_params = {
+        .u_proj = camera_get_proj(),
+        .u_view = view_mat,
+        .u_model = billboard_mat,
+        .u_uv_min = sprite->uv_min,
+        .u_uv_max = sprite->uv_max,
+    };
+
+    ASSERT(texture_valid(sprite->texture), "Invalid sprite texture");
+
+    _state.bindings.images[IMG_u_texture] = sprite->texture.gpu_image;
+
+    sg_apply_pipeline(_state.pipeline);
+    sg_apply_bindings(&_state.bindings);
+    sg_apply_uniforms(0, &SG_RANGE(vs_params));
+    sg_draw(0, 6, 1);
 }
 
 texture_t sprite_get_paletted_texture(file_entry_e entry, int palette_idx) {

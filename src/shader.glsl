@@ -2,6 +2,11 @@
 @ctype mat3 mat3s
 @ctype vec4 vec4s
 @ctype vec3 vec3s
+@ctype vec2 vec2s
+
+//
+// Standard - Used for rendering 3D models/maps.
+//
 
 @vs standard_vs
 
@@ -42,6 +47,7 @@ void main() {
 @end
 
 @fs standard_fs
+
 layout(binding=1) uniform fs_standard_params {
     vec4  u_ambient_color;
     float u_ambient_strength;
@@ -96,6 +102,9 @@ void main() {
 }
 @end
 
+//
+// Background - used for render the gradient backgorund
+//
 
 @vs background_vs
 
@@ -129,21 +138,40 @@ void main() {
 }
 @end
 
-@vs display_vs
+//
+// Sprite
+//
+
+@vs sprite_vs
+
+// This is necessary because the Y-axis is flipped in OpenGL.
+@glsl_options flip_vert_y
+// This is necessary because the clip space is different in Metal.
+@msl_options fixup_clipspace
+
+layout(binding=0) uniform vs_sprite_params {
+    mat4 u_proj;
+    mat4 u_view;
+    mat4 u_model;
+    vec2 u_uv_min;
+    vec2 u_uv_max;
+};
+
 in vec3 a_position;
 in vec2 a_uv;
 
 out vec2 v_uv;
 
 void main() {
-    gl_Position = vec4(a_position.xy, 0.0, 1.0);
-    v_uv = a_uv;
+    // Simple 3D transform for sprites if you’re drawing in a 3D scene.
+    gl_Position = u_proj * u_view * u_model * vec4(a_position, 1.0);
+    v_uv = mix(u_uv_min, u_uv_max, a_uv);
 }
 @end
 
-@fs display_fs
-layout(binding=0) uniform texture2D u_texture;
-layout(binding=0) uniform sampler u_sampler;
+@fs sprite_fs
+layout(binding=0) uniform texture2D  u_texture;
+layout(binding=0) uniform sampler    u_sampler;
 
 in vec2 v_uv;
 
@@ -151,9 +179,12 @@ out vec4 frag_color;
 
 void main() {
     frag_color = texture(sampler2D(u_texture, u_sampler), v_uv);
+    if (frag_color.a < 0.5)
+        discard;
+
 }
 @end
 
 @program standard   standard_vs   standard_fs
 @program background background_vs background_fs
-@program display    display_vs    display_fs
+@program sprite     sprite_vs     sprite_fs
