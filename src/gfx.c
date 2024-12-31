@@ -1,6 +1,3 @@
-#include "cglm/struct/affine-pre.h"
-#include "cglm/struct/affine.h"
-#include "cglm/struct/mat4.h"
 #include "cglm/struct/vec4.h"
 
 #include "sokol_app.h"

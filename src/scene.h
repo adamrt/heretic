@@ -17,7 +17,8 @@ typedef struct {
     mode_e mode;
 
     model_t model;
-    sprite_t sprites[10];
+    sprite_t sprites_3d[10];
+    sprite_t sprites_2d[10];
     map_t* map;
 
     int current_scenario_id;

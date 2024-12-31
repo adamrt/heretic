@@ -289,7 +289,6 @@ static void _draw_window_scene(void) {
 
     if (igCollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen)) {
         igSliderFloat3("Model", (float*)&scene->model.transform.translation.raw, -1000.0f, 1000.0f);
-        igSliderFloat3("Sprite", (float*)&scene->sprites[0].transform.translation.raw, -1000.0f, 1000.0f);
     }
 
     if (igCollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {

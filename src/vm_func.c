@@ -2,9 +2,11 @@
 
 #include "camera.h"
 #include "dialog.h"
+#include "gfx.h"
 #include "message.h"
 #include "parse.h"
 #include "scene.h"
+#include "sprite.h"
 #include "transition.h"
 #include "vm.h"
 
@@ -30,11 +32,28 @@ void fn_display_message(const instruction_t* instr) {
     /* printf("Opening: speed: %d, remboucing: %d, darken: %d, arrow: %d\n", opening.speed, opening.remove_bouncing, opening.darken, opening.toggle_arrow_right); */
     /* printf("Text: %s\n", text); */
 
+    int speed = 10;
+    if (opening.speed == DIALOG_SPEED_PLUS_50) {
+        speed = 15;
+    } else if (opening.speed == DIALOG_SPEED_MINUS_50) {
+        speed = 5;
+    }
+
+    x = GFX_RENDER_WIDTH / 2 + x;
+    y = GFX_RENDER_HEIGHT / 2 + y;
+
+    texture_t texture = sprite_get_paletted_texture(F_EVENT__FRAME_BIN, 0);
+    sprite_t* sprite = &scene->sprites_2d[0];
+    *sprite = sprite_create_2d(texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, x, y, 20.0f);
+
+    transition_add(instr->opcode, &sprite->transform_2d.scale, 20.0f, 80.0f, speed);
+    transition_add(instr->opcode, &sprite->transform_2d.scale, 20.0f, 40.0f, speed);
+
+    sprite_t* portrait = &scene->sprites_2d[1];
+    texture_t portrait_texture = sprite_get_evtface_bin_texture(portrait_row + 1, 0);
+    *portrait = sprite_create_2d(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
+
     (void)dialog;
-    (void)unit_id;
-    (void)portrait_row;
-    (void)x;
-    (void)y;
     (void)arrow_pos;
     (void)opening;
 }
