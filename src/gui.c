@@ -287,6 +287,11 @@ static void _draw_window_scene(void) {
     igText("Map: %d - %s", scene->current_map, map_list[scene->current_map].name);
     igNewLine();
 
+    if (igCollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen)) {
+        igSliderFloat3("Model", (float*)&scene->model.transform.translation.raw, -1000.0f, 1000.0f);
+        igSliderFloat3("Sprite", (float*)&scene->sprites[0].transform.translation.raw, -1000.0f, 1000.0f);
+    }
+
     if (igCollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
         igNewLine();
         if (igRadioButton("Orthographic", !cam->use_perspective)) {

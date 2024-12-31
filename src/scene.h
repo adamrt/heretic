@@ -6,6 +6,7 @@
 #include "map.h"
 #include "map_record.h"
 #include "model.h"
+#include "sprite.h"
 
 typedef enum {
     MODE_EVENT,
@@ -16,6 +17,7 @@ typedef struct {
     mode_e mode;
 
     model_t model;
+    sprite_t sprites[10];
     map_t* map;
 
     int current_scenario_id;
