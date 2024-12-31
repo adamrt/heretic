@@ -91,7 +91,7 @@ bool gui_input(const sapp_event* event) {
     return is_handled;
 }
 
-static void _draw_map_records(void) {
+static void _draw_window_map_records(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Map Records", &_state.show_window_map_records, 0);
     igCheckbox("Show Texture Resources", &_state.show_texture_resources);
@@ -146,14 +146,14 @@ static void _draw_map_records(void) {
     igEnd();
 }
 
-static void _draw_game_font_image(void) {
+static void _draw_window_sprite_font(void) {
     igBegin("FONT.BIN", &_state.show_sprite_window[F_EVENT__FONT_BIN], 0);
     ImVec2 dims = { FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT };
     igImage(simgui_imtextureid(font_get_atlas_image()), dims);
     igEnd();
 }
 
-static void _draw_paletted_image(file_entry_e entry, int width, int height) {
+static void _draw_window_sprite_paletted(file_entry_e entry, int width, int height) {
     file_desc_t desc = file_list[entry];
     igBegin(desc.name, &_state.show_sprite_window[entry], 0);
     ImVec2 dims = { width * 2, height * 2 };
@@ -183,7 +183,7 @@ static void _draw_paletted_image(file_entry_e entry, int width, int height) {
     igEnd();
 }
 
-static void _draw_game_evtface_image(int row_idx) {
+static void _draw_window_sprite_evtface(int row_idx) {
     file_entry_e entry = F_EVENT__EVTFACE_BIN;
     file_desc_t desc = file_list[entry];
     ImVec2 dims = { 256 * 2, 48 * 2 };
@@ -217,7 +217,7 @@ static void _draw_game_evtface_image(int row_idx) {
     igEnd();
 }
 
-static void _draw_event_text(void) {
+static void _draw_window_event_text(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Event Text", &_state.show_window_event_text, 0);
     if (scene->event.message_count == 0) {
@@ -239,7 +239,7 @@ static void _draw_event_text(void) {
     igEnd();
 }
 
-static void _draw_scene(void) {
+static void _draw_window_scene(void) {
     camera_t* cam = camera_get_internals();
     scene_t* scene = scene_get_internals();
     igBegin("Scene", &_state.show_window_scene, 0);
@@ -322,7 +322,7 @@ static void _draw_scene(void) {
     igEnd();
 }
 
-static void _draw_map_lights(void) {
+static void _draw_window_map_lights(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Map Lights", &_state.show_window_map_lights, 0);
 
@@ -394,7 +394,7 @@ void _row_instr_camera(instruction_t* instr) {
     igText("%d", duration);
 }
 
-static void _draw_event_instructions(void) {
+static void _draw_window_event_instructions(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Event Instructions", &_state.show_window_event_instructions, 0);
     if (igBeginTable("", 13, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
@@ -535,43 +535,43 @@ static void _draw(void) {
     igEnd();
 
     if (_state.show_window_scene) {
-        _draw_scene();
+        _draw_window_scene();
     }
 
     if (_state.show_window_event_instructions) {
-        _draw_event_instructions();
+        _draw_window_event_instructions();
     }
     if (_state.show_window_event_text) {
-        _draw_event_text();
+        _draw_window_event_text();
     }
 
     if (_state.show_window_map_records) {
-        _draw_map_records();
+        _draw_window_map_records();
     }
 
     if (_state.show_window_map_lights) {
-        _draw_map_lights();
+        _draw_window_map_lights();
     }
 
     if (_state.show_sprite_window[F_EVENT__FONT_BIN]) {
-        _draw_game_font_image();
+        _draw_window_sprite_font();
     }
 
     if (_state.show_sprite_window[F_EVENT__FRAME_BIN]) {
-        _draw_paletted_image(F_EVENT__FRAME_BIN, 256, 288);
+        _draw_window_sprite_paletted(F_EVENT__FRAME_BIN, 256, 288);
     }
 
     if (_state.show_sprite_window[F_EVENT__ITEM_BIN]) {
-        _draw_paletted_image(F_EVENT__ITEM_BIN, 256, 256);
+        _draw_window_sprite_paletted(F_EVENT__ITEM_BIN, 256, 256);
     }
 
     if (_state.show_sprite_window[F_EVENT__UNIT_BIN]) {
-        _draw_paletted_image(F_EVENT__UNIT_BIN, 256, 480);
+        _draw_window_sprite_paletted(F_EVENT__UNIT_BIN, 256, 480);
     }
 
     if (_state.show_sprite_window[F_EVENT__EVTFACE_BIN]) {
         for (int i = 0; i < 8; i++) {
-            _draw_game_evtface_image(i);
+            _draw_window_sprite_evtface(i);
         }
     }
 
