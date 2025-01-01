@@ -7,6 +7,7 @@
 #include "image.h"
 #include "lighting.h"
 #include "mesh.h"
+#include "terrain.h"
 #include "util.h"
 
 static geometry_t _read_geometry(span_t*);
@@ -20,6 +21,7 @@ mesh_t read_mesh(span_t* span) {
     mesh.geometry = _read_geometry(span);
     mesh.palette = _read_palette(span);
     mesh.lighting = read_lighting(span);
+    mesh.terrain = read_terrain(span);
 
     bool is_valid = mesh.geometry.valid || mesh.palette.valid || mesh.lighting.valid;
     mesh.valid = is_valid;
@@ -237,6 +239,10 @@ void merge_meshes(mesh_t* dst, const mesh_t* src) {
         dst->lighting.ambient_color = src->lighting.ambient_color;
         dst->lighting.bg_top = src->lighting.bg_top;
         dst->lighting.bg_bottom = src->lighting.bg_bottom;
+    }
+
+    if (src->terrain.valid) {
+        dst->terrain = src->terrain;
     }
 }
 

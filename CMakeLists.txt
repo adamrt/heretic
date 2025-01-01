@@ -81,6 +81,7 @@ add_executable(heretic
     src/scene.c
     src/span.c
     src/sprite.c
+    src/terrain.c
     src/texture.c
     src/time.c
     src/transition.c

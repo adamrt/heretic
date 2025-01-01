@@ -2,9 +2,11 @@
 
 #include "cglm/types-struct.h"
 
+#include "defines.h"
 #include "image.h"
 #include "lighting.h"
 #include "span.h"
+#include "terrain.h"
 
 constexpr int MESH_MAX_TEX_TRIS = 512;
 constexpr int MESH_MAX_TEX_QUADS = 768;
@@ -63,6 +65,7 @@ typedef struct {
     geometry_t geometry;
     image_t palette;
     lighting_t lighting;
+    terrain_t terrain;
 
     bool valid;
 } mesh_t;
