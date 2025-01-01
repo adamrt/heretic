@@ -27,10 +27,16 @@ typedef struct {
 
 typedef struct {
     vertex_t a, b, c;
+    u8 terrain_x;
+    u8 terrain_z;
+    u8 elevation;
 } triangle_t;
 
 typedef struct {
     vertex_t a, b, c, d;
+    u8 terrain_x;
+    u8 terrain_z;
+    u8 elevation;
 } quad_t;
 
 typedef struct {

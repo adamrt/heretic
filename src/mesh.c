@@ -105,6 +105,7 @@ static geometry_t _read_geometry(span_t* span) {
         (void)span_read_u8(span); // padding
         f32 bu = span_read_u8(span);
         f32 bv = span_read_u8(span);
+        // FIXME: Page's byte has two other important bits for the texture image to use.
         f32 page = (span_read_u8(span) & 0x03); // 0b00000011
         (void)span_read_u8(span);               // padding
         f32 cu = span_read_u8(span);
@@ -133,6 +134,7 @@ static geometry_t _read_geometry(span_t* span) {
         (void)span_read_u8(span); // padding
         f32 bu = span_read_u8(span);
         f32 bv = span_read_u8(span);
+        // FIXME: Page's byte has two other important bits for the texture image to use.
         f32 page = (span_read_u8(span) & 0x03); // 0b00000011
         (void)span_read_u8(span);               // padding
         f32 cu = span_read_u8(span);
@@ -157,6 +159,30 @@ static geometry_t _read_geometry(span_t* span) {
         geometry.tex_quads[i].d.uv = d;
         geometry.tex_quads[i].d.palette_index = palette;
         geometry.tex_quads[i].d.is_textured = 1.0f;
+    }
+
+    // Unknown Untextured Polygon Data (skip over it)
+    span->offset += 4 * Q + 4 * R;
+
+    // Polygon tile locations (length N * 2 + P * 2)
+    for (int i = 0; i < N; i++) {
+        u8 zy = span_read_u8(span);
+        u8 z = (zy >> 1) & 0b11111110;
+        u8 y = (zy >> 0) & 0b00000001;
+        u8 x = span_read_u8(span);
+        geometry.tex_tris[i].terrain_x = x;
+        geometry.tex_tris[i].terrain_z = z;
+        geometry.tex_tris[i].elevation = y;
+    }
+
+    for (int i = 0; i < P; i++) {
+        u8 zy = span_read_u8(span);
+        u8 z = (zy >> 1) & 0b11111110;
+        u8 y = (zy >> 0) & 0b00000001;
+        u8 x = span_read_u8(span);
+        geometry.tex_quads[i].terrain_x = x;
+        geometry.tex_quads[i].terrain_z = z;
+        geometry.tex_quads[i].elevation = y;
     }
 
     geometry.valid = true;
