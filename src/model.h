@@ -1,16 +1,11 @@
 #pragma once
 
-#include "lighting.h"
+#include "cglm/types-struct.h"
 #include "sokol_gfx.h"
 
-#include "cglm/types-struct.h"
+#include "lighting.h"
 #include "texture.h"
-
-typedef struct {
-    vec3s translation;
-    vec3s rotation;
-    vec3s scale;
-} transform_t;
+#include "transform.h"
 
 // model_t represents a renderable model
 typedef struct {
@@ -22,10 +17,9 @@ typedef struct {
 
     lighting_t lighting;
 
-    transform_t transform;
+    transform3d_t transform;
     int vertex_count;
     vec3s center;
 } model_t;
 
 void model_destroy(model_t);
-mat4s model_matrix(transform_t);

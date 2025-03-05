@@ -70,7 +70,7 @@ void gfx_render_end(void) {
 }
 
 void gfx_render_model(const model_t* model) {
-    mat4s model_mat = model_matrix(model->transform);
+    mat4s model_mat = transform_to_matrix(model->transform);
 
     vs_standard_params_t vs_params = {
         .u_proj = camera_get_proj(),

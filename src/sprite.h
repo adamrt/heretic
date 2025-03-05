@@ -3,15 +3,11 @@
 #include <stdbool.h>
 
 #include "cglm/types-struct.h"
+
 #include "filesystem.h"
-#include "model.h"
 #include "sokol_gfx.h"
 #include "texture.h"
-
-typedef struct {
-    vec3s scale;
-    vec2s screen_pos;
-} transform2d_t;
+#include "transform.h"
 
 typedef struct {
     texture_t texture;
@@ -24,15 +20,15 @@ typedef struct {
     texture_t texture;
     vec2s uv_min;
     vec2s uv_max;
-    transform_t transform;
+    transform3d_t transform;
 } sprite3d_t;
 
 void sprite_init(void);
 void sprite_shutdown(void);
-sprite3d_t sprite3d_create(texture_t, vec2s, vec2s, transform_t);
 sprite2d_t sprite2d_create(texture_t, vec2s, vec2s, f32, f32, f32);
-void sprite3d_render(const sprite3d_t*);
+sprite3d_t sprite3d_create(texture_t, vec2s, vec2s, transform3d_t);
 void sprite2d_render(const sprite2d_t*);
+void sprite3d_render(const sprite3d_t*);
 
 // FIXME: These should be moved to another module.
 // resource.h? sprite_resource.h? sprite_loader.h?

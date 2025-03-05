@@ -95,7 +95,7 @@ void fn_warp_unit(const instruction_t* instr) {
 
     texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
     sprite3d_t* sprite = &scene_get_internals()->sprite3ds[unit_id];
-    transform_t transform = {
+    transform3d_t transform = {
         .translation = { { tile_x * 24.0f, elevation * 5.0f, tile_y * 24.0f } },
         .rotation = { { 0.0f, facing * 90.0f, 0.0f } },
         .scale = { { 15.0f, 15.0f, 15.0f } }

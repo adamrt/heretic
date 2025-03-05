@@ -84,6 +84,7 @@ add_executable(heretic
     src/terrain.c
     src/texture.c
     src/time.c
+    src/transform.c
     src/transition.c
     src/vm.c
     src/vm_func.c)

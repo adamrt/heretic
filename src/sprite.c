@@ -169,7 +169,7 @@ sprite2d_t sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 
     return sprite;
 }
 
-sprite3d_t sprite3d_create(texture_t texture, vec2s min, vec2s size, transform_t transform) {
+sprite3d_t sprite3d_create(texture_t texture, vec2s min, vec2s size, transform3d_t transform) {
     vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
     vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
 
@@ -212,7 +212,7 @@ void sprite2d_render(const sprite2d_t* sprite) {
 
 void sprite3d_render(const sprite3d_t* sprite) {
     // Get the sprite's model matrix (translation and scale)
-    mat4s model_mat = model_matrix(sprite->transform);
+    mat4s model_mat = transform_to_matrix(sprite->transform);
 
     // Retrieve the camera's view matrix
     mat4s view_mat = camera_get_view();
