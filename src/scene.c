@@ -45,11 +45,11 @@ void scene_render(void) {
         background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
         gfx_render_model(&_state.model);
         for (int i = 0; i < 100; i++) {
-            if (texture_valid(_state.sprites_3d[i].texture)) {
-                sprite_render_3d(&_state.sprites_3d[i]);
+            if (texture_valid(_state.sprite3ds[i].texture)) {
+                sprite3d_render(&_state.sprite3ds[i]);
             }
-            if (texture_valid(_state.sprites_2d[i].texture)) {
-                sprite_render_2d(&_state.sprites_2d[i]);
+            if (texture_valid(_state.sprite2ds[i].texture)) {
+                sprite2d_render(&_state.sprite2ds[i]);
             }
         }
     }

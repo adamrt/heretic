@@ -153,15 +153,15 @@ void sprite_shutdown(void) {
     }
 }
 
-sprite_t sprite_create_2d(texture_t texture, vec2s min, vec2s size, f32 x, f32 y, f32 scale) {
+sprite2d_t sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 y, f32 scale) {
     vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
     vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
 
-    sprite_t sprite = {
+    sprite2d_t sprite = {
         .texture = texture,
         .uv_min = uv_min,
         .uv_max = uv_max,
-        .transform_2d = {
+        .transform = {
             .scale = { { scale, scale, scale } },
             .screen_pos = { { x, y } },
         },
@@ -169,26 +169,26 @@ sprite_t sprite_create_2d(texture_t texture, vec2s min, vec2s size, f32 x, f32 y
     return sprite;
 }
 
-sprite_t sprite_create_3d(texture_t texture, vec2s min, vec2s size, transform_t transform) {
+sprite3d_t sprite3d_create(texture_t texture, vec2s min, vec2s size, transform_t transform) {
     vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
     vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
 
-    sprite_t sprite = {
+    sprite3d_t sprite = {
         .texture = texture,
         .uv_min = uv_min,
         .uv_max = uv_max,
-        .transform_3d = transform,
+        .transform = transform,
     };
     return sprite;
 }
 
-void sprite_render_2d(const sprite_t* sprite) {
+void sprite2d_render(const sprite2d_t* sprite) {
     mat4s ortho_proj = glms_ortho(0.0f, GFX_RENDER_WIDTH, 0.0f, GFX_RENDER_HEIGHT, -1.0f, 1.0f);
 
     // Model matrix for screen position
     mat4s model_mat = glms_mat4_identity();
-    model_mat = glms_translate(model_mat, (vec3s) { { sprite->transform_2d.screen_pos.x, sprite->transform_2d.screen_pos.y, 0.0f } });
-    model_mat = glms_scale(model_mat, sprite->transform_2d.scale);
+    model_mat = glms_translate(model_mat, (vec3s) { { sprite->transform.screen_pos.x, sprite->transform.screen_pos.y, 0.0f } });
+    model_mat = glms_scale(model_mat, sprite->transform.scale);
 
     // Set up uniforms
     vs_sprite_params_t vs_params = {
@@ -210,9 +210,9 @@ void sprite_render_2d(const sprite_t* sprite) {
     sg_draw(0, 6, 1);
 }
 
-void sprite_render_3d(const sprite_t* sprite) {
+void sprite3d_render(const sprite3d_t* sprite) {
     // Get the sprite's model matrix (translation and scale)
-    mat4s model_mat = model_matrix(sprite->transform_3d);
+    mat4s model_mat = model_matrix(sprite->transform);
 
     // Retrieve the camera's view matrix
     mat4s view_mat = camera_get_view();
@@ -229,7 +229,7 @@ void sprite_render_3d(const sprite_t* sprite) {
     mat4s billboard_mat = inv_view_rot;
 
     // Apply scale
-    vec3s scale = sprite->transform_3d.scale;
+    vec3s scale = sprite->transform.scale;
     billboard_mat.col[0] = glms_vec4_scale(billboard_mat.col[0], scale.x);
     billboard_mat.col[1] = glms_vec4_scale(billboard_mat.col[1], scale.y);
     billboard_mat.col[2] = glms_vec4_scale(billboard_mat.col[2], scale.z);

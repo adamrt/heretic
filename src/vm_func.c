@@ -43,15 +43,15 @@ void fn_display_message(const instruction_t* instr) {
     y = GFX_RENDER_HEIGHT / 2 + y;
 
     texture_t texture = sprite_get_paletted_texture(F_EVENT__FRAME_BIN, 0);
-    sprite_t* sprite = &scene->sprites_2d[0];
-    *sprite = sprite_create_2d(texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, x, y, 20.0f);
+    sprite2d_t* sprite = &scene->sprite2ds[0];
+    *sprite = sprite2d_create(texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, x, y, 20.0f);
 
-    transition_add(instr->opcode, &sprite->transform_2d.scale, 20.0f, 80.0f, speed);
-    transition_add(instr->opcode, &sprite->transform_2d.scale, 20.0f, 40.0f, speed);
+    transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 80.0f, speed);
+    transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 40.0f, speed);
 
-    sprite_t* portrait = &scene->sprites_2d[1];
+    sprite2d_t* portrait = &scene->sprite2ds[1];
     texture_t portrait_texture = sprite_get_evtface_bin_texture(portrait_row + 1, 0);
-    *portrait = sprite_create_2d(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
+    *portrait = sprite2d_create(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
 
     (void)dialog;
     (void)arrow_pos;
@@ -94,13 +94,13 @@ void fn_warp_unit(const instruction_t* instr) {
     u8 facing = instr->params[5].value.u8;    // 0x00 south, 0x01 west, 0x02 north, 0x03 east
 
     texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
-    sprite_t* sprite = &scene_get_internals()->sprites_3d[unit_id];
+    sprite3d_t* sprite = &scene_get_internals()->sprite3ds[unit_id];
     transform_t transform = {
         .translation = { { tile_x * 24.0f, elevation * 5.0f, tile_y * 24.0f } },
         .rotation = { { 0.0f, facing * 90.0f, 0.0f } },
         .scale = { { 15.0f, 15.0f, 15.0f } }
     };
-    *sprite = sprite_create_3d(texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32.0f, 40.0f } }, transform);
+    *sprite = sprite3d_create(texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32.0f, 40.0f } }, transform);
 
     (void)unused;
 }
