@@ -93,6 +93,13 @@ void fn_warp_unit(const instruction_t* instr) {
     u8 elevation = instr->params[4].value.u8; // 0x00 lower, 0x01 upper
     u8 facing = instr->params[5].value.u8;    // 0x00 south, 0x01 west, 0x02 north, 0x03 east
 
+    // FIXME: unit_id is probably not what we want to use here, but we aren't working
+    // with units yet so ignore for now.
+    if (unit_id >= 100) {
+        printf("Invalid unit id %d\n", unit_id);
+        return;
+    }
+
     texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
     sprite3d_t* sprite = &scene_get_internals()->sprite3ds[unit_id];
     transform3d_t transform = {
