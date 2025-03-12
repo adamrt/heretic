@@ -107,8 +107,8 @@ mat4s camera_get_proj(void) {
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);
     } else {
-        f32 w = _state.frustum / _state.zoom;
-        f32 h = _state.frustum * aspect / _state.zoom;
+        f32 w = _state.frustum * aspect / _state.zoom;
+        f32 h = _state.frustum / _state.zoom;
         return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
     }
 }
