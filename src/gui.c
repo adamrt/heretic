@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include "cglm/util.h"
 #include "cimgui.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
@@ -383,13 +384,13 @@ void _row_instr_camera(instruction_t* instr) {
     igText("%0.2f", z);
     igTableSetColumnIndex(5);
     igText("Pitch");
-    igText("%0.2f°", pitch);
+    igText("%0.2f°", glm_deg(pitch));
     igTableSetColumnIndex(6);
     igText("Yaw");
-    igText("%0.2f°", yaw);
+    igText("%0.2f°", glm_deg(yaw));
     igTableSetColumnIndex(7);
     igText("MapRot");
-    igText("%0.2f°", maprot);
+    igText("%0.2f°", glm_deg(maprot));
     igTableSetColumnIndex(8);
     igText("Zoom");
     igText("%0.2f", zoom);
