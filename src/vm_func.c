@@ -62,9 +62,9 @@ void fn_camera(const instruction_t* instr) {
     camera_t* cam = camera_get_internals();
     scene_t* scene = scene_get_internals();
 
-    f32 x = parse_coord(instr->params[0].value.i16);
-    f32 y = -parse_coord(instr->params[1].value.i16);
-    f32 z = parse_coord(instr->params[2].value.i16);
+    f32 x = parse_coord(COORD_X, instr->params[0].value.i16);
+    f32 y = parse_coord(COORD_Y, instr->params[1].value.i16);
+    f32 z = parse_coord(COORD_Z, instr->params[2].value.i16);
     f32 pitch_rad = parse_rad(instr->params[3].value.i16);
     f32 maprot_rad = parse_rad(instr->params[4].value.i16);
     f32 yaw_rad = parse_rad(instr->params[5].value.i16);
