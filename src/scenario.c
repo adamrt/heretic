@@ -12,11 +12,11 @@ static scenario_t read_scenario(span_t*);
 scenario_t scenario_get_scenario(int id) {
     ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
     span_t file = filesystem_read_file(F_EVENT__ATTACK_OUT);
-    span_t span = {
-        .data = file.data + SCENARIO_OFFSET + (id * SCENARIO_SIZE),
-        .size = SCENARIO_SIZE,
-    };
-    file.offset = SCENARIO_OFFSET + (id * SCENARIO_SIZE);
+
+    span_t span = {};
+    span.data = file.data + SCENARIO_OFFSET + (id * SCENARIO_SIZE);
+    span.size = SCENARIO_SIZE;
+
     scenario_t scenario = read_scenario(&span);
     return scenario;
 }
