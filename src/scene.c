@@ -47,9 +47,6 @@ void scene_shutdown(void) {
     _scene_map_unload();
 }
 
-void scene_update(void) {
-}
-
 void scene_render(void) {
     gfx_render_begin();
     {

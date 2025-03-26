@@ -3,7 +3,6 @@
 #include <stdbool.h>
 
 #include "event.h"
-#include "gfx_sprite.h"
 #include "map.h"
 #include "map_record.h"
 
@@ -22,7 +21,6 @@ typedef struct {
 
 void scene_init(void);
 void scene_shutdown(void);
-void scene_update(void);
 void scene_render(void);
 
 // Temporary

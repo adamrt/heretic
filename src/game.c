@@ -54,7 +54,6 @@ void game_update(void) {
     time_update();
     vm_update();
     transition_update();
-    scene_update();
     scene_render();
 }
 

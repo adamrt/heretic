@@ -56,6 +56,7 @@ void* memory_allocate_impl(usize size, const char* file, int line) {
 
     return (void*)(header + 1);
 }
+
 void memory_free(void* ptr) {
     if (ptr == NULL) {
         return;
