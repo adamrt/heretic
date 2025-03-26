@@ -11,13 +11,15 @@ static struct {
     // This is a cache of the files that have been read from the filesystem.
     // This is useful for lazy loading files and not having to read the same
     // file multiple times.
-    u8* cache[F_FILE_COUNT];
-    usize cached_count;
-    usize cached_size;
+    struct {
+        u8* files[F_FILE_COUNT];
+        usize count;
+        usize size;
+    } cache;
 } _state;
 
-usize filesystem_cached_count(void) { return _state.cached_count; }
-usize filesystem_cached_size(void) { return _state.cached_size; }
+usize filesystem_cached_count(void) { return _state.cache.count; }
+usize filesystem_cached_size(void) { return _state.cache.size; }
 
 // This is a list of description for all files in the filesystem.
 //
@@ -42,25 +44,25 @@ void filesystem_init(void) {
 
 void filesystem_shutdown(void) {
     for (usize i = 0; i < F_FILE_COUNT; i++) {
-        if (_state.cache[i] != NULL) {
-            memory_free(_state.cache[i]);
+        if (_state.cache.files[i] != NULL) {
+            memory_free(_state.cache.files[i]);
         }
     }
     fclose(_state.file);
 }
 
 span_t filesystem_read_file(file_entry_e file) {
-    if (_state.cache[file] == NULL) {
+    if (_state.cache.files[file] == NULL) {
         u8* bytes = memory_allocate(file_list[file].size);
         _read_file(file, bytes);
-        _state.cache[file] = bytes;
+        _state.cache.files[file] = bytes;
 
-        _state.cached_count++;
-        _state.cached_size += file_list[file].size;
+        _state.cache.count++;
+        _state.cache.size += file_list[file].size;
     }
 
     span_t span = (span_t) {
-        .data = _state.cache[file],
+        .data = _state.cache.files[file],
         .size = file_list[file].size,
     };
 

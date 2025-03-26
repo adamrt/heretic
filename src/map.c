@@ -75,14 +75,19 @@ void map_destroy(map_t* map) {
     if (map == NULL) {
         return;
     }
+
+    // Textures
     for (int i = 0; i < map->texture_count; i++) {
         image_destroy(map->textures[i]);
     }
+
+    // Palettes
+    image_destroy(map->primary_mesh.palette);
+    image_destroy(map->override_mesh.palette);
     for (int i = 0; i < map->alt_mesh_count; i++) {
         image_destroy(map->alt_meshes[i].palette);
     }
-    image_destroy(map->primary_mesh.palette);
-    image_destroy(map->override_mesh.palette);
+
     memory_free(map);
 }
 
