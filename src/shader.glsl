@@ -9,11 +9,8 @@
 //
 
 @vs standard_vs
-
-// This is necessary because the Y-axis is flipped in OpenGL.
-@glsl_options flip_vert_y
-// This is necessary because the clip space is different in Metal.
-@msl_options fixup_clipspace
+@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
+@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 layout(binding=0) uniform vs_standard_params {
     mat4 u_proj;
@@ -107,11 +104,8 @@ void main() {
 //
 
 @vs background_vs
-
-// This is necessary because the Y-axis is flipped in OpenGL.
-@glsl_options flip_vert_y
-// This is necessary because the clip space is different in Metal.
-@msl_options fixup_clipspace
+@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
+@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 in vec3 a_position;
 
@@ -139,15 +133,45 @@ void main() {
 @end
 
 //
+// Lines - used for rendering lines
+//
+
+@vs line_vs
+@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
+@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
+
+layout(binding=0) uniform vs_line_params {
+    mat4 u_proj;
+    mat4 u_view;
+};
+
+in vec3 a_position;
+
+void main() {
+    vec4 v_position = vec4(a_position, 1.0);
+    gl_Position = u_proj * u_view * v_position;
+}
+@end
+
+@fs line_fs
+layout(binding=1) uniform fs_line_params {
+    vec4 u_color;
+};
+
+out vec4 frag_color;
+
+void main() {
+    frag_color = u_color;
+}
+@end
+
+//
 // Sprite
 //
 
 @vs sprite_vs
-
-// This is necessary because the Y-axis is flipped in OpenGL.
-@glsl_options flip_vert_y
-// This is necessary because the clip space is different in Metal.
-@msl_options fixup_clipspace
+@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
+@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 layout(binding=0) uniform vs_sprite_params {
     mat4 u_proj;
@@ -187,4 +211,5 @@ void main() {
 
 @program standard   standard_vs   standard_fs
 @program background background_vs background_fs
+@program line       line_vs       line_fs
 @program sprite     sprite_vs     sprite_fs

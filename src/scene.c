@@ -41,8 +41,14 @@ void scene_update(void) {
 
 void scene_render(void) {
     gfx_render_begin();
+
+    // Draw the background
     {
         background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
+    }
+
+    // Draw the model
+    {
         gfx_render_model(&_state.model);
         for (int i = 0; i < 100; i++) {
             if (texture_valid(_state.sprite3ds[i].texture)) {
@@ -53,6 +59,20 @@ void scene_render(void) {
             }
         }
     }
+
+    // Draw the axes
+    {
+        // FIXME: gfx_render_lines() makes/destroys a buffer every frame
+        // It works but should be optimized to reuse/update the same buffer.
+        f32 dim = 28.0f * 5.0f; // Use constants
+        vec3s verts_x[2] = { { { 0, 0, 0 } }, { { dim, 0, 0 } } };
+        vec3s verts_y[2] = { { { 0, 0, 0 } }, { { 0, dim, 0 } } };
+        vec3s verts_z[2] = { { { 0, 0, 0 } }, { { 0, 0, -dim } } };
+        gfx_render_lines(verts_x, (sg_color) { 1, 0, 0, 1 }); // X (red)
+        gfx_render_lines(verts_y, (sg_color) { 0, 1, 0, 1 }); // Y (green)
+        gfx_render_lines(verts_z, (sg_color) { 0, 0, 1, 1 }); // Z (blue)
+    }
+
     gfx_render_end();
 }
 

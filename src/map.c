@@ -63,10 +63,7 @@ model_t map_make_model(const map_t* map, map_state_t map_state) {
         .vertex_count = final_mesh.geometry.vertex_count,
         .lighting = final_mesh.lighting,
         .center = centered_translation,
-        .transform = {
-            .translation = centered_translation, // Centering for now as it seems better.
-            .scale = { { 1.0f, 1.0f, 1.0f } },
-        },
+        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
         .vbuf = vbuf,
         .texture = texture,
         .palette = palette,

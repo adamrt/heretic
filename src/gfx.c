@@ -1,3 +1,4 @@
+#include "cglm/struct/mat4.h"
 #include "cglm/struct/vec4.h"
 
 #include "sokol_app.h"
@@ -113,12 +114,38 @@ void gfx_render_model(const model_t* model) {
     sg_draw(0, model->vertex_count, 1);
 }
 
+void gfx_render_lines(const vec3s vertices[static 2], sg_color color) {
+    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data.ptr = vertices,
+        .data.size = 2 * sizeof(vec3s),
+        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .label = "line-buffer-temp",
+    });
+
+    vs_line_params_t vs_params = {
+        .u_proj = camera_get_proj(),
+        .u_view = camera_get_view(),
+    };
+
+    vec4s color_vec = { { color.r, color.g, color.b, color.a } };
+
+    sg_apply_pipeline(_state.line_pipeline);
+    sg_apply_bindings(&(sg_bindings) { .vertex_buffers[0] = vbuf });
+    sg_apply_uniforms(0, &SG_RANGE(vs_params));
+    sg_apply_uniforms(1, &SG_RANGE(color_vec));
+    sg_draw(0, 2, 1);
+
+    sg_destroy_buffer(vbuf);
+}
+
 void gfx_shutdown(void) {
     sg_destroy_pipeline(_state.pipeline);
+    sg_destroy_pipeline(_state.line_pipeline);
     sg_destroy_attachments(_state.attachments);
     sg_destroy_image(_state.color_image);
     sg_destroy_image(_state.depth_image);
     sg_destroy_sampler(_state.sampler);
+    sg_destroy_buffer(_state.quad_vbuf);
     sg_shutdown();
 }
 
@@ -182,6 +209,23 @@ static void _init(void) {
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
         .label = "standard-pipeline",
+    });
+
+    _state.line_pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
+        .shader = sg_make_shader(line_shader_desc(sg_query_backend())),
+        .layout = {
+            .attrs = {
+                [0].format = SG_VERTEXFORMAT_FLOAT3,
+            },
+        },
+        .primitive_type = SG_PRIMITIVETYPE_LINES,
+        .depth = {
+            .compare = SG_COMPAREFUNC_LESS,
+            .pixel_format = SG_PIXELFORMAT_DEPTH,
+            .write_enabled = false,
+        },
+        .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
+        .label = "line-pipeline",
     });
 }
 
