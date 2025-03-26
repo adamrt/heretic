@@ -2,8 +2,6 @@
 
 #include "sokol_gfx.h"
 
-#include "gfx_model.h"
-
 constexpr int GFX_WINDOW_WIDTH = 1920;
 constexpr int GFX_WINDOW_HEIGHT = 1280;
 
@@ -13,12 +11,10 @@ constexpr int GFX_RENDER_HEIGHT = 240 * 2;
 void gfx_init(void);
 void gfx_shutdown(void);
 void gfx_render_begin(void);
-void gfx_render_model(const model_t*);
 void gfx_render_end(void);
 void gfx_scale_change(void);
 
 sg_image gfx_get_color_image(void);
-
 sg_sampler gfx_get_sampler(void);
 sg_buffer gfx_get_quad_vbuf(void);
 

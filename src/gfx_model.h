@@ -22,4 +22,7 @@ typedef struct {
     vec3s center;
 } model_t;
 
-void model_destroy(model_t);
+void gfx_model_init(void);
+void gfx_model_shutdown(void);
+void gfx_model_render(const model_t*);
+void gfx_model_destroy(model_t);

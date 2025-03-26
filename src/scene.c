@@ -7,6 +7,7 @@
 #include "gfx.h"
 #include "gfx_background.h"
 #include "gfx_line.h"
+#include "gfx_model.h"
 #include "gfx_sprite.h"
 #include "map.h"
 #include "scenario.h"
@@ -43,29 +44,18 @@ void scene_update(void) {
 void scene_render(void) {
     gfx_render_begin();
 
-    // Draw the background
-    {
-        gfx_background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
-    }
+    gfx_background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
+    gfx_model_render(&_state.model);
+    gfx_line_render_axis();
 
-    // Draw the model
-    {
-        gfx_render_model(&_state.model);
-        for (int i = 0; i < 100; i++) {
-            if (texture_valid(_state.sprite3ds[i].texture)) {
-                gfx_sprite3d_render(&_state.sprite3ds[i]);
-            }
-            if (texture_valid(_state.sprite2ds[i].texture)) {
-                gfx_sprite2d_render(&_state.sprite2ds[i]);
-            }
+    for (int i = 0; i < 100; i++) {
+        if (texture_valid(_state.sprite3ds[i].texture)) {
+            gfx_sprite3d_render(&_state.sprite3ds[i]);
+        }
+        if (texture_valid(_state.sprite2ds[i].texture)) {
+            gfx_sprite2d_render(&_state.sprite2ds[i]);
         }
     }
-
-    // Draw the axis
-    {
-        gfx_line_render_axis();
-    }
-
     gfx_render_end();
 }
 
@@ -152,5 +142,5 @@ static void _scene_switch(switch_e dir) {
 
 static void _scene_map_unload(void) {
     map_destroy(_state.map);
-    model_destroy(_state.model);
+    gfx_model_destroy(_state.model);
 }
