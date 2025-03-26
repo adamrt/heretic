@@ -118,6 +118,7 @@ map_t* read_map(int num) {
             record->vertex_count = map->primary_mesh.geometry.vertex_count;
             record->light_count = map->primary_mesh.lighting.light_count;
             record->valid_palette = map->primary_mesh.palette.valid;
+            record->valid_terrain = map->primary_mesh.terrain.valid;
 
             ASSERT(map->primary_mesh.valid, "Primary mesh is invalid");
             break;
@@ -129,6 +130,7 @@ map_t* read_map(int num) {
             record->vertex_count = alt_mesh.geometry.vertex_count;
             record->light_count = alt_mesh.lighting.light_count;
             record->valid_palette = alt_mesh.palette.valid;
+            record->valid_terrain = alt_mesh.terrain.valid;
             break;
         }
 

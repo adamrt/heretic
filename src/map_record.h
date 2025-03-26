@@ -54,6 +54,7 @@ typedef struct {
     int vertex_count;
     int light_count;
     bool valid_palette;
+    bool valid_terrain;
 
     u8 data[MAP_RECORD_SIZE];
 } map_record_t;

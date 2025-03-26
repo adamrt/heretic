@@ -42,6 +42,7 @@ static struct {
     bool show_window_event_instructions;
 
     bool show_texture_resources;
+    bool show_window_terrain;
 
     bool show_window_demo;
 } _state;
@@ -64,7 +65,9 @@ void gui_init(void) {
     _state.show_window_event_instructions = true;
     _state.show_texture_resources = false;
     _state.show_window_demo = false;
+    _state.show_window_terrain = true;
 }
+
 void gui_shutdown(void) {
     igSaveIniSettingsToDisk("imgui.ini");
     simgui_shutdown();
@@ -97,7 +100,7 @@ static void _draw_window_map_records(void) {
     igBegin("Map Records", &_state.show_window_map_records, 0);
     igCheckbox("Show Texture Resources", &_state.show_texture_resources);
 
-    if (igBeginTable("", 8, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+    if (igBeginTable("", 9, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
         igTableSetupColumnEx("Action", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
         igTableSetupColumnEx("Layout", ImGuiTableColumnFlags_WidthFixed, 25.0f, 0);
         igTableSetupColumnEx("Time", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
@@ -106,6 +109,8 @@ static void _draw_window_map_records(void) {
         igTableSetupColumnEx("Verts", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
         igTableSetupColumnEx("Lights", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
         igTableSetupColumnEx("Pallete", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
+        igTableSetupColumnEx("Terrain", ImGuiTableColumnFlags_WidthStretch, 50.0f, 0);
+
         igTableHeadersRow();
 
         for (int i = 0; i < scene->map->record_count; i++) {
@@ -139,6 +144,10 @@ static void _draw_window_map_records(void) {
             }
             if (r.valid_palette) {
                 igTableSetColumnIndex(7);
+                igText("true");
+            }
+            if (r.valid_terrain) {
+                igTableSetColumnIndex(8);
                 igText("true");
             }
         }
@@ -469,6 +478,81 @@ static void _draw_window_event_instructions(void) {
     igEnd();
 }
 
+static void _draw_window_terrain(void) {
+    scene_t* scene = scene_get_internals();
+    int x_count = scene->map->primary_mesh.terrain.x_count;
+    int z_count = scene->map->primary_mesh.terrain.z_count;
+
+    igBegin("Terrain", &_state.show_window_terrain, 0);
+
+    igText("Terrain: %d x %d = %d", x_count, z_count, x_count * z_count);
+
+    if (igBeginTable("", 13, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("#", ImGuiTableColumnFlags_WidthFixed, 20, 0);
+        igTableSetupColumnEx("lvl", ImGuiTableColumnFlags_WidthFixed, 30, 0);
+        igTableSetupColumnEx("Z", ImGuiTableColumnFlags_WidthFixed, 20, 0);
+        igTableSetupColumnEx("X", ImGuiTableColumnFlags_WidthFixed, 20, 0);
+        igTableSetupColumnEx("Surface", ImGuiTableColumnFlags_WidthFixed, 120, 0);
+        igTableSetupColumnEx("Slope", ImGuiTableColumnFlags_WidthFixed, 80, 0);
+        igTableSetupColumnEx("Slope Bot/Top", ImGuiTableColumnFlags_WidthFixed, 90, 0);
+        igTableSetupColumnEx("Depth", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+        igTableSetupColumnEx("Shading", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+        igTableSetupColumnEx("AutoCam", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+        igTableSetupColumnEx("Pass", ImGuiTableColumnFlags_WidthFixed, 40, 0);
+        igTableSetupColumnEx("Walk", ImGuiTableColumnFlags_WidthFixed, 40, 0);
+        igTableSetupColumnEx("Select", ImGuiTableColumnFlags_WidthFixed, 40, 0);
+
+        igTableHeadersRow();
+
+        for (u8 level = 0; level < 2; level++) {
+            for (int z = 0; z < z_count; z++) {
+                for (int x = 0; x < x_count; x++) {
+                    tile_t* tile = &scene->map->primary_mesh.terrain.tiles[level][z * x_count + x];
+                    igTableNextRow();
+                    int tile_number = level * (z_count * x_count) + (z * x_count + x);
+
+                    igTableSetColumnIndex(0);
+                    igText("%d", tile_number);
+                    igTableSetColumnIndex(1);
+                    igText("%d", level);
+                    igTableSetColumnIndex(2);
+                    igText("%d", z);
+                    igTableSetColumnIndex(3);
+                    igText("%d", x);
+                    igTableSetColumnIndex(4);
+                    igText("%s", terrain_surface_str(tile->surface));
+                    igTableSetColumnIndex(5);
+                    igText("%s", terrain_slope_str(tile->slope));
+                    igTableSetColumnIndex(6);
+                    if (tile->sloped_height_top == 0) {
+                        igText("%d", tile->sloped_height_bottom);
+                    } else {
+                        igText("%d -> %d", tile->sloped_height_bottom, tile->sloped_height_bottom + tile->sloped_height_top);
+                    }
+                    igTableSetColumnIndex(7);
+                    igText("%d", tile->depth);
+                    igTableSetColumnIndex(8);
+                    igText("%s", terrain_shading_str(tile->shading));
+                    igTableSetColumnIndex(9);
+
+                    char cam_dir_str[TERRAIN_STR_SIZE];
+                    terrain_camdir_str(tile->auto_cam_dir, cam_dir_str);
+                    igText("%s", cam_dir_str);
+
+                    igTableSetColumnIndex(10);
+                    igText("%s", tile->pass_through_only ? "true" : "false");
+                    igTableSetColumnIndex(11);
+                    igText("%s", !tile->cant_walk ? "false" : "true");
+                    igTableSetColumnIndex(12);
+                    igText("%s", !tile->cant_select ? "false" : "true");
+                }
+            }
+        }
+        igEndTable();
+    }
+    igEnd();
+}
+
 static void _draw(void) {
     is_hovered = false;
     ImVec2 dims = { GFX_RENDER_WIDTH + 10, GFX_RENDER_HEIGHT + 10 };
@@ -507,6 +591,9 @@ static void _draw(void) {
         }
         if (igMenuItem("Lights")) {
             _state.show_window_map_lights = !_state.show_window_map_lights;
+        }
+        if (igMenuItem("Terrain")) {
+            _state.show_window_terrain = !_state.show_window_terrain;
         }
         igEndMenu();
     }
@@ -556,6 +643,10 @@ static void _draw(void) {
 
     if (_state.show_window_map_lights) {
         _draw_window_map_lights();
+    }
+
+    if (_state.show_window_terrain) {
+        _draw_window_terrain();
     }
 
     if (_state.show_sprite_window[F_EVENT__FONT_BIN]) {
