@@ -9,7 +9,10 @@
 
 #include "camera.h"
 #include "gfx.h"
+#include "gfx_background.h"
+#include "gfx_line.h"
 #include "gfx_model.h"
+#include "gfx_sprite.h"
 #include "gui.h"
 #include "lighting.h"
 #include "shape.h"
@@ -30,6 +33,10 @@ void gfx_init(void) {
     });
 
     _init();
+
+    gfx_sprite_init();
+    gfx_background_init();
+    gfx_line_init();
 }
 
 void gfx_render_begin(void) {
@@ -114,6 +121,10 @@ void gfx_render_model(const model_t* model) {
 }
 
 void gfx_shutdown(void) {
+    gfx_sprite_shutdown();
+    gfx_background_shutdown();
+    gfx_line_shutdown();
+
     sg_destroy_pipeline(_state.pipeline);
     sg_destroy_attachments(_state.attachments);
     sg_destroy_image(_state.color_image);

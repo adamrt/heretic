@@ -3,9 +3,6 @@
 #include "filesystem.h"
 #include "font.h"
 #include "gfx.h"
-#include "gfx_background.h"
-#include "gfx_line.h"
-#include "gfx_sprite.h"
 #include "gui.h"
 #include "memory.h"
 #include "scene.h"
@@ -24,7 +21,6 @@ static bool data_initialized = false;
 void data_init(void) {
     filesystem_init();
     font_init();
-    gfx_sprite_init();
     scene_init();
     data_initialized = true;
 }
@@ -35,8 +31,6 @@ void game_init(void) {
     camera_init();
     vm_init();
     gfx_init();
-    gfx_background_init();
-    gfx_line_init();
     gui_init();
 
 #if !defined(__EMSCRIPTEN__)
@@ -48,10 +42,7 @@ void game_shutdown(void) {
     scene_shutdown();
     filesystem_shutdown();
     font_shutdown();
-    gfx_sprite_shutdown();
     gui_shutdown();
-    gfx_background_shutdown();
-    gfx_line_shutdown();
     gfx_shutdown();
     memory_shutdown();
 }
