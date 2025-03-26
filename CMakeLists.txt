@@ -69,6 +69,7 @@ add_executable(heretic
     src/image.c
     src/instruction.c
     src/lighting.c
+    src/line.c
     src/map.c
     src/map_record.c
     src/memory.c

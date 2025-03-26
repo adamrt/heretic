@@ -1,3 +1,4 @@
+#include "line.h"
 #include "map.h"
 #include "sokol_gfx.h"
 
@@ -60,17 +61,9 @@ void scene_render(void) {
         }
     }
 
-    // Draw the axes
+    // Draw the axis
     {
-        // FIXME: gfx_render_lines() makes/destroys a buffer every frame
-        // It works but should be optimized to reuse/update the same buffer.
-        f32 dim = 28.0f * 5.0f; // Use constants
-        vec3s verts_x[2] = { { { 0, 0, 0 } }, { { dim, 0, 0 } } };
-        vec3s verts_y[2] = { { { 0, 0, 0 } }, { { 0, dim, 0 } } };
-        vec3s verts_z[2] = { { { 0, 0, 0 } }, { { 0, 0, -dim } } };
-        gfx_render_lines(verts_x, (sg_color) { 1, 0, 0, 1 }); // X (red)
-        gfx_render_lines(verts_y, (sg_color) { 0, 1, 0, 1 }); // Y (green)
-        gfx_render_lines(verts_z, (sg_color) { 0, 0, 1, 1 }); // Z (blue)
+        line_render_axis();
     }
 
     gfx_render_end();

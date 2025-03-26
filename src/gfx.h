@@ -13,7 +13,6 @@ void gfx_init(void);
 void gfx_shutdown(void);
 void gfx_render_begin(void);
 void gfx_render_model(const model_t*);
-void gfx_render_lines(const vec3s[static 2], sg_color);
 void gfx_render_end(void);
 void gfx_scale_change(void);
 
@@ -31,7 +30,6 @@ typedef struct {
     sg_sampler sampler;
     sg_buffer quad_vbuf;
     sg_pipeline pipeline;
-    sg_pipeline line_pipeline;
     sg_image color_image;
     sg_image depth_image;
     sg_attachments attachments;

@@ -5,6 +5,7 @@
 #include "font.h"
 #include "gfx.h"
 #include "gui.h"
+#include "line.h"
 #include "memory.h"
 #include "scene.h"
 #include "sprite.h"
@@ -35,6 +36,7 @@ void game_init(void) {
     vm_init();
     gfx_init();
     background_init();
+    line_init();
     gui_init();
 
 #if !defined(__EMSCRIPTEN__)
@@ -49,6 +51,7 @@ void game_shutdown(void) {
     sprite_shutdown();
     gui_shutdown();
     background_shutdown();
+    line_shutdown();
     gfx_shutdown();
     memory_shutdown();
 }
