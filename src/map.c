@@ -10,7 +10,7 @@
 static image_t _read_map_texture(span_t* span) {
     constexpr int width = 256;
     constexpr int height = 1024;
-    return image_read_4bpp_image(span, width, height, span->offset);
+    return image_read_4bpp_image(span, width, height);
 }
 
 model_t map_make_model(const map_t* map, map_state_t map_state) {

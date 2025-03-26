@@ -7,17 +7,16 @@
 
 static vec4s _read_rgb15(span_t* span);
 
-image_t image_read_rgb15_image(span_t* span, int width, int height, int offset) {
+image_t image_read_rgb15_image(span_t* span, int width, int height) {
     const int dims = width * height;
     const int size = dims * 4;
     const int size_on_disk = dims / 2;
 
-    span->offset = offset;
     u8* data = memory_allocate(size);
 
     usize write_idx = 0;
     for (int i = 0; i < size_on_disk * 2; i++) {
-        vec4s c = _read_rgb15(span); // reading 2 at a time
+        vec4s c = _read_rgb15(span); // reading 2 bytes at a time
         data[write_idx++] = c.r;
         data[write_idx++] = c.g;
         data[write_idx++] = c.b;
@@ -35,12 +34,11 @@ image_t image_read_rgb15_image(span_t* span, int width, int height, int offset) 
     return image;
 }
 
-image_t image_read_4bpp_image(span_t* span, int width, int height, int offset) {
+image_t image_read_4bpp_image(span_t* span, int width, int height) {
     const int dims = width * height;
     const int size = dims * 4;
     const int size_on_disk = dims / 2;
 
-    span->offset = offset;
     u8* data = memory_allocate(size);
 
     usize write_idx = 0;
