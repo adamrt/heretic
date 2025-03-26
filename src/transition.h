@@ -23,6 +23,7 @@ typedef struct {
     size_t transaction_count;
 } transition_manager_t;
 
+void transition_reset(void);
 void transition_update(void);
 void transition_add(opcode_id_t, void*, f32, f32, f32);
 bool transition_has_active(waittype_e);

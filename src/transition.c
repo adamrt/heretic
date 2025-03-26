@@ -9,6 +9,10 @@
 
 static transition_manager_t _state;
 
+void transition_reset(void) {
+    _state.transaction_count = 0;
+}
+
 void transition_update(void) {
     for (usize i = 0; i < _state.transaction_count;) {
         transition_t* t = &_state.transitions[i];

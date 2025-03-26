@@ -12,6 +12,7 @@
 #include "map.h"
 #include "scenario.h"
 #include "scene.h"
+#include "transition.h"
 #include "util.h"
 #include "vm.h"
 
@@ -71,6 +72,7 @@ void scene_load_map(int num, map_state_t map_state) {
 }
 
 void scene_load_scenario(int scenario_id) {
+    transition_reset();
     vm_reset();
 
     scenario_t scenario = scenario_get_scenario(scenario_id);
