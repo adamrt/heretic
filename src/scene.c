@@ -12,7 +12,6 @@
 #include "map.h"
 #include "scenario.h"
 #include "scene.h"
-#include "transition.h"
 #include "util.h"
 #include "vm.h"
 
@@ -35,6 +34,15 @@ void scene_init(void) {
     scene_load_scenario(_state.current_scenario_id);
 }
 
+void scene_reset(void) {
+    _state.current_map = 0;
+
+    vm_reset();
+    map_destroy(_state.map);
+    gfx_model_destroy();
+    gfx_sprite_reset();
+}
+
 void scene_shutdown(void) {
     _scene_map_unload();
 }
@@ -44,24 +52,17 @@ void scene_update(void) {
 
 void scene_render(void) {
     gfx_render_begin();
-
-    gfx_background_render();
-    gfx_model_render();
-    gfx_line_render_axis();
-
-    for (int i = 0; i < 100; i++) {
-        if (texture_valid(_state.sprite3ds[i].texture)) {
-            gfx_sprite3d_render(&_state.sprite3ds[i]);
-        }
-        if (texture_valid(_state.sprite2ds[i].texture)) {
-            gfx_sprite2d_render(&_state.sprite2ds[i]);
-        }
+    {
+        gfx_background_render();
+        gfx_model_render();
+        gfx_line_render_axis();
+        gfx_sprite_render();
     }
     gfx_render_end();
 }
 
 void scene_load_map(int num, map_state_t map_state) {
-    _scene_map_unload();
+    scene_reset();
 
     map_t* map = read_map(num);
     model_t model = map_make_model(map, map_state);
@@ -74,8 +75,6 @@ void scene_load_map(int num, map_state_t map_state) {
 }
 
 void scene_load_scenario(int scenario_id) {
-    vm_reset();
-
     scenario_t scenario = scenario_get_scenario(scenario_id);
     map_state_t scenario_state = {
         .time = scenario.time,
@@ -140,6 +139,4 @@ static void _scene_switch(switch_e dir) {
 }
 
 static void _scene_map_unload(void) {
-    map_destroy(_state.map);
-    gfx_model_destroy();
 }

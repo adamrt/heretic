@@ -14,14 +14,9 @@ typedef enum {
 
 typedef struct {
     mode_e mode;
-
     map_t* map;
-    sprite3d_t sprite3ds[100];
-    sprite2d_t sprite2ds[100];
-
     int current_scenario_id;
     int current_map;
-
     event_t event;
 } scene_t;
 

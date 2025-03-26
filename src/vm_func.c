@@ -42,14 +42,15 @@ void fn_display_message(const instruction_t* instr) {
     x = GFX_RENDER_WIDTH / 2 + x;
     y = GFX_RENDER_HEIGHT / 2 + y;
 
+    sprite2d_t* sprites = gfx_sprite2d_get_internals();
     texture_t texture = sprite_get_paletted_texture(F_EVENT__FRAME_BIN, 0);
-    sprite2d_t* sprite = &scene->sprite2ds[0];
+    sprite2d_t* sprite = &sprites[0];
     *sprite = gfx_sprite2d_create(texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, x, y, 20.0f);
 
     transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 80.0f, speed);
     transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 40.0f, speed);
 
-    sprite2d_t* portrait = &scene->sprite2ds[1];
+    sprite2d_t* portrait = &sprites[1];
     texture_t portrait_texture = sprite_get_evtface_bin_texture(portrait_row + 1, 0);
     *portrait = gfx_sprite2d_create(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
 
@@ -102,12 +103,13 @@ void fn_warp_unit(const instruction_t* instr) {
     }
 
     texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
-    sprite3d_t* sprite = &scene_get_internals()->sprite3ds[unit_id];
     transform3d_t transform = {
         .translation = { { tile_x * 24.0f, elevation * 5.0f, tile_y * 24.0f } },
         .rotation = { { 0.0f, facing * 90.0f, 0.0f } },
         .scale = { { 15.0f, 15.0f, 15.0f } }
     };
+
+    sprite3d_t* sprite = &gfx_sprite3d_get_internals()[unit_id];
     *sprite = gfx_sprite3d_create(texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32.0f, 40.0f } }, transform);
 
     (void)unused;
