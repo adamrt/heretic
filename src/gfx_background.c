@@ -10,7 +10,15 @@
 static struct {
     sg_pipeline pipeline;
     sg_bindings bindings;
+
+    vec4s top_color;
+    vec4s bottom_color;
 } _state;
+
+void gfx_background_set(vec4s top, vec4s bottom) {
+    _state.top_color = top;
+    _state.bottom_color = bottom;
+}
 
 void gfx_background_init(void) {
     _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
@@ -42,12 +50,12 @@ void gfx_background_shutdown(void) {
     sg_destroy_pipeline(_state.pipeline);
 }
 
-void gfx_background_render(vec4s top_color, vec4s bottom_color) {
+void gfx_background_render(void) {
     sg_apply_pipeline(_state.pipeline);
 
     fs_background_params_t fs_params;
-    fs_params.u_top_color = top_color;
-    fs_params.u_bottom_color = bottom_color;
+    fs_params.u_top_color = _state.top_color;
+    fs_params.u_bottom_color = _state.bottom_color;
 
     sg_apply_pipeline(_state.pipeline);
     sg_apply_bindings(&_state.bindings);

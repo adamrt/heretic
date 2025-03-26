@@ -3,7 +3,6 @@
 #include <stdbool.h>
 
 #include "event.h"
-#include "gfx_model.h"
 #include "gfx_sprite.h"
 #include "map.h"
 #include "map_record.h"
@@ -16,7 +15,6 @@ typedef enum {
 typedef struct {
     mode_e mode;
 
-    model_t model;
     map_t* map;
     sprite3d_t sprite3ds[100];
     sprite2d_t sprite2ds[100];

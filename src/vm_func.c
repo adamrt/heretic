@@ -60,7 +60,7 @@ void fn_display_message(const instruction_t* instr) {
 
 void fn_camera(const instruction_t* instr) {
     camera_t* cam = camera_get_internals();
-    scene_t* scene = scene_get_internals();
+    transform3d_t* transform = gfx_model_get_transform();
 
     f32 x = parse_coord(COORD_X, instr->params[0].value.i16);
     f32 y = parse_coord(COORD_Y, instr->params[1].value.i16);
@@ -77,7 +77,8 @@ void fn_camera(const instruction_t* instr) {
     transition_add(instr->opcode, &cam->yaw_rad, cam->yaw_rad, yaw_rad, duration);
     transition_add(instr->opcode, &cam->pitch_rad, cam->pitch_rad, pitch_rad, duration);
     transition_add(instr->opcode, &cam->zoom, cam->zoom, zoom, duration);
-    transition_add(instr->opcode, &scene->model.transform.rotation.y, scene->model.transform.rotation.y, maprot_rad, duration);
+
+    transition_add(instr->opcode, &transform->rotation.y, transform->rotation.y, maprot_rad, duration);
 }
 
 void fn_wait_for_instruction(const instruction_t* instr) {

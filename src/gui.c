@@ -2,6 +2,7 @@
 
 #include "cglm/util.h"
 #include "cimgui.h"
+#include "gfx_model.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -298,7 +299,8 @@ static void _draw_window_scene(void) {
     igNewLine();
 
     if (igCollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen)) {
-        igSliderFloat3("Model", (float*)&scene->model.transform.translation.raw, -1000.0f, 1000.0f);
+        transform3d_t* transform = gfx_model_get_transform();
+        igSliderFloat3("Model", (float*)&transform->translation.raw, -1000.0f, 1000.0f);
     }
 
     if (igCollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -337,17 +339,17 @@ static void _draw_window_scene(void) {
 }
 
 static void _draw_window_map_lights(void) {
-    scene_t* scene = scene_get_internals();
     igBegin("Map Lights", &_state.show_window_map_lights, 0);
 
-    vec4s* ambient = &scene->model.lighting.ambient_color;
+    lighting_t* lighting = gfx_model_get_lighting();
+    vec4s* ambient = &lighting->ambient_color;
     igText("Ambient");
     igColorEdit4("Color", (float*)ambient->raw, ImGuiColorEditFlags_Float);
-    igDragFloat("Strength", &scene->model.lighting.ambient_strength);
+    igDragFloat("Strength", &lighting->ambient_strength);
     igSeparator();
 
     for (int i = 0; i < 3; i++) {
-        light_t* l = &scene->model.lighting.lights[i];
+        light_t* l = &lighting->lights[i];
         if (!l->valid) {
             continue;
         }
@@ -363,7 +365,6 @@ static void _draw_window_map_lights(void) {
 }
 
 void _row_instr_camera(instruction_t* instr) {
-    scene_t* scene = scene_get_internals();
     igTableSetColumnIndex(1);
 
     param_t* p = instr->params;
@@ -379,7 +380,7 @@ void _row_instr_camera(instruction_t* instr) {
     if (igButton("MoveTo")) {
         vec3s pos = { { x, y, z } };
         camera_set_freefly(pos, yaw, pitch, zoom);
-        scene->model.transform.rotation.y = maprot;
+        gfx_model_set_y_rotation(maprot);
     }
 
     igTableSetColumnIndex(2);

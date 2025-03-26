@@ -1,6 +1,6 @@
-#include "cglm/types-struct.h"
 #include "sokol_gfx.h"
 
+#include "cglm/types-struct.h"
 #include "shader.glsl.h"
 
 #include "event.h"
@@ -45,8 +45,8 @@ void scene_update(void) {
 void scene_render(void) {
     gfx_render_begin();
 
-    gfx_background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
-    gfx_model_render(&_state.model);
+    gfx_background_render();
+    gfx_model_render();
     gfx_line_render_axis();
 
     for (int i = 0; i < 100; i++) {
@@ -67,8 +67,10 @@ void scene_load_map(int num, map_state_t map_state) {
     model_t model = map_make_model(map, map_state);
 
     _state.map = map;
-    _state.model = model;
     _state.current_map = num;
+
+    gfx_model_set(model);
+    gfx_background_set(model.lighting.bg_top, model.lighting.bg_bottom);
 }
 
 void scene_load_scenario(int scenario_id) {
@@ -84,10 +86,6 @@ void scene_load_scenario(int scenario_id) {
 
     _state.event = event_get_event(scenario.event_id);
     scene_load_map(scenario.map_id, scenario_state);
-}
-
-void scene_set_map_rotation(f32 maprot) {
-    _state.model.transform.rotation.y = maprot;
 }
 
 event_t scene_get_event(void) { return _state.event; }
@@ -144,5 +142,5 @@ static void _scene_switch(switch_e dir) {
 
 static void _scene_map_unload(void) {
     map_destroy(_state.map);
-    gfx_model_destroy(_state.model);
+    gfx_model_destroy();
 }

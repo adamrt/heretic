@@ -24,5 +24,11 @@ typedef struct {
 
 void gfx_model_init(void);
 void gfx_model_shutdown(void);
-void gfx_model_render(const model_t*);
-void gfx_model_destroy(model_t);
+void gfx_model_render(void);
+
+void gfx_model_set(model_t);
+void gfx_model_destroy();
+
+transform3d_t* gfx_model_get_transform(void);
+lighting_t* gfx_model_get_lighting(void);
+void gfx_model_set_y_rotation(f32 maprot);
