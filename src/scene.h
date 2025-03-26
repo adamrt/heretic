@@ -3,10 +3,10 @@
 #include <stdbool.h>
 
 #include "event.h"
+#include "gfx_model.h"
+#include "gfx_sprite.h"
 #include "map.h"
 #include "map_record.h"
-#include "model.h"
-#include "sprite.h"
 
 typedef enum {
     MODE_EVENT,

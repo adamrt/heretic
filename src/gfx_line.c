@@ -2,7 +2,7 @@
 
 #include "camera.h"
 #include "color.h"
-#include "line.h"
+#include "gfx_line.h"
 
 #include "shader.glsl.h"
 
@@ -25,7 +25,7 @@ vec3s verts_x[2] = { zero, axis_x };
 vec3s verts_y[2] = { zero, axis_y };
 vec3s verts_z[2] = { zero, axis_z };
 
-void line_init(void) {
+void gfx_line_init(void) {
     _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .shader = sg_make_shader(line_shader_desc(sg_query_backend())),
         .layout = {
@@ -70,14 +70,14 @@ void line_init(void) {
     });
 }
 
-void line_shutdown(void) {
+void gfx_line_shutdown(void) {
     sg_destroy_pipeline(_state.pipeline);
     sg_destroy_buffer(_state.axis_x_vbuf);
     sg_destroy_buffer(_state.axis_y_vbuf);
     sg_destroy_buffer(_state.axis_z_vbuf);
 }
 
-void line_render(sg_buffer vbuf, vec4s color) {
+void gfx_line_render(sg_buffer vbuf, vec4s color) {
     vs_line_params_t vs_params = {
         .u_proj = camera_get_proj(),
         .u_view = camera_get_view(),
@@ -90,8 +90,8 @@ void line_render(sg_buffer vbuf, vec4s color) {
     sg_draw(0, 2, 1);
 }
 
-void line_render_axis(void) {
-    line_render(_state.axis_x_vbuf, COLOR_RED);
-    line_render(_state.axis_y_vbuf, COLOR_GREEN);
-    line_render(_state.axis_z_vbuf, COLOR_BLUE);
+void gfx_line_render_axis(void) {
+    gfx_line_render(_state.axis_x_vbuf, COLOR_RED);
+    gfx_line_render(_state.axis_y_vbuf, COLOR_GREEN);
+    gfx_line_render(_state.axis_z_vbuf, COLOR_BLUE);
 }

@@ -2,10 +2,10 @@
 
 #include "defines.h"
 #include "filesystem.h"
+#include "gfx_model.h"
 #include "image.h"
 #include "map_record.h"
 #include "mesh.h"
-#include "model.h"
 
 #define MAP_COUNT 128
 

@@ -1,5 +1,5 @@
 
-#include "model.h"
+#include "gfx_model.h"
 
 void model_destroy(model_t model) {
     sg_destroy_buffer(model.vbuf);

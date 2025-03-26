@@ -1,7 +1,8 @@
 #pragma once
 
-#include "model.h"
 #include "sokol_gfx.h"
+
+#include "gfx_model.h"
 
 constexpr int GFX_WINDOW_WIDTH = 1920;
 constexpr int GFX_WINDOW_HEIGHT = 1280;

@@ -6,7 +6,6 @@
 #include "cglm/struct/cam.h"
 #include "cglm/struct/mat4.h"
 
-#include "mesh.h"
 #include "sokol_gfx.h"
 
 #include "shader.glsl.h"
@@ -15,10 +14,11 @@
 #include "defines.h"
 #include "filesystem.h"
 #include "gfx.h"
+#include "gfx_sprite.h"
 #include "image.h"
 #include "memory.h"
+#include "mesh.h"
 #include "span.h"
-#include "sprite.h"
 #include "texture.h"
 #include "util.h"
 
@@ -65,7 +65,7 @@ const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
 static image_t _read_paletted_sprite(span_t*, int, int, int, image_t, usize);
 static image_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
 
-void sprite_init(void) {
+void gfx_sprite_init(void) {
     // Initialize the palette index to -1 to make them currently invalid
     for (usize i = 0; i < F_FILE_COUNT; i++) {
         _state.current_palette_idx[i] = UINT8_MAX;
@@ -140,7 +140,7 @@ void sprite_init(void) {
     });
 }
 
-void sprite_shutdown(void) {
+void gfx_sprite_shutdown(void) {
     for (usize i = 0; i < F_FILE_COUNT; i++) {
         if (texture_valid(_state.cache[i])) {
             texture_destroy(_state.cache[i]);
@@ -153,7 +153,7 @@ void sprite_shutdown(void) {
     }
 }
 
-sprite2d_t sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 y, f32 scale) {
+sprite2d_t gfx_sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 y, f32 scale) {
     vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
     vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
 
@@ -169,7 +169,7 @@ sprite2d_t sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 
     return sprite;
 }
 
-sprite3d_t sprite3d_create(texture_t texture, vec2s min, vec2s size, transform3d_t transform) {
+sprite3d_t gfx_sprite3d_create(texture_t texture, vec2s min, vec2s size, transform3d_t transform) {
     vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
     vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
 
@@ -182,7 +182,7 @@ sprite3d_t sprite3d_create(texture_t texture, vec2s min, vec2s size, transform3d
     return sprite;
 }
 
-void sprite2d_render(const sprite2d_t* sprite) {
+void gfx_sprite2d_render(const sprite2d_t* sprite) {
     mat4s ortho_proj = glms_ortho(0.0f, GFX_RENDER_WIDTH, 0.0f, GFX_RENDER_HEIGHT, -1.0f, 1.0f);
 
     // Model matrix for screen position
@@ -210,7 +210,7 @@ void sprite2d_render(const sprite2d_t* sprite) {
     sg_draw(0, 6, 1);
 }
 
-void sprite3d_render(const sprite3d_t* sprite) {
+void gfx_sprite3d_render(const sprite3d_t* sprite) {
     // Get the sprite's model matrix (translation and scale)
     mat4s model_mat = transform_to_matrix(sprite->transform);
 

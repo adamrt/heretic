@@ -57,7 +57,6 @@ add_library(cimgui
 # Add Heretic executable
 add_executable(heretic
     src/main.c
-    src/background.c
     src/camera.c
     src/dialog.c
     src/event.c
@@ -65,23 +64,24 @@ add_executable(heretic
     src/font.c
     src/game.c
     src/gfx.c
+    src/gfx_background.c
+    src/gfx_line.c
+    src/gfx_model.c
+    src/gfx_sprite.c
     src/gui.c
     src/image.c
     src/instruction.c
     src/lighting.c
-    src/line.c
     src/map.c
     src/map_record.c
     src/memory.c
     src/message.c
-    src/model.c
     src/opcode.c
     src/mesh.c
     src/parse.c
     src/scenario.c
     src/scene.c
     src/span.c
-    src/sprite.c
     src/terrain.c
     src/texture.c
     src/time.c

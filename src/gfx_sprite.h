@@ -23,12 +23,12 @@ typedef struct {
     transform3d_t transform;
 } sprite3d_t;
 
-void sprite_init(void);
-void sprite_shutdown(void);
-sprite2d_t sprite2d_create(texture_t, vec2s, vec2s, f32, f32, f32);
-sprite3d_t sprite3d_create(texture_t, vec2s, vec2s, transform3d_t);
-void sprite2d_render(const sprite2d_t*);
-void sprite3d_render(const sprite3d_t*);
+void gfx_sprite_init(void);
+void gfx_sprite_shutdown(void);
+sprite2d_t gfx_sprite2d_create(texture_t, vec2s, vec2s, f32, f32, f32);
+sprite3d_t gfx_sprite3d_create(texture_t, vec2s, vec2s, transform3d_t);
+void gfx_sprite2d_render(const sprite2d_t*);
+void gfx_sprite3d_render(const sprite3d_t*);
 
 // FIXME: These should be moved to another module.
 // resource.h? sprite_resource.h? sprite_loader.h?

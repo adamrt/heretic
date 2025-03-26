@@ -1,9 +1,10 @@
 
-#include "gfx.h"
-#include "mesh.h"
 #include "sokol_gfx.h"
 
-#include "background.h"
+#include "gfx.h"
+#include "gfx_background.h"
+#include "mesh.h"
+
 #include "shader.glsl.h"
 
 static struct {
@@ -11,7 +12,7 @@ static struct {
     sg_bindings bindings;
 } _state;
 
-void background_init(void) {
+void gfx_background_init(void) {
     _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
         .layout = {
             .buffers[0].stride = sizeof(vertex_t),
@@ -37,11 +38,11 @@ void background_init(void) {
     };
 }
 
-void background_shutdown(void) {
+void gfx_background_shutdown(void) {
     sg_destroy_pipeline(_state.pipeline);
 }
 
-void background_render(vec4s top_color, vec4s bottom_color) {
+void gfx_background_render(vec4s top_color, vec4s bottom_color) {
     sg_apply_pipeline(_state.pipeline);
 
     fs_background_params_t fs_params;

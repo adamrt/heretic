@@ -1,4 +1,3 @@
-#include "cglm/struct/mat4.h"
 #include "cglm/struct/vec4.h"
 
 #include "sokol_app.h"
@@ -10,9 +9,9 @@
 
 #include "camera.h"
 #include "gfx.h"
+#include "gfx_model.h"
 #include "gui.h"
 #include "lighting.h"
-#include "model.h"
 #include "shape.h"
 
 // Global gfx state

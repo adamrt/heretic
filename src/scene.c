@@ -1,16 +1,16 @@
-#include "line.h"
-#include "map.h"
+#include "cglm/types-struct.h"
 #include "sokol_gfx.h"
 
-#include "cglm/types-struct.h"
 #include "shader.glsl.h"
 
-#include "background.h"
 #include "event.h"
 #include "gfx.h"
+#include "gfx_background.h"
+#include "gfx_line.h"
+#include "gfx_sprite.h"
+#include "map.h"
 #include "scenario.h"
 #include "scene.h"
-#include "sprite.h"
 #include "util.h"
 #include "vm.h"
 
@@ -45,7 +45,7 @@ void scene_render(void) {
 
     // Draw the background
     {
-        background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
+        gfx_background_render(_state.model.lighting.bg_top, _state.model.lighting.bg_bottom);
     }
 
     // Draw the model
@@ -53,17 +53,17 @@ void scene_render(void) {
         gfx_render_model(&_state.model);
         for (int i = 0; i < 100; i++) {
             if (texture_valid(_state.sprite3ds[i].texture)) {
-                sprite3d_render(&_state.sprite3ds[i]);
+                gfx_sprite3d_render(&_state.sprite3ds[i]);
             }
             if (texture_valid(_state.sprite2ds[i].texture)) {
-                sprite2d_render(&_state.sprite2ds[i]);
+                gfx_sprite2d_render(&_state.sprite2ds[i]);
             }
         }
     }
 
     // Draw the axis
     {
-        line_render_axis();
+        gfx_line_render_axis();
     }
 
     gfx_render_end();

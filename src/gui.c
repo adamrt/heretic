@@ -13,6 +13,7 @@
 #include "filesystem.h"
 #include "font.h"
 #include "gfx.h"
+#include "gfx_sprite.h"
 #include "gui.h"
 #include "map.h"
 #include "map_record.h"
@@ -21,7 +22,6 @@
 #include "opcode.h"
 #include "parse.h"
 #include "scene.h"
-#include "sprite.h"
 #include "util.h"
 #include "vm.h"
 

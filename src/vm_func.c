@@ -3,10 +3,10 @@
 #include "camera.h"
 #include "dialog.h"
 #include "gfx.h"
+#include "gfx_sprite.h"
 #include "message.h"
 #include "parse.h"
 #include "scene.h"
-#include "sprite.h"
 #include "transition.h"
 #include "vm.h"
 
@@ -44,14 +44,14 @@ void fn_display_message(const instruction_t* instr) {
 
     texture_t texture = sprite_get_paletted_texture(F_EVENT__FRAME_BIN, 0);
     sprite2d_t* sprite = &scene->sprite2ds[0];
-    *sprite = sprite2d_create(texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, x, y, 20.0f);
+    *sprite = gfx_sprite2d_create(texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, x, y, 20.0f);
 
     transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 80.0f, speed);
     transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 40.0f, speed);
 
     sprite2d_t* portrait = &scene->sprite2ds[1];
     texture_t portrait_texture = sprite_get_evtface_bin_texture(portrait_row + 1, 0);
-    *portrait = sprite2d_create(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
+    *portrait = gfx_sprite2d_create(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
 
     (void)dialog;
     (void)arrow_pos;
@@ -107,7 +107,7 @@ void fn_warp_unit(const instruction_t* instr) {
         .rotation = { { 0.0f, facing * 90.0f, 0.0f } },
         .scale = { { 15.0f, 15.0f, 15.0f } }
     };
-    *sprite = sprite3d_create(texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32.0f, 40.0f } }, transform);
+    *sprite = gfx_sprite3d_create(texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32.0f, 40.0f } }, transform);
 
     (void)unused;
 }
