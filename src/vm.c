@@ -19,12 +19,16 @@ void vm_reset(void) {
     _state.current_event = NULL;
     _state.current_instruction = 0;
     _state.is_executing = false;
+
+    // Reset related state that is associated with the VM
+    transition_reset();
     camera_reset();
 }
 
 void vm_execute_event(const event_t* event) {
+    vm_reset();
+
     _state.current_event = event;
-    _state.current_instruction = 0;
     _state.is_executing = true;
 }
 
