@@ -323,7 +323,7 @@ static image_t _read_image_row_evtface_bin(span_t* span, int row, int palette_id
 
     u32 pal_offset = row * bytes_per_row + palette_offset;
     span->offset = pal_offset;
-    image_t palette = image_read_rgb15_image(span, 16, 16);
+    image_t palette = image_read_rgb15(span, 16, 16);
 
     for (int col = 0; col < cols; col++) {
         int tex_offset = row * bytes_per_row + col * bytes_per_portrait;
@@ -378,7 +378,7 @@ texture_t sprite_get_evtface_bin_texture(int row_idx, int palette_idx) {
 static image_t _read_paletted_sprite(span_t* span, int width, int height, image_t palette, usize palette_idx) {
     const int dims = width * height;
 
-    image_t image = image_read_4bpp_image(span, width, height);
+    image_t image = image_read_4bpp(span, width, height);
     usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * item_index
 
     // image is an RGBA image with 4 bytes per pixel. Each color's RGBA are all
@@ -395,7 +395,7 @@ static image_t _read_paletted_sprite(span_t* span, int width, int height, image_
 
 static image_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
     span->offset = desc.pal_offset;
-    image_t palette = image_read_rgb15_image(span, 16, desc.pal_count);
+    image_t palette = image_read_rgb15(span, 16, desc.pal_count);
 
     span->offset = desc.tex_offset;
     image_t image = _read_paletted_sprite(span, desc.tex_width, desc.tex_height, palette, pindex);

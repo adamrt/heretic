@@ -1,9 +1,10 @@
+// texture_t represents a GPU image/texture.
+//
 #pragma once
 
 #include "image.h"
 #include "sokol_gfx.h"
 
-// texture_t represents a GPU image/texture.
 typedef struct {
     sg_image gpu_image;
     int width;

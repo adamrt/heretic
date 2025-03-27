@@ -7,7 +7,7 @@
 
 static vec4s _read_rgb15(span_t* span);
 
-image_t image_read_rgb15_image(span_t* span, int width, int height) {
+image_t image_read_rgb15(span_t* span, int width, int height) {
     const int dims = width * height;
     const int size = dims * 4;
     const int size_on_disk = dims / 2;
@@ -23,18 +23,17 @@ image_t image_read_rgb15_image(span_t* span, int width, int height) {
         data[write_idx++] = c.a;
     }
 
-    image_t image = {
-        .width = width,
-        .height = height,
-        .data = data,
-        .size = size,
-        .valid = true
-    };
+    image_t image = {};
+    image.width = width;
+    image.height = height;
+    image.data = data;
+    image.size = size;
+    image.valid = true;
 
     return image;
 }
 
-image_t image_read_4bpp_image(span_t* span, int width, int height) {
+image_t image_read_4bpp(span_t* span, int width, int height) {
     const int dims = width * height;
     const int size = dims * 4;
     const int size_on_disk = dims / 2;

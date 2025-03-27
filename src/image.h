@@ -1,3 +1,7 @@
+// image_t is a struct that represents an image in memory.
+//
+// All the image_read_*() functions heap allocate
+// and image_destroy() should be called to free them.
 #pragma once
 
 #include <stdbool.h>
@@ -19,5 +23,6 @@ typedef struct {
 } image_t;
 
 void image_destroy(image_t);
-image_t image_read_4bpp_image(span_t*, int, int);
-image_t image_read_rgb15_image(span_t*, int, int);
+
+image_t image_read_4bpp(span_t*, int, int);
+image_t image_read_rgb15(span_t*, int, int);

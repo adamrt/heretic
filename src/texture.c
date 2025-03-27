@@ -5,22 +5,19 @@
 #include "sokol_imgui.h"
 
 texture_t texture_create(image_t image) {
-    sg_image_desc desc = {
-        .width = image.width,
-        .height = image.height,
-        .data.subimage[0][0] = {
-            .size = image.size,
-            .ptr = image.data,
-        },
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-    };
+    sg_image_desc desc = {};
+    desc.width = image.width;
+    desc.height = image.height;
+    desc.data.subimage[0][0].size = image.size;
+    desc.data.subimage[0][0].ptr = image.data;
+    desc.pixel_format = SG_PIXELFORMAT_RGBA8;
 
-    texture_t texture = {
-        .width = image.width,
-        .height = image.height,
-        .gpu_image = sg_make_image(&desc),
-    };
+    sg_image gpu_image = sg_make_image(&desc);
 
+    texture_t texture = {};
+    texture.width = image.width;
+    texture.height = image.height;
+    texture.gpu_image = gpu_image;
     return texture;
 }
 
