@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "dialog.h"
 #include "gfx.h"
+#include "gfx_model.h"
 #include "gfx_sprite.h"
 #include "message.h"
 #include "parse.h"

@@ -4,71 +4,12 @@
 #include "image.h"
 #include "map.h"
 #include "memory.h"
-#include "texture.h"
 #include "util.h"
 
 static image_t _read_map_texture(span_t* span) {
     constexpr int width = 256;
     constexpr int height = 1024;
     return image_read_4bpp(span, width, height);
-}
-
-model_t map_make_model(const map_t* map, map_state_t map_state) {
-    mesh_t final_mesh = {};
-    image_t final_texture = {};
-    if (map->primary_mesh.valid) {
-        final_mesh = map->primary_mesh;
-    } else {
-        final_mesh = map->override_mesh;
-    }
-
-    for (int i = 0; i < map->alt_mesh_count; i++) {
-        mesh_t alt_mesh = map->alt_meshes[i];
-        if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
-            merge_meshes(&final_mesh, &alt_mesh);
-            break;
-        }
-    }
-
-    for (int i = 0; i < map->texture_count; i++) {
-        image_t texture = map->textures[i];
-
-        if (texture.valid && map_state_eq(texture.map_state, map_state)) {
-            final_texture = texture;
-            break;
-        }
-        if (texture.valid && map_state_default(texture.map_state)) {
-            if (!final_texture.valid) {
-                final_texture = texture;
-            }
-        }
-    }
-
-    ASSERT(final_mesh.valid, "Map mesh is invalid");
-    ASSERT(final_texture.valid, "Map texture is invalid");
-
-    vertices_t vertices = geometry_to_vertices(&final_mesh.geometry);
-
-    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data = SG_RANGE(vertices),
-        .label = "mesh-vertices",
-    });
-
-    texture_t texture = texture_create(final_texture);
-    texture_t palette = texture_create(final_mesh.palette);
-
-    vec3s centered_translation = vertices_centered(&vertices);
-
-    model_t model = {
-        .vertex_count = final_mesh.geometry.vertex_count,
-        .lighting = final_mesh.lighting,
-        .center = centered_translation,
-        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
-        .vbuf = vbuf,
-        .texture = texture,
-        .palette = palette,
-    };
-    return model;
 }
 
 void map_destroy(map_t* map) {

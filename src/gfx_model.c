@@ -6,16 +6,12 @@
 #include "lighting.h"
 
 #include "shader.glsl.h"
+#include "util.h"
 
 static struct {
     sg_pipeline pipeline;
     model_t model;
 } _state;
-
-void gfx_model_set(model_t model) { _state.model = model; }
-void gfx_model_set_y_rotation(f32 maprot) { _state.model.transform.rotation.y = maprot; }
-transform3d_t* gfx_model_get_transform(void) { return &_state.model.transform; }
-lighting_t* gfx_model_get_lighting(void) { return &_state.model.lighting; }
 
 void gfx_model_init(void) {
     _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
@@ -43,6 +39,72 @@ void gfx_model_init(void) {
 
 void gfx_model_shutdown(void) {
     sg_destroy_pipeline(_state.pipeline);
+}
+
+model_t gfx_model_create(const map_t* map, map_state_t map_state) {
+    mesh_t final_mesh = {};
+    image_t final_texture = {};
+    if (map->primary_mesh.valid) {
+        final_mesh = map->primary_mesh;
+    } else {
+        final_mesh = map->override_mesh;
+    }
+
+    for (int i = 0; i < map->alt_mesh_count; i++) {
+        mesh_t alt_mesh = map->alt_meshes[i];
+        if (alt_mesh.valid && map_state_eq(alt_mesh.map_state, map_state)) {
+            merge_meshes(&final_mesh, &alt_mesh);
+            break;
+        }
+    }
+
+    for (int i = 0; i < map->texture_count; i++) {
+        image_t texture = map->textures[i];
+
+        if (texture.valid && map_state_eq(texture.map_state, map_state)) {
+            final_texture = texture;
+            break;
+        }
+        if (texture.valid && map_state_default(texture.map_state)) {
+            if (!final_texture.valid) {
+                final_texture = texture;
+            }
+        }
+    }
+
+    ASSERT(final_mesh.valid, "Map mesh is invalid");
+    ASSERT(final_texture.valid, "Map texture is invalid");
+
+    vertices_t vertices = geometry_to_vertices(&final_mesh.geometry);
+
+    sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data = SG_RANGE(vertices),
+        .label = "mesh-vertices",
+    });
+
+    texture_t texture = texture_create(final_texture);
+    texture_t palette = texture_create(final_mesh.palette);
+
+    vec3s centered_translation = vertices_centered(&vertices);
+
+    model_t model = {
+        .vertex_count = final_mesh.geometry.vertex_count,
+        .lighting = final_mesh.lighting,
+        .center = centered_translation,
+        .transform.scale = { { 1.0f, 1.0f, 1.0f } },
+        .vbuf = vbuf,
+        .texture = texture,
+        .palette = palette,
+    };
+    return model;
+}
+
+void gfx_model_destroy(void) {
+    sg_destroy_buffer(_state.model.vbuf);
+    sg_destroy_buffer(_state.model.ibuf);
+
+    texture_destroy(_state.model.texture);
+    texture_destroy(_state.model.palette);
 }
 
 void gfx_model_render(void) {
@@ -89,10 +151,8 @@ void gfx_model_render(void) {
     sg_draw(0, _state.model.vertex_count, 1);
 }
 
-void gfx_model_destroy(void) {
-    sg_destroy_buffer(_state.model.vbuf);
-    sg_destroy_buffer(_state.model.ibuf);
-
-    texture_destroy(_state.model.texture);
-    texture_destroy(_state.model.palette);
-}
+// Getters
+void gfx_model_set(model_t model) { _state.model = model; }
+void gfx_model_set_y_rotation(f32 maprot) { _state.model.transform.rotation.y = maprot; }
+transform3d_t* gfx_model_get_transform(void) { return &_state.model.transform; }
+lighting_t* gfx_model_get_lighting(void) { return &_state.model.lighting; }

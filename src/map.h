@@ -2,7 +2,6 @@
 
 #include "defines.h"
 #include "filesystem.h"
-#include "gfx_model.h"
 #include "image.h"
 #include "map_record.h"
 #include "mesh.h"
@@ -25,7 +24,6 @@ typedef struct {
 
 map_t* read_map(int);
 void map_destroy(map_t*);
-model_t map_make_model(const map_t*, map_state_t);
 
 // map_desc_t is a struct that contains information about a map.
 // This lets us know if we can use the map and where on the disk it is.

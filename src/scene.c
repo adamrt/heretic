@@ -62,13 +62,12 @@ void scene_load_map(int num, map_state_t map_state) {
     scene_reset();
 
     map_t* map = read_map(num);
-    model_t model = map_make_model(map, map_state);
+    model_t model = gfx_model_create(map, map_state);
+    gfx_model_set(model);
+    gfx_background_set(model.lighting.bg_top, model.lighting.bg_bottom);
 
     _state.map = map;
     _state.current_map = num;
-
-    gfx_model_set(model);
-    gfx_background_set(model.lighting.bg_top, model.lighting.bg_bottom);
 }
 
 void scene_load_scenario(int scenario_id) {

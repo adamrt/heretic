@@ -4,6 +4,7 @@
 #include "sokol_gfx.h"
 
 #include "lighting.h"
+#include "map.h"
 #include "texture.h"
 #include "transform.h"
 
@@ -26,6 +27,7 @@ void gfx_model_init(void);
 void gfx_model_shutdown(void);
 void gfx_model_render(void);
 
+model_t gfx_model_create(const map_t*, map_state_t);
 void gfx_model_set(model_t);
 void gfx_model_destroy();
 
