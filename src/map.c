@@ -46,17 +46,19 @@ map_t* read_map(int num) {
         map_record_t* record = &map->records[i];
 
         // Fetch the resource file
-        const file_entry_e entry = filesystem_entry_by_sector(record->sector);
-        span_t file = filesystem_read_file(entry);
 
         switch (record->type) {
         case FILETYPE_TEXTURE: {
+            const file_entry_e entry = filesystem_entry_by_sector(record->sector);
+            span_t file = filesystem_read_file(entry);
             image_t texture = _read_map_texture(&file);
             texture.map_state = record->state;
             map->textures[map->texture_count++] = texture;
             break;
         }
-        case FILETYPE_MESH_PRIMARY:
+        case FILETYPE_MESH_PRIMARY: {
+            const file_entry_e entry = filesystem_entry_by_sector(record->sector);
+            span_t file = filesystem_read_file(entry);
             // There always only one primary mesh file and it uses default state.
             ASSERT(map_state_default(record->state), "Primary mesh file has non-default state");
 
@@ -68,8 +70,11 @@ map_t* read_map(int num) {
 
             ASSERT(map->primary_mesh.valid, "Primary mesh is invalid");
             break;
+        }
 
         case FILETYPE_MESH_ALT: {
+            const file_entry_e entry = filesystem_entry_by_sector(record->sector);
+            span_t file = filesystem_read_file(entry);
             mesh_t alt_mesh = read_mesh(&file);
             alt_mesh.map_state = record->state;
             map->alt_meshes[map->alt_mesh_count++] = alt_mesh;
@@ -81,6 +86,8 @@ map_t* read_map(int num) {
         }
 
         case FILETYPE_MESH_OVERRIDE: {
+            const file_entry_e entry = filesystem_entry_by_sector(record->sector);
+            span_t file = filesystem_read_file(entry);
             // If there is an override file, there is only one and it uses default state.
             ASSERT(map_state_default(record->state), "Oerride must be default map state");
 
@@ -92,7 +99,7 @@ map_t* read_map(int num) {
         }
 
         default:
-            ASSERT(false, "Unknown map file type");
+            continue;
         }
     }
 

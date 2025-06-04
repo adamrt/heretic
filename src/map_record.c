@@ -2,15 +2,36 @@
 
 #include <string.h>
 
+u32 parse_u32(u8* bytes) {
+    return (u32)(bytes[0]) | ((u32)(bytes[1]) << 8) | ((u32)(bytes[2]) << 16) | ((u32)(bytes[3]) << 24);
+}
+
+u16 parse_u16(u8* bytes) {
+    return (u16)(bytes[0]) | ((u16)(bytes[1]) << 8);
+}
+
+// read_map_record reads a map record from the span. Records are 20
+// bytes long and contain information about a specific resource.
+//
+// Format: AAAA BBCC DDDD xxxx EEEE xxxx FFFF FFFF xxxx xxxx
+//
+// xxxx: padding
+// AAAA: 2 bytes, always either 0x22, 0x30 or 0x70, but its purpose is unknown.
+// BB: 1 bytes, room arrangement/layout
+// CC: 1 byte, time is highest bit (0=day, 1=night) and weather is next 3 bits (values can be 0-4).
+// DDDD: 2 bytes, file type (0x1701=texture, 0x2E01=primary mesh, 0x2F01=override mesh, 0x3001=alt mesh, 0x3101=end)
+// EEEE: 2 bytes, sector of resource in the file system
+// FFFF: 4 bytes, length of the resource in bytes
 map_record_t read_map_record(span_t* span) {
     u8 bytes[MAP_RECORD_SIZE];
     span_read_bytes(span, MAP_RECORD_SIZE, bytes);
-    usize sector = bytes[8] | bytes[9] << 8;
-    usize length = (u32)(bytes[12]) | ((u32)(bytes[13]) << 8) | ((u32)(bytes[14]) << 16) | ((u32)(bytes[15]) << 24);
-    filetype_e type = (filetype_e)(bytes[4] | (bytes[5] << 8));
+
+    int layout = bytes[2];
     time_e time = (time_e)((bytes[3] >> 7) & 0x1);
     weather_e weather = (weather_e)((bytes[3] >> 4) & 0x7);
-    int layout = bytes[2];
+    filetype_e type = (filetype_e)parse_u16(&bytes[4]);
+    usize sector = parse_u32(&bytes[8]);
+    usize length = parse_u32(&bytes[12]);
 
     map_record_t record = {
         .sector = sector,
@@ -28,11 +49,8 @@ map_record_t read_map_record(span_t* span) {
 
 int read_map_records(span_t* span, map_record_t* out_records) {
     int count = 0;
-    while (true) {
+    while (span->offset + 20 < span->size) {
         map_record_t record = read_map_record(span);
-        if (record.type == FILETYPE_END) {
-            break;
-        }
         out_records[count] = record;
         count++;
     }

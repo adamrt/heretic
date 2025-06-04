@@ -38,6 +38,7 @@ static struct {
 
     bool show_window_map_lights;
     bool show_window_map_records;
+    bool show_window_raw_records;
 
     bool show_window_event_text;
     bool show_window_event_instructions;
@@ -60,10 +61,11 @@ void gui_init(void) {
     io->IniFilename = "imgui.ini";
 
     _state.show_window_scene = true;
-    _state.show_window_map_lights = false;
-    _state.show_window_map_records = false;
+    _state.show_window_map_lights = true;
+    _state.show_window_map_records = true;
     _state.show_window_event_text = true;
     _state.show_window_event_instructions = true;
+    _state.show_window_raw_records = true;
     _state.show_texture_resources = false;
     _state.show_window_demo = false;
     _state.show_window_terrain = true;
@@ -96,6 +98,41 @@ bool gui_input(const sapp_event* event) {
     return is_handled;
 }
 
+static uint32_t hash_map_state(map_state_t state) {
+    // Simple mixing hash — works well enough for small enums
+    uint32_t x = (state.time << 16) | (state.weather << 8) | (state.layout);
+    x ^= x >> 13;
+    x *= 0x85ebca6b;
+    x ^= x >> 16;
+    return x;
+}
+
+static void _draw_window_raw_records(void) {
+    scene_t* scene = scene_get_internals();
+    igBegin("Raw Records", &_state.show_window_raw_records, 0);
+    if (igBeginTable("", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+        igTableSetupColumnEx("Raw Data", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableHeadersRow();
+
+        for (int i = 0; i < scene->map->record_count; i++) {
+            map_record_t r = scene->map->records[i];
+            ImU32 bg_color = hash_map_state(r.state);
+            igTableNextRow();
+            igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
+            igTableSetColumnIndex(0);
+            igText("%s", filetype_str(r.type));
+            igTableSetColumnIndex(1);
+            for (int j = 0; j < 20; j += 2) {
+                uint16_t word = r.data[j + 1] | (r.data[j] << 8);
+                igSameLine();
+                igText("%04X", word);
+            }
+        }
+        igEndTable();
+    }
+    igEnd();
+}
 static void _draw_window_map_records(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Map Records", &_state.show_window_map_records, 0);
@@ -590,6 +627,9 @@ static void _draw(void) {
         if (igMenuItem("Records")) {
             _state.show_window_map_records = !_state.show_window_map_records;
         }
+        if (igMenuItem("Raw Records")) {
+            _state.show_window_raw_records = !_state.show_window_raw_records;
+        }
         if (igMenuItem("Lights")) {
             _state.show_window_map_lights = !_state.show_window_map_lights;
         }
@@ -638,6 +678,9 @@ static void _draw(void) {
         _draw_window_event_text();
     }
 
+    if (_state.show_window_raw_records) {
+        _draw_window_raw_records();
+    }
     if (_state.show_window_map_records) {
         _draw_window_map_records();
     }
