@@ -9,7 +9,6 @@
 
 constexpr f32 MAX_PHI = 89.9f * GLM_PIf / 180.0f; // glm_rad isn't constexpr, so we do it ourselves
 constexpr f32 DEFAULT_DISTANCE = 256.0f * 2.0f;
-constexpr f32 DEFAULT_FRUSTUM = 128.0f;
 constexpr f32 ZOOM_SENSITIVITY = 0.002f;
 
 static camera_t _state;
@@ -23,7 +22,6 @@ void camera_init(void) {
 
 void camera_reset(void) {
     _state.zoom = 1.0f;
-    _state.frustum = DEFAULT_FRUSTUM;
     camera_set_orbit(glms_vec3_zero(), glm_rad(135.0f), glm_rad(30.0f), DEFAULT_DISTANCE);
 }
 

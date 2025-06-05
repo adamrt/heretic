@@ -431,7 +431,6 @@ static void _draw_window_scene(void) {
         igSeparator();
         igSliderFloat3("Position", (float*)&cam->position.raw, -1000.0f, 1000.0f);
         igSeparator();
-        igSliderFloat("Frustum", &cam->frustum, .0f, 512.0f);
         igSliderFloat("Zoom", &cam->zoom, 0, 2.0f);
         igSliderFloat("Yaw", &cam->yaw_rad, -3.0f, 3.0f);
         igSliderFloat("Pitch", &cam->pitch_rad, -3.0f, 3.0f);
