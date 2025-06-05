@@ -42,7 +42,6 @@ void camera_freefly_motion(freefly_motion_t m) {
     vec3s velocity = glms_vec3_scale(forward, m.forward);
     velocity = glms_vec3_add(velocity, glms_vec3_scale(right, m.right));
     velocity = glms_vec3_add(velocity, glms_vec3_scale(up, m.up));
-    velocity = glms_vec3_scale(velocity, 10.0f);
 
     vec3s position = glms_vec3_add(_state.position, velocity);
 
