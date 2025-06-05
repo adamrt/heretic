@@ -27,6 +27,8 @@
 #include "vm.h"
 
 static void _draw(void);
+static uint32_t hash_int_rand_color(u32 v);
+static uint32_t hash_map_state_rand_color(map_state_t state);
 
 static struct {
     bool show_sprite_window[F_FILE_COUNT];
@@ -45,6 +47,7 @@ static struct {
 
     bool show_texture_resources;
     bool show_window_terrain;
+    bool show_window_mesh;
 
     bool show_window_demo;
 } _state;
@@ -69,6 +72,7 @@ void gui_init(void) {
     _state.show_texture_resources = false;
     _state.show_window_demo = false;
     _state.show_window_terrain = true;
+    _state.show_window_mesh = true;
 }
 
 void gui_shutdown(void) {
@@ -98,44 +102,9 @@ bool gui_input(const sapp_event* event) {
     return is_handled;
 }
 
-static uint32_t hash_map_state(map_state_t state) {
-    // Simple mixing hash — works well enough for small enums
-    uint32_t x = (state.time << 16) | (state.weather << 8) | (state.layout);
-    x ^= x >> 13;
-    x *= 0x85ebca6b;
-    x ^= x >> 16;
-    return x;
-}
-
-static void _draw_window_raw_records(void) {
-    scene_t* scene = scene_get_internals();
-    igBegin("Raw Records", &_state.show_window_raw_records, 0);
-    if (igBeginTable("", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
-        igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
-        igTableSetupColumnEx("Raw Data", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableHeadersRow();
-
-        for (int i = 0; i < scene->map->record_count; i++) {
-            map_record_t r = scene->map->records[i];
-            ImU32 bg_color = hash_map_state(r.state);
-            igTableNextRow();
-            igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
-            igTableSetColumnIndex(0);
-            igText("%s", filetype_str(r.type));
-            igTableSetColumnIndex(1);
-            for (int j = 0; j < 20; j += 2) {
-                uint16_t word = r.data[j + 1] | (r.data[j] << 8);
-                igSameLine();
-                igText("%04X", word);
-            }
-        }
-        igEndTable();
-    }
-    igEnd();
-}
 static void _draw_window_map_records(void) {
     scene_t* scene = scene_get_internals();
-    igBegin("Map Records", &_state.show_window_map_records, 0);
+    igBegin("Records", &_state.show_window_map_records, 0);
     igCheckbox("Show Texture Resources", &_state.show_texture_resources);
 
     if (igBeginTable("", 9, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
@@ -187,6 +156,116 @@ static void _draw_window_map_records(void) {
             if (r.valid_terrain) {
                 igTableSetColumnIndex(8);
                 igText("true");
+            }
+        }
+        igEndTable();
+    }
+    igEnd();
+}
+
+static void _draw_window_raw_records(void) {
+    scene_t* scene = scene_get_internals();
+    igBegin("Raw Records", &_state.show_window_raw_records, 0);
+    if (igBeginTable("", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("Type", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+        igTableSetupColumnEx("Raw Data", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableHeadersRow();
+
+        for (int i = 0; i < scene->map->record_count; i++) {
+            map_record_t r = scene->map->records[i];
+            ImU32 bg_color = hash_map_state_rand_color(r.state);
+            igTableNextRow();
+            igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
+            igTableSetColumnIndex(0);
+            igText("%s", filetype_str(r.type));
+            igTableSetColumnIndex(1);
+            for (int j = 0; j < 20; j += 2) {
+                uint16_t word = r.data[j + 1] | (r.data[j] << 8);
+                igSameLine();
+                igText("%04X", word);
+            }
+        }
+        igEndTable();
+    }
+    igEnd();
+}
+
+static void _draw_window_mesh(void) {
+    scene_t* scene = scene_get_internals();
+    igBegin("Mesh", &_state.show_window_mesh, 0);
+    if (igBeginTable("Vertices", 4, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("Poly#", ImGuiTableColumnFlags_WidthFixed, 100.0f, 0);
+        igTableSetupColumnEx("X", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+        igTableSetupColumnEx("Y", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+        igTableSetupColumnEx("Z", ImGuiTableColumnFlags_WidthFixed, 50.0f, 0);
+
+        igTableHeadersRow();
+
+        for (int i = 0; i < scene->map->primary_mesh.geometry.tex_quad_count; i++) {
+            quad_t quad = scene->map->primary_mesh.geometry.tex_quads[i];
+            for (int j = 0; j < 4; j++) {
+                igTableNextRow();
+                u32 bg_color = hash_int_rand_color(i);
+                igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
+                igTableSetColumnIndex(0);
+                igText("Tex Quad %d", i);
+                igTableSetColumnIndex(1);
+                igText("%0.0f", quad.vertices[j].position.x);
+                igTableSetColumnIndex(2);
+                igText("%0.0f", quad.vertices[j].position.y);
+                igTableSetColumnIndex(3);
+                igText("%0.0f", quad.vertices[j].position.z);
+            }
+        }
+
+        for (int i = 0; i < scene->map->primary_mesh.geometry.untex_quad_count; i++) {
+            quad_t quad = scene->map->primary_mesh.geometry.untex_quads[i];
+            for (int j = 0; j < 4; j++) {
+                igTableNextRow();
+                u32 bg_color = hash_int_rand_color(i);
+                igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
+                igTableSetColumnIndex(0);
+                igText("Untex Quad %d", i);
+                igTableSetColumnIndex(1);
+                igText("%0.0f", quad.vertices[j].position.x);
+                igTableSetColumnIndex(2);
+                igText("%0.0f", quad.vertices[j].position.y);
+                igTableSetColumnIndex(3);
+                igText("%0.0f", quad.vertices[j].position.z);
+            }
+        }
+
+        for (int i = 0; i < scene->map->primary_mesh.geometry.tex_tri_count; i++) {
+            triangle_t tri = scene->map->primary_mesh.geometry.tex_tris[i];
+            for (int j = 0; j < 3; j++) {
+                igTableNextRow();
+                u32 bg_color = hash_int_rand_color(i);
+                igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
+                igTableSetColumnIndex(0);
+                igText("Tex Tri %d", i);
+                igTableSetColumnIndex(1);
+                igText("%0.0f", tri.vertices[j].position.x);
+                igTableSetColumnIndex(2);
+                igText("%0.0f", tri.vertices[j].position.y);
+                igTableSetColumnIndex(3);
+                igText("%0.0f", tri.vertices[j].position.z);
+            }
+        }
+
+        for (int i = 0; i < scene->map->primary_mesh.geometry.tex_tri_count; i++) {
+            triangle_t tri = scene->map->primary_mesh.geometry.tex_tris[i];
+            for (int j = 0; j < 3; j++) {
+                igTableNextRow();
+                u32 bg_color = hash_int_rand_color(i);
+                igTableSetBgColor(ImGuiTableBgTarget_RowBg0, bg_color, -1);
+                igTableSetColumnIndex(0);
+                igText("Untex Tri %d", i);
+                igTableSetColumnIndex(1);
+                igText("%0.0f", tri.vertices[j].position.x);
+                igTableSetColumnIndex(2);
+                igText("%0.0f", tri.vertices[j].position.y);
+                igTableSetColumnIndex(3);
+                igText("%0.0f", tri.vertices[j].position.z);
             }
         }
         igEndTable();
@@ -376,7 +455,7 @@ static void _draw_window_scene(void) {
 }
 
 static void _draw_window_map_lights(void) {
-    igBegin("Map Lights", &_state.show_window_map_lights, 0);
+    igBegin("Lights", &_state.show_window_map_lights, 0);
 
     lighting_t* lighting = gfx_model_get_lighting();
     vec4s* ambient = &lighting->ambient_color;
@@ -641,6 +720,9 @@ static void _draw(void) {
         if (igMenuItem("Lights")) {
             _state.show_window_map_lights = !_state.show_window_map_lights;
         }
+        if (igMenuItem("Mesh")) {
+            _state.show_window_mesh = !_state.show_window_mesh;
+        }
         if (igMenuItem("Terrain")) {
             _state.show_window_terrain = !_state.show_window_terrain;
         }
@@ -697,6 +779,10 @@ static void _draw(void) {
         _draw_window_map_lights();
     }
 
+    if (_state.show_window_mesh) {
+        _draw_window_mesh();
+    }
+
     if (_state.show_window_terrain) {
         _draw_window_terrain();
     }
@@ -726,4 +812,20 @@ static void _draw(void) {
     if (_state.show_window_demo) {
         igShowDemoWindow(&_state.show_window_demo);
     }
+}
+
+static uint32_t hash_int_rand_color(u32 v) {
+    v ^= v >> 13;
+    v *= 0x85ebca6b;
+    v ^= v >> 16;
+    return v;
+}
+
+static uint32_t hash_map_state_rand_color(map_state_t state) {
+    // Simple mixing hash — works well enough for small enums
+    uint32_t x = (state.time << 16) | (state.weather << 8) | (state.layout);
+    x ^= x >> 13;
+    x *= 0x85ebca6b;
+    x ^= x >> 16;
+    return x;
 }
