@@ -106,9 +106,10 @@ mat4s camera_get_proj(void) {
     if (_state.use_perspective) {
         return glms_perspective(glm_rad(60.0f), aspect, 1.0f, 2000.0f);
     } else {
-        f32 w = _state.frustum * aspect / _state.zoom;
-        f32 h = _state.frustum / _state.zoom;
-        return glms_ortho(-w, w, -h, h, 0.01f, 2000.0f);
+        // TODO: Why are we dividing by 2? it should not be
+        f32 w = GFX_RENDER_WIDTH * _state.zoom / 2.0f;
+        f32 h = GFX_RENDER_HEIGHT * _state.zoom / 2.0f;
+        return glms_ortho(0, w, 0, h, -2048.0f, 2048.0f);
     }
 }
 
