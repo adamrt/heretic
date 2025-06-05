@@ -28,14 +28,14 @@ typedef struct {
 } vertices_t;
 
 typedef struct {
-    vertex_t a, b, c;
+    vertex_t vertices[3];
     u8 terrain_x;
     u8 terrain_z;
     u8 elevation;
 } triangle_t;
 
 typedef struct {
-    vertex_t a, b, c, d;
+    vertex_t vertices[4];
     u8 terrain_x;
     u8 terrain_z;
     u8 elevation;

@@ -56,47 +56,44 @@ static geometry_t _read_geometry(span_t* span) {
 
     // Textured triangle
     for (int i = 0; i < N; i++) {
-        geometry.tex_tris[i].a.position = read_position(span);
-        geometry.tex_tris[i].b.position = read_position(span);
-        geometry.tex_tris[i].c.position = read_position(span);
+        for (int j = 0; j < 3; j++) {
+            geometry.tex_tris[i].vertices[j].position = read_position(span);
+        }
     }
 
     // Textured quads
     for (int i = 0; i < P; i++) {
-        geometry.tex_quads[i].a.position = read_position(span);
-        geometry.tex_quads[i].b.position = read_position(span);
-        geometry.tex_quads[i].c.position = read_position(span);
-        geometry.tex_quads[i].d.position = read_position(span);
+        for (int j = 0; j < 4; j++) {
+            geometry.tex_quads[i].vertices[j].position = read_position(span);
+        }
     }
 
     // Untextured triangle
     for (int i = 0; i < Q; i++) {
-        geometry.untex_tris[i].a.position = read_position(span);
-        geometry.untex_tris[i].b.position = read_position(span);
-        geometry.untex_tris[i].c.position = read_position(span);
+        for (int j = 0; j < 3; j++) {
+            geometry.untex_tris[i].vertices[j].position = read_position(span);
+        }
     }
 
     // Untextured quads
     for (int i = 0; i < R; i++) {
-        geometry.untex_quads[i].a.position = read_position(span);
-        geometry.untex_quads[i].b.position = read_position(span);
-        geometry.untex_quads[i].c.position = read_position(span);
-        geometry.untex_quads[i].d.position = read_position(span);
+        for (int j = 0; j < 4; j++) {
+            geometry.untex_quads[i].vertices[j].position = read_position(span);
+        }
     }
 
     // Triangle normals
     for (int i = 0; i < N; i++) {
-        geometry.tex_tris[i].a.normal = _read_normal(span);
-        geometry.tex_tris[i].b.normal = _read_normal(span);
-        geometry.tex_tris[i].c.normal = _read_normal(span);
+        for (int j = 0; j < 3; j++) {
+            geometry.tex_tris[i].vertices[j].normal = _read_normal(span);
+        }
     };
 
     // Quad normals
     for (int i = 0; i < P; i++) {
-        geometry.tex_quads[i].a.normal = _read_normal(span);
-        geometry.tex_quads[i].b.normal = _read_normal(span);
-        geometry.tex_quads[i].c.normal = _read_normal(span);
-        geometry.tex_quads[i].d.normal = _read_normal(span);
+        for (int j = 0; j < 4; j++) {
+            geometry.tex_quads[i].vertices[j].normal = _read_normal(span);
+        }
     };
 
     // Triangle UV
@@ -117,15 +114,15 @@ static geometry_t _read_geometry(span_t* span) {
         vec2s b = _process_tex_coords(bu, bv, page);
         vec2s c = _process_tex_coords(cu, cv, page);
 
-        geometry.tex_tris[i].a.uv = a;
-        geometry.tex_tris[i].a.palette_index = palette;
-        geometry.tex_tris[i].a.is_textured = 1.0f;
-        geometry.tex_tris[i].b.uv = b;
-        geometry.tex_tris[i].b.palette_index = palette;
-        geometry.tex_tris[i].b.is_textured = 1.0f;
-        geometry.tex_tris[i].c.uv = c;
-        geometry.tex_tris[i].c.palette_index = palette;
-        geometry.tex_tris[i].c.is_textured = 1.0f;
+        geometry.tex_tris[i].vertices[0].uv = a;
+        geometry.tex_tris[i].vertices[0].palette_index = palette;
+        geometry.tex_tris[i].vertices[0].is_textured = 1.0f;
+        geometry.tex_tris[i].vertices[1].uv = b;
+        geometry.tex_tris[i].vertices[1].palette_index = palette;
+        geometry.tex_tris[i].vertices[1].is_textured = 1.0f;
+        geometry.tex_tris[i].vertices[2].uv = c;
+        geometry.tex_tris[i].vertices[2].palette_index = palette;
+        geometry.tex_tris[i].vertices[2].is_textured = 1.0f;
     }
 
     // Quad UV
@@ -149,18 +146,18 @@ static geometry_t _read_geometry(span_t* span) {
         vec2s c = _process_tex_coords(cu, cv, page);
         vec2s d = _process_tex_coords(du, dv, page);
 
-        geometry.tex_quads[i].a.uv = a;
-        geometry.tex_quads[i].a.palette_index = palette;
-        geometry.tex_quads[i].a.is_textured = 1.0f;
-        geometry.tex_quads[i].b.uv = b;
-        geometry.tex_quads[i].b.palette_index = palette;
-        geometry.tex_quads[i].b.is_textured = 1.0f;
-        geometry.tex_quads[i].c.uv = c;
-        geometry.tex_quads[i].c.palette_index = palette;
-        geometry.tex_quads[i].c.is_textured = 1.0f;
-        geometry.tex_quads[i].d.uv = d;
-        geometry.tex_quads[i].d.palette_index = palette;
-        geometry.tex_quads[i].d.is_textured = 1.0f;
+        geometry.tex_quads[i].vertices[0].uv = a;
+        geometry.tex_quads[i].vertices[0].palette_index = palette;
+        geometry.tex_quads[i].vertices[0].is_textured = 1.0f;
+        geometry.tex_quads[i].vertices[1].uv = b;
+        geometry.tex_quads[i].vertices[1].palette_index = palette;
+        geometry.tex_quads[i].vertices[1].is_textured = 1.0f;
+        geometry.tex_quads[i].vertices[2].uv = c;
+        geometry.tex_quads[i].vertices[2].palette_index = palette;
+        geometry.tex_quads[i].vertices[2].is_textured = 1.0f;
+        geometry.tex_quads[i].vertices[3].uv = d;
+        geometry.tex_quads[i].vertices[3].palette_index = palette;
+        geometry.tex_quads[i].vertices[3].is_textured = 1.0f;
     }
 
     // Unknown Untextured Polygon Data (skip over it)
@@ -252,35 +249,35 @@ vertices_t geometry_to_vertices(const geometry_t* geometry) {
     int vcount = 0;
 
     for (int i = 0; i < geometry->tex_tri_count; i++) {
-        vertices.vertices[vcount++] = geometry->tex_tris[i].a;
-        vertices.vertices[vcount++] = geometry->tex_tris[i].b;
-        vertices.vertices[vcount++] = geometry->tex_tris[i].c;
+        for (int j = 0; j < 3; j++) {
+            vertices.vertices[vcount++] = geometry->tex_tris[i].vertices[j];
+        }
     }
 
     for (int i = 0; i < geometry->tex_quad_count; i++) {
-        vertices.vertices[vcount++] = geometry->tex_quads[i].a;
-        vertices.vertices[vcount++] = geometry->tex_quads[i].b;
-        vertices.vertices[vcount++] = geometry->tex_quads[i].c;
+        vertices.vertices[vcount++] = geometry->tex_quads[i].vertices[0];
+        vertices.vertices[vcount++] = geometry->tex_quads[i].vertices[1];
+        vertices.vertices[vcount++] = geometry->tex_quads[i].vertices[2];
 
-        vertices.vertices[vcount++] = geometry->tex_quads[i].b;
-        vertices.vertices[vcount++] = geometry->tex_quads[i].d;
-        vertices.vertices[vcount++] = geometry->tex_quads[i].c;
+        vertices.vertices[vcount++] = geometry->tex_quads[i].vertices[1];
+        vertices.vertices[vcount++] = geometry->tex_quads[i].vertices[3];
+        vertices.vertices[vcount++] = geometry->tex_quads[i].vertices[2];
     }
 
     for (int i = 0; i < geometry->untex_tri_count; i++) {
-        vertices.vertices[vcount++] = geometry->untex_tris[i].a;
-        vertices.vertices[vcount++] = geometry->untex_tris[i].b;
-        vertices.vertices[vcount++] = geometry->untex_tris[i].c;
+        vertices.vertices[vcount++] = geometry->untex_tris[i].vertices[0];
+        vertices.vertices[vcount++] = geometry->untex_tris[i].vertices[1];
+        vertices.vertices[vcount++] = geometry->untex_tris[i].vertices[2];
     }
 
     for (int i = 0; i < geometry->untex_quad_count; i++) {
-        vertices.vertices[vcount++] = geometry->untex_quads[i].a;
-        vertices.vertices[vcount++] = geometry->untex_quads[i].b;
-        vertices.vertices[vcount++] = geometry->untex_quads[i].c;
+        vertices.vertices[vcount++] = geometry->untex_quads[i].vertices[0];
+        vertices.vertices[vcount++] = geometry->untex_quads[i].vertices[1];
+        vertices.vertices[vcount++] = geometry->untex_quads[i].vertices[2];
 
-        vertices.vertices[vcount++] = geometry->untex_quads[i].b;
-        vertices.vertices[vcount++] = geometry->untex_quads[i].d;
-        vertices.vertices[vcount++] = geometry->untex_quads[i].c;
+        vertices.vertices[vcount++] = geometry->untex_quads[i].vertices[1];
+        vertices.vertices[vcount++] = geometry->untex_quads[i].vertices[3];
+        vertices.vertices[vcount++] = geometry->untex_quads[i].vertices[2];
     }
 
     vertices.count = vcount;
