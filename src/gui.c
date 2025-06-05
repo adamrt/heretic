@@ -421,28 +421,36 @@ void _row_instr_camera(instruction_t* instr) {
     }
 
     igTableSetColumnIndex(2);
-    igText("X");
+    igText("X: ");
+    igSameLine();
     igText("%0.2f", x);
     igTableSetColumnIndex(3);
-    igText("Y");
+    igText("Y: ");
+    igSameLine();
     igText("%0.2f", y);
     igTableSetColumnIndex(4);
-    igText("Z");
+    igText("Z: ");
+    igSameLine();
     igText("%0.2f", z);
     igTableSetColumnIndex(5);
-    igText("Pitch");
+    igText("Pitch: ");
+    igSameLine();
     igText("%0.2f°", glm_deg(pitch));
     igTableSetColumnIndex(6);
-    igText("Yaw");
+    igText("Yaw: ");
+    igSameLine();
     igText("%0.2f°", glm_deg(yaw));
     igTableSetColumnIndex(7);
-    igText("MapRot");
+    igText("MapRot: ");
+    igSameLine();
     igText("%0.2f°", glm_deg(maprot));
     igTableSetColumnIndex(8);
-    igText("Zoom");
+    igText("Zoom: ");
+    igSameLine();
     igText("%0.2f", zoom);
     igTableSetColumnIndex(9);
-    igText("Time");
+    igText("Time: ");
+    igSameLine();
     igText("%d", duration);
 }
 
