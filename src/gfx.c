@@ -117,14 +117,13 @@ sg_image gfx_get_color_image(void) { return _state.color_image; }
 sg_sampler gfx_get_sampler(void) { return _state.sampler; }
 sg_buffer gfx_get_quad_vbuf(void) { return _state.quad_vbuf; }
 
-// API specific winding order. This is required because OpenGL uses CCW order
-// for font-facing triangles, while Metal and DirectX use CW for front-facing
-// triangles.
+// API specific winding order. This is required because Metal's coordinate system
+// has flipped Y compared to OpenGL, and when we use @msl_options flip_vert_y
+// to normalize this, it reverses the triangle winding order from CCW to CW.
 sg_face_winding gfx_get_face_winding(void) {
     sg_backend backend = sg_query_backend();
     // Return the appropriate face winding order based on the backend
     switch (backend) {
-    case SG_BACKEND_D3D11:
     case SG_BACKEND_METAL_MACOS:
     case SG_BACKEND_METAL_IOS:
         return SG_FACEWINDING_CW;

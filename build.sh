@@ -55,7 +55,7 @@ case "$TARGET" in
     native)
         case "$OS" in
             Linux) SHADER_LANG="glsl430" ;;
-            Darwin) SHADER_LANG="metal_macos" ;;
+            Darwin) SHADER_LANG="glsl410" ;;
             *) echo "Unsupported OS: $OS" && exit 1 ;;
         esac
         ;;
@@ -64,7 +64,7 @@ esac
 
 # Compile the shader (this happens always)
 echo "Compiling shader..."
-./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l "$SHADER_LANG"
+./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l "$SHADER_LANG" --format sokol
 
 # If the second argument is 'shader', skip the rest of the build
 if [[ "$OPTION" == "shader" ]]; then

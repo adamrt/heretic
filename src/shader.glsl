@@ -9,8 +9,6 @@
 //
 
 @vs standard_vs
-@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
-@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 layout(binding=0) uniform vs_standard_params {
     mat4 u_proj;
@@ -104,8 +102,6 @@ void main() {
 //
 
 @vs background_vs
-@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
-@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 in vec3 a_position;
 
@@ -137,8 +133,6 @@ void main() {
 //
 
 @vs line_vs
-@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
-@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 layout(binding=0) uniform vs_line_params {
     mat4 u_proj;
@@ -170,8 +164,6 @@ void main() {
 //
 
 @vs sprite_vs
-@glsl_options flip_vert_y    // This is necessary because the Y-axis is flipped in OpenGL.
-@msl_options fixup_clipspace // This is necessary because the clip space is different in Metal.
 
 layout(binding=0) uniform vs_sprite_params {
     mat4 u_proj;
