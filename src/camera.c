@@ -107,7 +107,7 @@ mat4s camera_get_proj(void) {
         // TODO: Why are we dividing by 2? it should not be
         f32 w = GFX_RENDER_WIDTH * _state.zoom / 2.0f;
         f32 h = GFX_RENDER_HEIGHT * _state.zoom / 2.0f;
-        return glms_ortho(0, w, 0, h, -2048.0f, 2048.0f);
+        return glms_ortho(0, w, h, 0, -2048.0f, 2048.0f);
     }
 }
 
