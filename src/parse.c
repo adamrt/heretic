@@ -7,7 +7,7 @@
 f32 parse_coord(coord_t coord, i16 value) {
     f32 rv = (f32)value;
     if (coord == COORD_Y) {
-        rv = -rv;
+        // rv = -rv;
     }
     rv = rv / 4.0f;
     return rv;

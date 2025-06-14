@@ -102,11 +102,14 @@ void game_input(const sapp_event* event) {
         case SAPP_KEYCODE_F:
             camera_freefly_motion((freefly_motion_t) { .up = -1.0f });
             break;
+        case SAPP_KEYCODE_Q:
+            sapp_lock_mouse(false);
+            break;
         default:
             break;
         }
+        break;
 
-        __attribute__((fallthrough));
     case SAPP_EVENTTYPE_MOUSE_DOWN:
     case SAPP_EVENTTYPE_MOUSE_UP: {
         bool is_down = (event->type == SAPP_EVENTTYPE_MOUSE_DOWN);
