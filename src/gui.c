@@ -679,7 +679,7 @@ static void _draw_window_terrain(void) {
 
 static void _draw(void) {
     is_hovered = false;
-    ImVec2 dims = { GFX_RENDER_WIDTH + 10, GFX_RENDER_HEIGHT + 10 };
+    ImVec2 dims = { GFX_RENDER_WIDTH * 3 + 10, GFX_RENDER_HEIGHT * 3 + 10 };
 
     // This creates a parent dockspace to attach to
     igDockSpaceOverViewport();
