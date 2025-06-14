@@ -124,7 +124,7 @@ in vec2 v_uv;
 out vec4 frag_color;
 
 void main() {
-    frag_color = mix(u_bottom_color, u_top_color, v_uv.y);
+    frag_color = mix(u_top_color, u_bottom_color, v_uv.y);
 }
 @end
 
