@@ -1,3 +1,4 @@
+#include "camera.h"
 #include "sokol_gfx.h"
 
 #include "cglm/types-struct.h"
@@ -12,6 +13,7 @@
 #include "map.h"
 #include "scenario.h"
 #include "scene.h"
+#include "transition.h"
 #include "util.h"
 #include "vm.h"
 
@@ -38,6 +40,9 @@ void scene_reset(void) {
     _state.current_map = 0;
 
     vm_reset();
+    transition_reset();
+    camera_reset();
+
     map_destroy(_state.map);
     gfx_model_destroy();
     gfx_sprite_reset();

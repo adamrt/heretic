@@ -1,28 +1,38 @@
 #include "vm.h"
-#include "camera.h"
 #include "opcode.h"
 #include "transition.h"
 #include "vm_func.h"
 
-static vm_t _state;
+// Virtual machine state
+static struct {
+    opcode_fn_t handlers[OPCODE_ID_MAX];
+    const event_t* current_event;
+    size_t current_instruction;
+    bool is_executing;
 
+    waittype_e waiting[100];
+    int waiting_count;
+} _state;
+
+// Forward declarations
+static void vm_unwait(waittype_e);
+
+// Initialize the virtual machine
 void vm_init(void) {
     vm_reset();
 
+    // Setup the opcode handlers
     _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = fn_display_message;
     _state.handlers[OPCODE_ID_CAMERA] = fn_camera;
     _state.handlers[OPCODE_ID_WAITFORINSTRUCTION] = fn_wait_for_instruction;
     _state.handlers[OPCODE_ID_WARPUNIT] = fn_warp_unit;
 }
 
+// Reset the virtual machine state
 void vm_reset(void) {
     _state.current_event = NULL;
     _state.current_instruction = 0;
     _state.is_executing = false;
-
-    // Reset related state that is associated with the VM
-    transition_reset();
-    camera_reset();
 }
 
 void vm_execute_event(const event_t* event) {
@@ -33,31 +43,33 @@ void vm_execute_event(const event_t* event) {
 }
 
 void vm_update(void) {
-    if (_state.is_executing) {
+    if (!_state.is_executing) {
+        return;
+    }
 
-        // Check if we've reached the end of the event
-        if (_state.current_instruction >= _state.current_event->instruction_count) {
-            _state.is_executing = false;
-            _state.current_event = NULL;
+    // Check if we've reached the end of the event
+    if (_state.current_instruction >= _state.current_event->instruction_count) {
+        vm_reset();
+        return;
+    }
+
+    // Check if we are waiting on any active transition.
+    // These types are different than opcode_ids (waittype_e).
+    for (int i = 0; i < _state.waiting_count; i++) {
+        waittype_e waittype = _state.waiting[i];
+        if (transition_has_active(waittype)) {
+            // We are waiting on a transition, do not execute the next instr.
             return;
+        } else {
+            // If we are not waiting, we can unwait this type.
+            vm_unwait(waittype);
         }
+    }
 
-        // Check if we are waiting on any active transition in our.
-        // These types are different than opcode_ids (waittype_e).
-        for (int i = 0; i < _state.waiting_count; i++) {
-            waittype_e type = _state.waiting[i];
-            if (transition_has_active(type)) {
-                return;
-            } else {
-                vm_unwait(type);
-            }
-        }
-
-        const instruction_t* instr = &_state.current_event->instructions[_state.current_instruction++];
-        const opcode_fn_t fn = _state.handlers[instr->opcode];
-        if (fn != NULL) {
-            fn(instr);
-        }
+    const instruction_t* instr = &_state.current_event->instructions[_state.current_instruction++];
+    const opcode_fn_t fn = _state.handlers[instr->opcode];
+    if (fn != NULL) {
+        fn(instr);
     }
 }
 
@@ -71,7 +83,7 @@ void vm_wait(waittype_e type) {
     }
 }
 
-void vm_unwait(waittype_e type) {
+static void vm_unwait(waittype_e type) {
     for (int i = 0; i < _state.waiting_count; i++) {
         if (_state.waiting[i] == type) {
             _state.waiting[i] = _state.waiting[--_state.waiting_count];
