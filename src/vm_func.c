@@ -65,18 +65,14 @@ void fn_camera(const instruction_t* instr) {
     camera_t* cam = camera_get_internals();
     transform3d_t* transform = gfx_model_get_transform();
 
-    f32 x = parse_coord(COORD_X, instr->params[0].value.i16);
-    f32 y = parse_coord(COORD_Y, instr->params[1].value.i16);
-    f32 z = parse_coord(COORD_Z, instr->params[2].value.i16);
-    f32 pitch_deg = parse_deg(instr->params[3].value.i16);
-    f32 maprot_deg = parse_deg(instr->params[4].value.i16);
-    f32 yaw_deg = parse_deg(instr->params[5].value.i16);
+    f32 x = parse_coord(instr->params[0].value.i16);
+    f32 y = parse_coord(instr->params[1].value.i16);
+    f32 z = parse_coord(instr->params[2].value.i16);
+    f32 pitch_rad = parse_rad(instr->params[3].value.i16);
+    f32 maprot_rad = parse_rad(instr->params[4].value.i16);
+    f32 yaw_rad = parse_rad(instr->params[5].value.i16);
     f32 zoom = parse_zoom(instr->params[6].value.i16);
     f32 duration = (f32)instr->params[7].value.i16;
-
-    f32 pitch_rad = glm_rad(pitch_deg);
-    f32 yaw_rad = glm_rad(yaw_deg);
-    f32 maprot_rad = glm_rad(maprot_deg);
 
     transition_add(instr->opcode, &cam->position.x, cam->position.x, x, duration);
     transition_add(instr->opcode, &cam->position.y, cam->position.y, y, duration);

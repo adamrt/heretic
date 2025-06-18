@@ -487,12 +487,12 @@ void _row_instr_camera(instruction_t* instr) {
     igTableSetColumnIndex(1);
 
     param_t* p = instr->params;
-    f32 x = parse_coord(COORD_X, p[0].value.i16);
-    f32 y = parse_coord(COORD_Y, p[1].value.i16);
-    f32 z = parse_coord(COORD_Z, p[2].value.i16);
-    f32 pitch = parse_deg(p[3].value.i16);
-    f32 maprot = parse_deg(p[4].value.i16);
-    f32 yaw = parse_deg(p[5].value.i16);
+    f32 x = parse_coord(p[0].value.i16);
+    f32 y = parse_coord(p[1].value.i16);
+    f32 z = parse_coord(p[2].value.i16);
+    f32 pitch = parse_rad(p[3].value.i16);
+    f32 maprot = parse_rad(p[4].value.i16);
+    f32 yaw = parse_rad(p[5].value.i16);
     f32 zoom = parse_zoom(p[6].value.i16);
     int duration = p[7].value.i16;
 
