@@ -9,5 +9,5 @@ typedef enum {
 } coord_t;
 
 f32 parse_coord(coord_t, i16);
-f32 parse_rad(i16);
+f32 parse_deg(i16);
 f32 parse_zoom(i16);

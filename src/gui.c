@@ -433,7 +433,11 @@ static void _draw_window_scene(void) {
         igSeparator();
         igSliderFloat("Zoom", &cam->zoom, 0, 2.0f);
         igSliderFloat("Yaw", &cam->yaw_rad, -3.0f, 3.0f);
+        igSameLine();
+        igText("%0.2f°", glm_deg(cam->yaw_rad));
         igSliderFloat("Pitch", &cam->pitch_rad, -3.0f, 3.0f);
+        igSameLine();
+        igText("%0.2f°", glm_deg(cam->pitch_rad));
     }
 
     igNewLine();
@@ -486,9 +490,9 @@ void _row_instr_camera(instruction_t* instr) {
     f32 x = parse_coord(COORD_X, p[0].value.i16);
     f32 y = parse_coord(COORD_Y, p[1].value.i16);
     f32 z = parse_coord(COORD_Z, p[2].value.i16);
-    f32 pitch = parse_rad(p[3].value.i16);
-    f32 maprot = parse_rad(p[4].value.i16);
-    f32 yaw = parse_rad(p[5].value.i16);
+    f32 pitch = parse_deg(p[3].value.i16);
+    f32 maprot = parse_deg(p[4].value.i16);
+    f32 yaw = parse_deg(p[5].value.i16);
     f32 zoom = parse_zoom(p[6].value.i16);
     int duration = p[7].value.i16;
 
@@ -513,15 +517,15 @@ void _row_instr_camera(instruction_t* instr) {
     igTableSetColumnIndex(5);
     igText("Pitch: ");
     igSameLine();
-    igText("%0.2f°", glm_deg(pitch));
+    igText("%0.2f°", pitch);
     igTableSetColumnIndex(6);
     igText("Yaw: ");
     igSameLine();
-    igText("%0.2f°", glm_deg(yaw));
+    igText("%0.2f°", yaw);
     igTableSetColumnIndex(7);
     igText("MapRot: ");
     igSameLine();
-    igText("%0.2f°", glm_deg(maprot));
+    igText("%0.2f°", maprot);
     igTableSetColumnIndex(8);
     igText("Zoom: ");
     igSameLine();

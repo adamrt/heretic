@@ -29,7 +29,7 @@ void gfx_model_init(void) {
         .cull_mode = SG_CULLMODE_BACK,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .compare = SG_COMPAREFUNC_LESS,
+            .compare = SG_COMPAREFUNC_GREATER,
             .write_enabled = true,
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
@@ -108,7 +108,7 @@ void gfx_model_destroy(void) {
 }
 
 void gfx_model_render(void) {
-    mat4s model_mat = transform_to_matrix(_state.model.transform);
+    mat4s model_mat = transform_to_matrix_around_center(_state.model.transform, _state.model.center);
 
     vs_standard_params_t vs_params = {
         .u_proj = camera_get_proj(),

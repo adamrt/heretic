@@ -71,6 +71,10 @@ void gfx_render_begin(void) {
                 .load_action = SG_LOADACTION_CLEAR,
                 .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f },
             },
+            .depth = {
+                .load_action = SG_LOADACTION_CLEAR,
+                .clear_value = 0.0f, // Clear depth to 0.0 because Z+ into screen
+            },
         },
         .label = "offscreen-pass",
     });
