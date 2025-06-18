@@ -14,3 +14,4 @@ typedef struct {
 } transform3d_t;
 
 mat4s transform_to_matrix(transform3d_t);
+mat4s transform_to_matrix_around_center(transform3d_t, vec3s);
