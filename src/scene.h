@@ -5,6 +5,7 @@
 #include "event.h"
 #include "map.h"
 #include "map_record.h"
+#include "unit.h"
 
 typedef enum {
     MODE_EVENT,
@@ -17,6 +18,7 @@ typedef struct {
     int current_scenario_id;
     int current_map;
     event_t event;
+    units_t units;
 } scene_t;
 
 void scene_init(void);

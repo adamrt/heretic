@@ -14,6 +14,7 @@
 #include "scenario.h"
 #include "scene.h"
 #include "transition.h"
+#include "unit.h"
 #include "util.h"
 #include "vm.h"
 
@@ -75,6 +76,11 @@ void scene_load_map(int num, map_state_t map_state) {
     _state.current_map = num;
 }
 
+void scene_load_units(int entd_id) {
+    units_t units = unit_get_units(entd_id);
+    _state.units = units;
+}
+
 void scene_load_scenario(int scenario_id) {
     scenario_t scenario = scenario_get_scenario(scenario_id);
     map_state_t scenario_state = {
@@ -85,6 +91,7 @@ void scene_load_scenario(int scenario_id) {
 
     _state.event = event_get_event(scenario.event_id);
     scene_load_map(scenario.map_id, scenario_state);
+    scene_load_units(scenario.entd_id);
 }
 
 event_t scene_get_event(void) { return _state.event; }

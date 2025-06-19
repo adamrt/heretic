@@ -87,6 +87,7 @@ add_executable(heretic
     src/time.c
     src/transform.c
     src/transition.c
+    src/unit.c
     src/vm.c
     src/vm_func.c)
 

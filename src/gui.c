@@ -2,7 +2,6 @@
 
 #include "cglm/util.h"
 #include "cimgui.h"
-#include "gfx_model.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -14,6 +13,7 @@
 #include "filesystem.h"
 #include "font.h"
 #include "gfx.h"
+#include "gfx_model.h"
 #include "gfx_sprite.h"
 #include "gui.h"
 #include "map.h"
@@ -23,6 +23,7 @@
 #include "opcode.h"
 #include "parse.h"
 #include "scene.h"
+#include "unit.h"
 #include "util.h"
 #include "vm.h"
 
@@ -44,6 +45,7 @@ static struct {
 
     bool show_window_event_text;
     bool show_window_event_instructions;
+    bool show_window_event_units;
 
     bool show_texture_resources;
     bool show_window_terrain;
@@ -68,6 +70,7 @@ void gui_init(void) {
     _state.show_window_map_records = true;
     _state.show_window_event_text = true;
     _state.show_window_event_instructions = true;
+    _state.show_window_event_units = true;
     _state.show_window_raw_records = true;
     _state.show_texture_resources = false;
     _state.show_window_demo = false;
@@ -375,6 +378,7 @@ static void _draw_window_scene(void) {
     if (igRadioButton("Events", scene->mode == MODE_EVENT)) {
         scene->mode = MODE_EVENT;
         _state.show_window_event_instructions = true;
+        _state.show_window_event_units = true;
         _state.show_window_event_text = true;
         _state.show_window_map_lights = false;
         _state.show_window_map_records = false;
@@ -383,6 +387,7 @@ static void _draw_window_scene(void) {
     if (igRadioButton("Maps", scene->mode == MODE_MAP)) {
         scene->mode = MODE_MAP;
         _state.show_window_event_instructions = false;
+        _state.show_window_event_units = false;
         _state.show_window_event_text = false;
         _state.show_window_map_lights = true;
         _state.show_window_map_records = true;
@@ -606,6 +611,86 @@ static void _draw_window_event_instructions(void) {
     igEnd();
 }
 
+static void _draw_window_event_entd(void) {
+    scene_t* scene = scene_get_internals();
+    igBegin("Event Units", &_state.show_window_event_units, 0);
+    if (igBeginTable("", 17, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("ID", ImGuiTableColumnFlags_WidthFixed, 25.0f, 0);
+        igTableSetupColumnEx("Name", ImGuiTableColumnFlags_WidthFixed, 80, 0);
+        igTableSetupColumnEx("Level", ImGuiTableColumnFlags_WidthFixed, 35, 0);
+        igTableSetupColumnEx("Brave/Faith", ImGuiTableColumnFlags_WidthFixed, 75, 0);
+        igTableSetupColumnEx("Experience", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Pos", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+        igTableSetupColumnEx("Birthday", ImGuiTableColumnFlags_WidthFixed, 80, 0);
+        igTableSetupColumnEx("Job", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Job Lvl", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+        igTableSetupColumnEx("Job Unlock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+        igTableSetupColumnEx("Secondary Skill", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Abilities", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Gear", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Direction", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("TargetID", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Flags", ImGuiTableColumnFlags_WidthFixed, 200.0f, 0);
+
+        igTableHeadersRow();
+
+        char buf[64];
+
+        for (usize i = 0; i < scene->units.count; i++) {
+            unit_t unit = scene->units.units[i];
+            igTableNextRow();
+            igTableNextColumn();
+            igText("%d", unit.unit_id);
+            igTableNextColumn();
+            igText("%s", unit_name_str(unit.name));
+            igTableNextColumn();
+            unit_level_str(unit.level, buf);
+            igText("%s", buf);
+            igTableNextColumn();
+            unit_brave_faith_str(unit.bravery, unit.faith, buf);
+            igText("%s", buf);
+            igTableNextColumn();
+            igText("%d", unit.experience);
+            igTableNextColumn();
+            igText("%d x %d", unit.pos_x, unit.pos_y);
+            igTableNextColumn();
+            unit_bday_str(unit.birthday, buf);
+            igText("%s", buf);
+            igTableNextColumn();
+            igText("%s", unit_job_str(unit.job));
+            igTableNextColumn();
+            igText("%d", unit.job_level);
+            igTableNextColumn();
+            igText("%d", unit.job_unlock);
+            igTableNextColumn();
+            igText("%s", unit_skill_str(unit.secondary_job));
+            igTableNextColumn();
+            igText("Rct: %s", unit_ability_str(unit.reaction));
+            igText("Sup: %s", unit_ability_str(unit.support));
+            igText("Mov: %s", unit_ability_str(unit.movement));
+            igTableNextColumn();
+            igText("Head: %s", unit_item_str(unit.head));
+            igText("Body: %s", unit_item_str(unit.body));
+            igText("Accs: %s", unit_item_str(unit.accessory));
+            igText("L: %s", unit_item_str(unit.left_hand));
+            igText("R: %s", unit_item_str(unit.right_hand));
+            igTableNextColumn();
+            igText("%s", unit_direction_str(unit.direction));
+            igTableNextColumn();
+            igText("%d", unit.target_unit_id);
+            igTableNextColumn();
+            unit_flags_a_str(unit.flags_a, buf);
+            igText("A: %s", buf);
+            unit_flags_b_str(unit.flags_b, buf);
+            igText("B: %s", buf);
+            unit_flags_c_str(unit.flags_c, buf);
+            igText("C: %s", buf);
+        }
+        igEndTable();
+    }
+    igEnd();
+}
+
 static void _draw_window_terrain(void) {
     scene_t* scene = scene_get_internals();
     int x_count = scene->map->primary_mesh.terrain.x_count;
@@ -711,6 +796,9 @@ static void _draw(void) {
         if (igMenuItem("Instructions")) {
             _state.show_window_event_instructions = !_state.show_window_event_instructions;
         }
+        if (igMenuItem("Units")) {
+            _state.show_window_event_units = !_state.show_window_event_units;
+        }
         igEndMenu();
     }
     if (igBeginMenu("Map")) {
@@ -766,6 +854,9 @@ static void _draw(void) {
 
     if (_state.show_window_event_instructions) {
         _draw_window_event_instructions();
+    }
+    if (_state.show_window_event_units) {
+        _draw_window_event_entd();
     }
     if (_state.show_window_event_text) {
         _draw_window_event_text();
