@@ -7,6 +7,7 @@ constexpr int GFX_WINDOW_HEIGHT = 1280;
 
 constexpr int GFX_RENDER_WIDTH = 256;
 constexpr int GFX_RENDER_HEIGHT = 240;
+constexpr int GFX_RENDER_SCALE = 3;
 
 void gfx_init(void);
 void gfx_shutdown(void);

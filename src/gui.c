@@ -614,23 +614,25 @@ static void _draw_window_event_instructions(void) {
 static void _draw_window_event_entd(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Event Units", &_state.show_window_event_units, 0);
-    if (igBeginTable("", 17, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
-        igTableSetupColumnEx("ID", ImGuiTableColumnFlags_WidthFixed, 25.0f, 0);
+    if (igBeginTable("", 19, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_RowBg)) {
+        igTableSetupColumnEx("ID", ImGuiTableColumnFlags_WidthFixed, 25, 0);
+        igTableSetupColumnEx("Sprite", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+        igTableSetupColumnEx("Palette", ImGuiTableColumnFlags_WidthFixed, 50, 0);
         igTableSetupColumnEx("Name", ImGuiTableColumnFlags_WidthFixed, 80, 0);
         igTableSetupColumnEx("Level", ImGuiTableColumnFlags_WidthFixed, 35, 0);
         igTableSetupColumnEx("Brave/Faith", ImGuiTableColumnFlags_WidthFixed, 75, 0);
-        igTableSetupColumnEx("Experience", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Experience", ImGuiTableColumnFlags_WidthStretch, 0, 0);
         igTableSetupColumnEx("Pos", ImGuiTableColumnFlags_WidthFixed, 50, 0);
         igTableSetupColumnEx("Birthday", ImGuiTableColumnFlags_WidthFixed, 80, 0);
-        igTableSetupColumnEx("Job", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
+        igTableSetupColumnEx("Job", ImGuiTableColumnFlags_WidthStretch, 0, 0);
         igTableSetupColumnEx("Job Lvl", ImGuiTableColumnFlags_WidthFixed, 50, 0);
         igTableSetupColumnEx("Job Unlock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-        igTableSetupColumnEx("Secondary Skill", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("Abilities", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("Gear", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("Direction", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("TargetID", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("Flags", ImGuiTableColumnFlags_WidthFixed, 200.0f, 0);
+        igTableSetupColumnEx("Secondary Skill", ImGuiTableColumnFlags_WidthStretch, 0, 0);
+        igTableSetupColumnEx("Abilities", ImGuiTableColumnFlags_WidthStretch, 0, 0);
+        igTableSetupColumnEx("Gear", ImGuiTableColumnFlags_WidthStretch, 0, 0);
+        igTableSetupColumnEx("Direction", ImGuiTableColumnFlags_WidthStretch, 0, 0);
+        igTableSetupColumnEx("TargetID", ImGuiTableColumnFlags_WidthStretch, 0, 0);
+        igTableSetupColumnEx("Flags", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 
         igTableHeadersRow();
 
@@ -641,6 +643,10 @@ static void _draw_window_event_entd(void) {
             igTableNextRow();
             igTableNextColumn();
             igText("%d", unit.unit_id);
+            igTableNextColumn();
+            igText("%d", unit.sprite_set);
+            igTableNextColumn();
+            igText("%d", unit.palette);
             igTableNextColumn();
             igText("%s", unit_name_str(unit.name));
             igTableNextColumn();
@@ -768,7 +774,10 @@ static void _draw_window_terrain(void) {
 
 static void _draw(void) {
     is_hovered = false;
-    ImVec2 dims = { GFX_RENDER_WIDTH * 3 + 10, GFX_RENDER_HEIGHT * 3 + 10 };
+    ImVec2 dims = {
+        .x = GFX_RENDER_WIDTH * GFX_RENDER_SCALE,
+        .y = GFX_RENDER_HEIGHT * GFX_RENDER_SCALE,
+    };
 
     // This creates a parent dockspace to attach to
     igDockSpaceOverViewport();
