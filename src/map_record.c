@@ -51,8 +51,11 @@ int read_map_records(span_t* span, map_record_t* out_records) {
     int count = 0;
     while (span->offset + 20 < span->size) {
         map_record_t record = read_map_record(span);
-        out_records[count] = record;
-        count++;
+        if (record.type == FILETYPE_END) {
+            // End of records, stop reading.
+            break;
+        }
+        out_records[count++] = record;
     }
     return count;
 }
