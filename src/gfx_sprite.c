@@ -168,8 +168,14 @@ void gfx_sprite_reset(void) {
 }
 
 sprite2d_t gfx_sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 y, f32 scale) {
-    vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
-    vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
+    vec2s uv_min = (vec2s) {
+        .x = min.x / texture.width,
+        .y = (min.y + size.y) / texture.height,
+    };
+    vec2s uv_max = (vec2s) {
+        .x = (min.x + size.x) / texture.width,
+        .y = (min.y) / texture.height,
+    };
 
     sprite2d_t sprite = {
         .texture = texture,
