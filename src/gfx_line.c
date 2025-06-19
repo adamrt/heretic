@@ -8,22 +8,17 @@
 
 static struct {
     sg_pipeline pipeline;
-
-    sg_buffer axis_x_vbuf;
-    sg_buffer axis_y_vbuf;
-    sg_buffer axis_z_vbuf;
+    sg_bindings bindings;
+    sg_buffer vbuf;
 } _state;
 
 // 28 represents the width and depth of a tile.
-constexpr f32 dim = 28.0f * 3.0f; // Use constants
-constexpr vec3s zero = { { 0, 0, 0 } };
-constexpr vec3s axis_x = { { dim, 0, 0 } };
-constexpr vec3s axis_y = { { 0, -dim, 0 } }; // Y+ is actually down, but we want to render it as Y-
-constexpr vec3s axis_z = { { 0, 0, dim } };
-
-vec3s verts_x[2] = { zero, axis_x };
-vec3s verts_y[2] = { zero, axis_y };
-vec3s verts_z[2] = { zero, axis_z };
+static constexpr f32 dim = 28.0f * 3.0f; // Use constants
+static const vec3s axis_verts[] = {
+    { { 0, 0, 0 } }, { { dim, 0, 0 } }, // X
+    { { 0, 0, 0 } }, { { 0, dim, 0 } }, // Y
+    { { 0, 0, 0 } }, { { 0, 0, dim } }, // Z
+};
 
 void gfx_line_init(void) {
     _state.pipeline = sg_make_pipeline(&(sg_pipeline_desc) {
@@ -43,55 +38,38 @@ void gfx_line_init(void) {
         .label = "line-pipeline",
     });
 
-    //
-    // Create the vertex buffers for the axis lines
-    // We create these now so we don't have to create/detroy every frame.
-    //
-
-    _state.axis_x_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data.ptr = verts_x,
-        .data.size = 2 * sizeof(vec3s),
+    _state.vbuf = sg_make_buffer(&(sg_buffer_desc) {
+        .data.ptr = axis_verts,
+        .data.size = 6 * sizeof(vec3s),
         .type = SG_BUFFERTYPE_VERTEXBUFFER,
-        .label = "line-axis-x",
+        .label = "line-axis-vbuf",
     });
 
-    _state.axis_y_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data.ptr = verts_y,
-        .data.size = 2 * sizeof(vec3s),
-        .type = SG_BUFFERTYPE_VERTEXBUFFER,
-        .label = "line-axis-y",
-    });
-
-    _state.axis_z_vbuf = sg_make_buffer(&(sg_buffer_desc) {
-        .data.ptr = verts_z,
-        .data.size = 2 * sizeof(vec3s),
-        .type = SG_BUFFERTYPE_VERTEXBUFFER,
-        .label = "line-axis-z",
-    });
+    _state.bindings = (sg_bindings) {
+        .vertex_buffers[0] = _state.vbuf,
+    };
 }
 
 void gfx_line_shutdown(void) {
     sg_destroy_pipeline(_state.pipeline);
-    sg_destroy_buffer(_state.axis_x_vbuf);
-    sg_destroy_buffer(_state.axis_y_vbuf);
-    sg_destroy_buffer(_state.axis_z_vbuf);
+    sg_destroy_buffer(_state.vbuf);
 }
 
-void gfx_line_render(sg_buffer vbuf, vec4s color) {
+void gfx_line_render_axis(void) {
     vs_line_params_t vs_params = {
         .u_proj = camera_get_proj(),
         .u_view = camera_get_view(),
     };
 
     sg_apply_pipeline(_state.pipeline);
-    sg_apply_bindings(&(sg_bindings) { .vertex_buffers[0] = vbuf });
-    sg_apply_uniforms(0, &SG_RANGE(vs_params));
-    sg_apply_uniforms(1, &SG_RANGE(color));
-    sg_draw(0, 2, 1);
-}
+    sg_apply_bindings(&_state.bindings);
 
-void gfx_line_render_axis(void) {
-    gfx_line_render(_state.axis_x_vbuf, COLOR_RED);
-    gfx_line_render(_state.axis_y_vbuf, COLOR_GREEN);
-    gfx_line_render(_state.axis_z_vbuf, COLOR_BLUE);
+    sg_apply_uniforms(0, &SG_RANGE(vs_params));
+
+    sg_apply_uniforms(1, &SG_RANGE(COLOR_RED));
+    sg_draw(0, 2, 1);
+    sg_apply_uniforms(1, &SG_RANGE(COLOR_GREEN));
+    sg_draw(2, 2, 1);
+    sg_apply_uniforms(1, &SG_RANGE(COLOR_BLUE));
+    sg_draw(4, 2, 1);
 }
