@@ -103,7 +103,7 @@ void gfx_sprite_init(void) {
         .cull_mode = SG_CULLMODE_NONE,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .compare = SG_COMPAREFUNC_LESS,
+            .compare = SG_COMPAREFUNC_GREATER,
             .write_enabled = true,
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,

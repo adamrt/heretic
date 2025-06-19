@@ -15,11 +15,11 @@ static struct {
 } _state;
 
 // 28 represents the width and depth of a tile.
-constexpr f32 dim = 28.0f * 5.0f; // Use constants
+constexpr f32 dim = 28.0f * 3.0f; // Use constants
 constexpr vec3s zero = { { 0, 0, 0 } };
 constexpr vec3s axis_x = { { dim, 0, 0 } };
-constexpr vec3s axis_y = { { 0, dim, 0 } };
-constexpr vec3s axis_z = { { 0, 0, -dim } };
+constexpr vec3s axis_y = { { 0, -dim, 0 } }; // Y+ is actually down, but we want to render it as Y-
+constexpr vec3s axis_z = { { 0, 0, dim } };
 
 vec3s verts_x[2] = { zero, axis_x };
 vec3s verts_y[2] = { zero, axis_y };
@@ -35,8 +35,8 @@ void gfx_line_init(void) {
         },
         .primitive_type = SG_PRIMITIVETYPE_LINES,
         .depth = {
-            .compare = SG_COMPAREFUNC_LESS,
             .pixel_format = SG_PIXELFORMAT_DEPTH,
+            .compare = SG_COMPAREFUNC_GREATER,
             .write_enabled = false,
         },
         .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
