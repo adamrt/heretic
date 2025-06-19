@@ -522,15 +522,15 @@ void _row_instr_camera(instruction_t* instr) {
     igTableSetColumnIndex(5);
     igText("Pitch: ");
     igSameLine();
-    igText("%0.2f°", pitch);
+    igText("%0.2f°", glm_deg(pitch));
     igTableSetColumnIndex(6);
     igText("Yaw: ");
     igSameLine();
-    igText("%0.2f°", yaw);
+    igText("%0.2f°", glm_deg(yaw));
     igTableSetColumnIndex(7);
     igText("MapRot: ");
     igSameLine();
-    igText("%0.2f°", maprot);
+    igText("%0.2f°", glm_deg(maprot));
     igTableSetColumnIndex(8);
     igText("Zoom: ");
     igSameLine();
