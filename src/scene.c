@@ -29,7 +29,6 @@ typedef enum {
 } switch_e;
 
 static void _scene_switch(switch_e dir);
-static void _scene_map_unload(void);
 
 void scene_init(void) {
     _state.current_scenario_id = 78;
@@ -50,7 +49,7 @@ void scene_reset(void) {
 }
 
 void scene_shutdown(void) {
-    _scene_map_unload();
+    scene_reset();
 }
 
 void scene_render(void) {
@@ -144,7 +143,4 @@ static void _scene_switch(switch_e dir) {
     default:
         ASSERT(false, "Invalid mode %d", _state.mode);
     }
-}
-
-static void _scene_map_unload(void) {
 }
