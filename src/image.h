@@ -24,5 +24,6 @@ typedef struct {
 
 void image_destroy(image_t);
 
+image_t image_read_palette(span_t*, int);
 image_t image_read_4bpp(span_t*, int, int);
 image_t image_read_16bpp(span_t*, int, int);

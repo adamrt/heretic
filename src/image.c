@@ -1,9 +1,12 @@
-#include "cglm/types-struct.h"
-
-#include "defines.h"
 #include "image.h"
+#include "defines.h"
 #include "memory.h"
 #include "span.h"
+
+image_t image_read_palette(span_t* span, int rows) {
+    const int colors_per_palette = 16;
+    return image_read_16bpp(span, colors_per_palette, rows);
+}
 
 image_t image_read_4bpp(span_t* span, int width, int height) {
     const int dims = width * height;
