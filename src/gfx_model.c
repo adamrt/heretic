@@ -44,7 +44,7 @@ void gfx_model_shutdown(void) {
 
 model_t gfx_model_create(const map_t* map, map_state_t map_state) {
     mesh_t final_mesh = {};
-    image_t final_texture = {};
+    map_image_t final_texture = {};
     if (map->primary_mesh.valid) {
         final_mesh = map->primary_mesh;
     } else {
@@ -60,21 +60,21 @@ model_t gfx_model_create(const map_t* map, map_state_t map_state) {
     }
 
     for (int i = 0; i < map->texture_count; i++) {
-        image_t texture = map->textures[i];
+        map_image_t texture = map->textures[i];
 
-        if (texture.valid && map_state_eq(texture.map_state, map_state)) {
+        if (texture.image.valid && map_state_eq(texture.state, map_state)) {
             final_texture = texture;
             break;
         }
-        if (texture.valid && map_state_default(texture.map_state)) {
-            if (!final_texture.valid) {
+        if (texture.image.valid && map_state_default(texture.state)) {
+            if (!final_texture.image.valid) {
                 final_texture = texture;
             }
         }
     }
 
     ASSERT(final_mesh.valid, "Map mesh is invalid");
-    ASSERT(final_texture.valid, "Map texture is invalid");
+    ASSERT(final_texture.image.valid, "Map texture is invalid");
 
     vertices_t vertices = geometry_to_vertices(&final_mesh.geometry);
 
@@ -83,7 +83,7 @@ model_t gfx_model_create(const map_t* map, map_state_t map_state) {
         .label = "mesh-vertices",
     });
 
-    texture_t texture = texture_create(final_texture);
+    texture_t texture = texture_create(final_texture.image);
     texture_t palette = texture_create(final_mesh.palette);
 
     vec3s model_center = vertices_center(&vertices);

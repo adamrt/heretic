@@ -8,6 +8,12 @@
 
 #define MAP_COUNT 128
 
+// This allows us to decouple map_state from the base image_t type.
+typedef struct {
+    map_state_t state;
+    image_t image;
+} map_image_t;
+
 // map_t is a struct that contains all the data for a map for all scenarios.
 typedef struct {
     map_record_t records[MAP_RECORD_MAX_NUM];
@@ -15,7 +21,7 @@ typedef struct {
     mesh_t primary_mesh;
     mesh_t override_mesh;
     mesh_t alt_meshes[20];
-    image_t textures[20];
+    map_image_t textures[20];
 
     int record_count;
     int texture_count;

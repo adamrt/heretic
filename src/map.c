@@ -6,10 +6,14 @@
 #include "memory.h"
 #include "util.h"
 
-static image_t _read_map_texture(span_t* span) {
+static map_image_t _read_map_texture(span_t* span, map_state_t state) {
     constexpr int width = 256;
     constexpr int height = 1024;
-    return image_read_4bpp(span, width, height);
+    image_t image = image_read_4bpp(span, width, height);
+    return (map_image_t) {
+        .state = state,
+        .image = image,
+    };
 }
 
 void map_destroy(map_t* map) {
@@ -19,7 +23,7 @@ void map_destroy(map_t* map) {
 
     // Textures
     for (int i = 0; i < map->texture_count; i++) {
-        image_destroy(map->textures[i]);
+        image_destroy(map->textures[i].image);
     }
 
     // Palettes
@@ -51,8 +55,7 @@ map_t* read_map(int num) {
         case FILETYPE_TEXTURE: {
             const file_entry_e entry = filesystem_entry_by_sector(record->sector);
             span_t file = filesystem_read_file(entry);
-            image_t texture = _read_map_texture(&file);
-            texture.map_state = record->state;
+            map_image_t texture = _read_map_texture(&file, record->state);
             map->textures[map->texture_count++] = texture;
             break;
         }

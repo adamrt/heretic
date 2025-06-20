@@ -12,13 +12,10 @@
 #include "span.h"
 
 typedef struct {
-    map_state_t map_state; // only useful for actual map/level textures.
-
     int width;
     int height;
-    u8* data;
     usize size;
-
+    u8* data;
     bool valid;
 } image_t;
 
