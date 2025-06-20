@@ -325,5 +325,5 @@ static image_t _read_palette(span_t* span) {
         return (image_t) {};
     }
     span->offset = intra_file_ptr;
-    return image_read_rgb15(span, width, height);
+    return image_read_16bpp(span, width, height);
 }
