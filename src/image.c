@@ -1,11 +1,15 @@
-#include "image.h"
+#include <string.h>
+
 #include "defines.h"
+#include "image.h"
 #include "memory.h"
 #include "span.h"
 
+constexpr int pal_col_count = 16;
+constexpr int pal_row_size = pal_col_count * 4; // 4 bytes per color
+
 image_t image_read_palette(span_t* span, int rows) {
-    const int colors_per_palette = 16;
-    return image_read_16bpp(span, colors_per_palette, rows);
+    return image_read_16bpp(span, pal_col_count, rows);
 }
 
 image_t image_read_4bpp(span_t* span, int width, int height) {
@@ -62,6 +66,22 @@ image_t image_read_16bpp(span_t* span, int width, int height) {
         .size = size,
         .valid = true,
     };
+}
+
+// Read and return an image using the palette provided.
+// The image's rgba values are the index of the palette.
+image_t image_read_4bpp_pal(span_t* span, int width, int height, image_t palette, usize pal_idx) {
+    const int dims = width * height;
+    const int pal_offset = (pal_row_size * pal_idx);
+
+    image_t image = image_read_4bpp(span, width, height);
+
+    for (int i = 0; i < dims * 4; i = i + 4) {
+        u8 pixel = image.data[i];
+        memcpy(&image.data[i], &palette.data[pal_offset + (pixel * 4)], 4);
+    }
+
+    return image;
 }
 
 void image_destroy(image_t image) {

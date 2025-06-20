@@ -65,7 +65,6 @@ const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
     [F_EVENT__UNIT_BIN] = { 256, 480, 0, 128, 61440, 0 },
 };
 
-static image_t _read_paletted_sprite(span_t*, int, int, image_t, usize);
 static image_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
 
 // Getters
@@ -334,7 +333,7 @@ static image_t _read_image_row_evtface_bin(span_t* span, int row, int palette_id
     for (int col = 0; col < cols; col++) {
         int tex_offset = row * bytes_per_row + col * bytes_per_portrait;
         span->offset = tex_offset;
-        image_t portrait_image = _read_paletted_sprite(span, portrait_width, portrait_height, palette, palette_idx);
+        image_t portrait_image = image_read_4bpp_pal(span, portrait_width, portrait_height, palette, palette_idx);
         int dest_x = col * portrait_width;
 
         for (int y = 0; y < portrait_height; y++) {
@@ -381,30 +380,12 @@ texture_t sprite_get_evtface_bin_texture(int row_idx, int palette_idx) {
 // Shared functions
 //
 
-static image_t _read_paletted_sprite(span_t* span, int width, int height, image_t palette, usize palette_idx) {
-    const int dims = width * height;
-
-    image_t image = image_read_4bpp(span, width, height);
-    usize palette_offset = (16 * 4 * palette_idx); // 16 colors * 4 bytes per color * item_index
-
-    // image is an RGBA image with 4 bytes per pixel. Each color's RGBA are all
-    // the same value (the palette index). So we loop over each 4th pixel and index
-    // the palette to get the RGBA values, and copy the palettes RGBA values to the
-    // original index image.
-    for (int i = 0; i < dims * 4; i = i + 4) {
-        u8 pixel = image.data[i];
-        memcpy(&image.data[i], &palette.data[pixel * 4 + palette_offset], 4);
-    }
-
-    return image;
-}
-
 static image_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
     span->offset = desc.pal_offset;
     image_t palette = image_read_palette(span, desc.pal_count);
 
     span->offset = desc.tex_offset;
-    image_t image = _read_paletted_sprite(span, desc.tex_width, desc.tex_height, palette, pindex);
+    image_t image = image_read_4bpp_pal(span, desc.tex_width, desc.tex_height, palette, pindex);
 
     image_destroy(palette);
 
