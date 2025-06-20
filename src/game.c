@@ -22,13 +22,13 @@ void data_init(void) {
     filesystem_init();
     font_init();
     scene_init();
+    camera_init();
     data_initialized = true;
 }
 
 void game_init(void) {
     memory_init();
     time_init();
-    camera_init();
     vm_init();
     gfx_init();
     gui_init();
@@ -130,7 +130,7 @@ void game_input(const sapp_event* event) {
         break;
 
     case SAPP_EVENTTYPE_MOUSE_SCROLL: {
-        orbit_motion_t motion = { .dolly = event->scroll_y };
+        orbit_motion_t motion = { .dolly = -event->scroll_y };
         camera_orbit_motion(motion);
         break;
     }
