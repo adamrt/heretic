@@ -279,31 +279,27 @@ vertices_t geometry_to_vertices(const geometry_t* geometry) {
     return vertices;
 }
 
-vec3s vertices_centered(const vertices_t* vertices) {
-    f32 min_x = FLT_MAX;
-    f32 max_x = -FLT_MAX;
-    f32 min_y = FLT_MAX;
-    f32 max_y = -FLT_MAX;
-    f32 min_z = FLT_MAX;
-    f32 max_z = -FLT_MAX;
+// Returns the center of the vertices in the mesh.
+vec3s vertices_center(const vertices_t* vertices) {
+    f32 min_x = FLT_MAX, max_x = -FLT_MAX;
+    f32 min_y = FLT_MAX, max_y = -FLT_MAX;
+    f32 min_z = FLT_MAX, max_z = -FLT_MAX;
 
     for (int i = 0; i < vertices->count; i++) {
-        const vertex_t vertex = vertices->vertices[i];
-
-        min_x = glm_min(vertex.position.x, min_x);
-        min_y = glm_min(vertex.position.y, min_y);
-        min_z = glm_min(vertex.position.z, min_z);
-
-        max_x = glm_max(vertex.position.x, max_x);
-        max_y = glm_max(vertex.position.y, max_y);
-        max_z = glm_max(vertex.position.z, max_z);
+        const vertex_t v = vertices->vertices[i];
+        min_x = glm_min(v.position.x, min_x);
+        min_y = glm_min(v.position.y, min_y);
+        min_z = glm_min(v.position.z, min_z);
+        max_x = glm_max(v.position.x, max_x);
+        max_y = glm_max(v.position.y, max_y);
+        max_z = glm_max(v.position.z, max_z);
     }
 
-    f32 x = -(max_x + min_x) / 2.0f;
-    f32 y = -(max_y + min_y) / 2.0f;
-    f32 z = -(max_z + min_z) / 2.0f;
-
-    return (vec3s) { { x, y, z } };
+    return (vec3s) { {
+        (min_x + max_x) / 2.0f,
+        (min_y + max_y) / 2.0f,
+        (min_z + max_z) / 2.0f,
+    } };
 }
 
 // 16 palettes of 16 colors of 4 bytes

@@ -73,5 +73,5 @@ typedef struct {
 vec3s read_position(span_t*);
 mesh_t read_mesh(span_t*);
 void merge_meshes(mesh_t*, const mesh_t*);
-vec3s vertices_centered(const vertices_t*);
+vec3s vertices_center(const vertices_t*);
 vertices_t geometry_to_vertices(const geometry_t*);

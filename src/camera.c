@@ -3,6 +3,7 @@
 #include "cglm/types-struct.h"
 
 #include "gfx.h"
+#include "gfx_model.h"
 #include "sokol_app.h"
 
 #include "camera.h"
@@ -23,7 +24,9 @@ void camera_init(void) {
 
 void camera_reset(void) {
     _state.zoom = 1.0f;
-    camera_set_orbit(glms_vec3_zero(), glm_rad(0.0f), glm_rad(20.0f), DEFAULT_DISTANCE);
+
+    vec3s center = gfx_model_get_model_center();
+    camera_set_orbit(center, -glm_rad(45.0f), glm_rad(30.0f), DEFAULT_DISTANCE);
 }
 
 void camera_freefly_motion(freefly_motion_t m) {
@@ -48,7 +51,9 @@ void camera_freefly_motion(freefly_motion_t m) {
 }
 
 void camera_orbit_motion(orbit_motion_t m) {
-    spherical_t sph = _to_spherical(_state.position);
+    vec3s center = gfx_model_get_model_center();
+
+    spherical_t sph = _to_spherical(glms_vec3_sub(_state.position, center));
 
     f32 theta_rad = sph.theta_rad + glm_rad(m.theta_deg);
     f32 phi_rad = glm_clamp((sph.phi_rad - glm_rad(m.phi_deg)), -MAX_PHI, MAX_PHI);
@@ -63,7 +68,7 @@ void camera_orbit_motion(orbit_motion_t m) {
         _state.zoom = glm_clamp(_state.zoom - m.dolly, CAMERA_ZOOM_MIN, CAMERA_ZOOM_MAX);
     }
 
-    camera_set_orbit(glms_vec3_zero(), theta_rad, phi_rad, sph.radius);
+    camera_set_orbit(center, theta_rad, phi_rad, sph.radius);
 }
 
 void camera_set_freefly(vec3s position, f32 yaw, f32 pitch, f32 zoom) {

@@ -1,3 +1,4 @@
+#include "cglm/struct/vec3.h"
 #include "cglm/struct/vec4.h"
 
 #include "camera.h"
@@ -85,12 +86,14 @@ model_t gfx_model_create(const map_t* map, map_state_t map_state) {
     texture_t texture = texture_create(final_texture);
     texture_t palette = texture_create(final_mesh.palette);
 
-    vec3s centered_translation = vertices_centered(&vertices);
+    vec3s model_center = vertices_center(&vertices);
+    vec3s offset_center = glms_vec3_negate(model_center);
 
     model_t model = {
         .vertex_count = final_mesh.geometry.vertex_count,
         .lighting = final_mesh.lighting,
-        .center = centered_translation,
+        .model_center = model_center,
+        .offset_center = offset_center,
         .transform.scale = { { 1.0f, 1.0f, 1.0f } },
         .vbuf = vbuf,
         .texture = texture,
@@ -108,7 +111,7 @@ void gfx_model_destroy(void) {
 }
 
 void gfx_model_render(void) {
-    mat4s model_mat = transform_to_matrix_around_center(_state.model.transform, _state.model.center);
+    mat4s model_mat = transform_to_matrix_around_center(_state.model.transform, _state.model.offset_center);
 
     vs_standard_params_t vs_params = {
         .u_proj = camera_get_proj(),
@@ -156,3 +159,5 @@ void gfx_model_set(model_t model) { _state.model = model; }
 void gfx_model_set_y_rotation(f32 maprot) { _state.model.transform.rotation.y = maprot; }
 transform3d_t* gfx_model_get_transform(void) { return &_state.model.transform; }
 lighting_t* gfx_model_get_lighting(void) { return &_state.model.lighting; }
+vec3s gfx_model_get_model_center(void) { return _state.model.model_center; }
+vec3s gfx_model_get_offset_center(void) { return _state.model.offset_center; }
