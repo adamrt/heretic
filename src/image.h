@@ -27,6 +27,7 @@ typedef enum {
 } image_type_e;
 
 typedef struct {
+    char* name;
     file_entry_e entry;
     image_type_e type;
 
@@ -39,9 +40,10 @@ typedef struct {
     int pal_offset;
     int pal_length;
     int pal_count;
+    int pal_default;
 } image_desc_t;
 
-extern const image_desc_t image_desc_list[3];
+extern const image_desc_t image_desc_list[4];
 image_desc_t image_get_desc(file_entry_e);
 
 void image_destroy(image_t);

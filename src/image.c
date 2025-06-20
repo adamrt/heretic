@@ -4,11 +4,14 @@
 #include "image.h"
 #include "memory.h"
 #include "span.h"
+#include "util.h"
 
 constexpr int pal_col_count = 16;
 constexpr int pal_row_size = pal_col_count * 4; // 4 bytes per color
 
 image_t image_read_palette(span_t* span, int rows) {
+    // Each color is 16 colors * 2 bytes per color = 32 bytes per row
+    // FIXME: There are exception to this with 512 byte palettes.
     return image_read_16bpp(span, pal_col_count, rows);
 }
 
@@ -111,6 +114,7 @@ image_t image_read_using_palette(span_t* span, image_desc_t desc, int pal_index)
         return image_read_16bpp(span, desc.width, desc.height);
     default:
         return (image_t) { 0 }; // Return an empty image if type is unknown
+        ASSERT(false, "Unknown image type: %d", desc.type);
     }
 }
 
@@ -123,29 +127,11 @@ image_desc_t image_get_desc(file_entry_e entry) {
     return (image_desc_t) { 0 }; // Return an empty descriptor if not found
 }
 
-const image_desc_t image_desc_list[3] = {
-    {
-        .entry = F_EVENT__FRAME_BIN,
-        .type = IMG_4BPP_PAL,
-        .width = 256,
-        .height = 288,
-        .pal_offset = 36864,
-        .pal_count = 22,
-    },
-    {
-        .entry = F_EVENT__ITEM_BIN,
-        .type = IMG_4BPP_PAL,
-        .width = 256,
-        .height = 256,
-        .pal_offset = 32768,
-        .pal_count = 16,
-    },
-    {
-        .entry = F_EVENT__UNIT_BIN,
-        .type = IMG_4BPP_PAL,
-        .width = 256,
-        .height = 480,
-        .pal_offset = 61440,
-        .pal_count = 128,
-    },
+// clang-format off
+const image_desc_t image_desc_list[4] = {
+    { .name = "FRAME.BIN", .entry = F_EVENT__FRAME_BIN, .type = IMG_4BPP_PAL, .width = 256, .height = 288, .pal_offset = 36864, .pal_count = 22, .pal_default = 5 },
+    { .name = "ITEM.BIN",  .entry = F_EVENT__ITEM_BIN,  .type = IMG_4BPP_PAL, .width = 256, .height = 256, .pal_offset = 32768, .pal_count = 16 },
+    { .name = "UNIT.BIN",  .entry = F_EVENT__UNIT_BIN,  .type = IMG_4BPP_PAL, .width = 256, .height = 480, .pal_offset = 61440, .pal_count = 128 },
+    { .name = "BONUS.BIN", .entry = F_EVENT__BONUS_BIN, .type = IMG_4BPP_PAL, .width = 256, .height = 200, .pal_offset = 25600, .pal_count = 16 },
 };
+// clang-format on

@@ -2,6 +2,7 @@
 
 #include "cglm/util.h"
 #include "cimgui.h"
+#include "image.h"
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
@@ -284,15 +285,17 @@ static void _draw_window_sprite_font(void) {
 }
 
 static void _draw_window_sprite_paletted(file_entry_e entry, int width, int height) {
-    file_desc_t desc = file_list[entry];
-    igBegin(desc.name, &_state.show_sprite_window[entry], 0);
+    image_desc_t image_desc = image_get_desc(entry);
+
+    igBegin(image_desc.name, &_state.show_sprite_window[entry], 0);
+
     ImVec2 dims = { width * 2, height * 2 };
     u8* selected = &_state.current_palette_idx[entry];
 
     char buf[16];
     snprintf(buf, sizeof(buf), "Palette %d", *selected);
     if (igBeginCombo("Palette##combo", buf, 0)) {
-        for (int i = 0; i < 22; i++) {
+        for (int i = 0; i < image_desc.pal_count; i++) {
             bool is_selected = (*selected == i);
 
             snprintf(buf, sizeof(buf), "Palette %d", i);
@@ -832,17 +835,15 @@ static void _draw(void) {
         if (igMenuItem("FONT.BIN")) {
             _state.show_sprite_window[F_EVENT__FONT_BIN] = !_state.show_sprite_window[F_EVENT__FONT_BIN];
         }
-        if (igMenuItem("FRAME.BIN")) {
-            _state.show_sprite_window[F_EVENT__FRAME_BIN] = !_state.show_sprite_window[F_EVENT__FRAME_BIN];
-        }
-        if (igMenuItem("ITEM.BIN")) {
-            _state.show_sprite_window[F_EVENT__ITEM_BIN] = !_state.show_sprite_window[F_EVENT__ITEM_BIN];
-        }
-        if (igMenuItem("UNIT.BIN")) {
-            _state.show_sprite_window[F_EVENT__UNIT_BIN] = !_state.show_sprite_window[F_EVENT__UNIT_BIN];
-        }
         if (igMenuItem("EVTFACE.BIN")) {
             _state.show_sprite_window[F_EVENT__EVTFACE_BIN] = !_state.show_sprite_window[F_EVENT__EVTFACE_BIN];
+        }
+
+        for (usize i = 0; i < sizeof(image_desc_list) / sizeof(image_desc_t); i++) {
+            image_desc_t desc = image_desc_list[i];
+            if (igMenuItem(desc.name)) {
+                _state.show_sprite_window[desc.entry] = !_state.show_sprite_window[desc.entry];
+            }
         }
         igEndMenu();
     }
@@ -894,16 +895,13 @@ static void _draw(void) {
         _draw_window_sprite_font();
     }
 
-    if (_state.show_sprite_window[F_EVENT__FRAME_BIN]) {
-        _draw_window_sprite_paletted(F_EVENT__FRAME_BIN, 256, 288);
-    }
+    for (usize i = 0; i < sizeof(image_desc_list) / sizeof(image_desc_t); i++) {
+        file_entry_e entry = image_desc_list[i].entry;
 
-    if (_state.show_sprite_window[F_EVENT__ITEM_BIN]) {
-        _draw_window_sprite_paletted(F_EVENT__ITEM_BIN, 256, 256);
-    }
-
-    if (_state.show_sprite_window[F_EVENT__UNIT_BIN]) {
-        _draw_window_sprite_paletted(F_EVENT__UNIT_BIN, 256, 480);
+        if (_state.show_sprite_window[entry]) {
+            image_desc_t desc = image_desc_list[i];
+            _draw_window_sprite_paletted(entry, desc.width, desc.height);
+        }
     }
 
     if (_state.show_sprite_window[F_EVENT__EVTFACE_BIN]) {
