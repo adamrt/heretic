@@ -49,24 +49,6 @@ static struct {
     sg_bindings bindings;
 } _state;
 
-typedef struct {
-    int tex_width;
-    int tex_height;
-    int tex_offset;
-
-    int pal_count;
-    int pal_offset;
-    int pal_default; // Not used yet
-} paletted_image_4bpp_desc_t;
-
-const paletted_image_4bpp_desc_t paletted_image_desc_list[] = {
-    [F_EVENT__FRAME_BIN] = { 256, 288, 0, 22, 36864, 5 },
-    [F_EVENT__ITEM_BIN] = { 256, 256, 0, 16, 32768, 0 },
-    [F_EVENT__UNIT_BIN] = { 256, 480, 0, 128, 61440, 0 },
-};
-
-static image_t _read_paletted_image_4bpp(span_t*, paletted_image_4bpp_desc_t, int);
-
 // Getters
 sprite3d_t* gfx_sprite3d_get_internals(void) { return _state.sprite3ds; }
 sprite2d_t* gfx_sprite2d_get_internals(void) { return _state.sprite2ds; }
@@ -286,8 +268,12 @@ texture_t sprite_get_paletted_texture(file_entry_e entry, int palette_idx) {
     }
 
     span_t span = filesystem_read_file(entry);
-    image_t image = _read_paletted_image_4bpp(&span, paletted_image_desc_list[entry], palette_idx);
-    _state.cache[entry] = texture_create(image);
+    image_desc_t desc = image_get_desc(entry);
+    image_t image = image_read_using_palette(&span, desc, palette_idx);
+
+    texture_t texture = texture_create(image);
+    _state.cache[entry] = texture;
+
     image_destroy(image);
 
     return _state.cache[entry];
@@ -374,20 +360,4 @@ texture_t sprite_get_evtface_bin_texture(int row_idx, int palette_idx) {
     image_destroy(image);
 
     return _state.cache_evtface[row_idx];
-}
-
-//
-// Shared functions
-//
-
-static image_t _read_paletted_image_4bpp(span_t* span, paletted_image_4bpp_desc_t desc, int pindex) {
-    span->offset = desc.pal_offset;
-    image_t palette = image_read_palette(span, desc.pal_count);
-
-    span->offset = desc.tex_offset;
-    image_t image = image_read_4bpp_pal(span, desc.tex_width, desc.tex_height, palette, pindex);
-
-    image_destroy(palette);
-
-    return image;
 }

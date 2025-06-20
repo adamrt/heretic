@@ -318,12 +318,12 @@ static vec2s _process_tex_coords(f32 u, f32 v, u8 page) {
 }
 
 static image_t _read_palette(span_t* span) {
-    constexpr int width = 16;
-    constexpr int height = 16;
     u32 intra_file_ptr = span_readat_u32(span, 0x44);
     if (intra_file_ptr == 0) {
         return (image_t) {};
     }
     span->offset = intra_file_ptr;
-    return image_read_16bpp(span, width, height);
+
+    const int palette_rows = 16; // All map textures use 16
+    return image_read_palette(span, palette_rows);
 }
