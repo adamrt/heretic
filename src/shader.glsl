@@ -63,37 +63,63 @@ in float v_is_textured;
 
 out vec4 frag_color;
 
-void main() {
-    vec3 norm = normalize(v_normal);
+// PS1 4x4 Bayer pattern
+const float bayer[16] = float[16](
+     0.0,  8.0,  2.0, 10.0,
+    12.0,  4.0, 14.0,  6.0,
+     3.0, 11.0,  1.0,  9.0,
+    15.0,  7.0, 13.0,  5.0
+);
+
+vec4 applyDither(vec4 color) {
+    ivec2 pixel = ivec2(gl_FragCoord.xy) & 3;  // 4x4 pattern
+    int index = pixel.x + pixel.y * 4;
+    float offset = bayer[index] / 256.0;       // scale to 0-1 range
+    return color + vec4(offset);               // add to all components
+}
+
+vec4 applyLight(vec3 norm, vec4 color) {
     vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
     for (int i = 0; i < u_light_count; i++) {
-        vec3 direction = normalize(u_light_directions[i].xyz);
-        float intensity = clamp(dot(norm, direction), 0.0, 1.0);
+        vec3 dir = normalize(u_light_directions[i].xyz);
+        float intensity = clamp(dot(norm, dir), 0.0, 1.0);
         diffuse_light += u_light_colors[i] * intensity;
     }
-
     vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
+    return light * color;
+}
 
+vec4 samplePalettedTexture(vec2 uv, float paletteIndex) {
+    vec4 indexColor = texture(sampler2D(u_texture, u_sampler), uv);
+    float palette_x = float(uint(indexColor.r * 255.0));
+    float palette_y = float(uint(paletteIndex));
+    vec2 pal_uv = vec2(palette_x / 16.0, palette_y / 16.0);
+    return texture(sampler2D(u_palette, u_sampler), pal_uv);
+}
+
+vec4 quantizeTo555(vec4 color) {
+    color.r = floor(color.r * 31.0) / 31.0;
+    color.g = floor(color.g * 31.0) / 31.0;
+    color.b = floor(color.b * 31.0) / 31.0;
+    return color;
+}
+
+void main() {
    // Handle untextured triangles
     if (v_is_textured < 0.5) { // Assuming a_is_textured is 1.0 for textured and 0.0 for untextured
-        frag_color = light * vec4(0.0, 0.0, 0.0, 1.0);
+        frag_color = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
 
-    // Get the index color from the palette
-    vec4 tex_color = texture(sampler2D(u_texture, u_sampler), v_uv);
-    // Scale the index color from 0.0-1.0 to 0-255
-    float palette_x = float(uint(tex_color.r * 255.0));
-    float palette_y = float(uint(v_palette_index));
+    vec4 color = samplePalettedTexture(v_uv, v_palette_index);
+    if (color.a < 0.5) discard;
 
-    // Scale the x and y back down to 0.0-1.0; There are 16x16 colors in the palette.
-    vec2 uv = vec2(palette_x / 16, palette_y / 16);
+    vec3 norm = normalize(v_normal);
+    color = applyLight(norm, color);
+    color = quantizeTo555(color);     // optional PS1-style quantization
+    color = applyDither(color);
 
-    vec4 color = texture(sampler2D(u_palette, u_sampler), uv);
-    if (color.a < 0.5)
-        discard;
-
-    frag_color = color * light;
+    frag_color = color;
 }
 @end
 
@@ -123,8 +149,27 @@ in vec2 v_uv;
 
 out vec4 frag_color;
 
+// PS1 4x4 Bayer pattern
+const float bayer[16] = float[16](
+     0.0,  8.0,  2.0, 10.0,
+    12.0,  4.0, 14.0,  6.0,
+     3.0, 11.0,  1.0,  9.0,
+    15.0,  7.0, 13.0,  5.0
+);
+
+
+vec4 applyDither(vec4 color) {
+    ivec2 pixel = ivec2(gl_FragCoord.xy) & 3;  // 4x4 pattern
+    int index = pixel.x + pixel.y * 4;
+    float offset = bayer[index] / 256.0;       // scale to 0-1 range
+    return color + vec4(offset);               // add to all components
+}
+
 void main() {
-    frag_color = mix(u_top_color, u_bottom_color, v_uv.y);
+    vec4 color = mix(u_top_color, u_bottom_color, v_uv.y);
+    color = applyDither(color);
+    frag_color = color;
+
 }
 @end
 
