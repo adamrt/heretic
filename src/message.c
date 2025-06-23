@@ -129,8 +129,7 @@ int message_by_index(char* string, int index, char* buffer) {
         if ((unsigned char)*ptr == 0xFE) {
             if (current_index == index) {
                 size_t length = ptr - start;
-                strncpy(buffer, start, length);
-                buffer[length] = '\0';
+                strlcpy(buffer, start, length + 1);
                 return 0;
             }
             // Move to the next substring
@@ -143,8 +142,7 @@ int message_by_index(char* string, int index, char* buffer) {
     // Check if the last substring is the desired one
     if (current_index == index) {
         size_t length = ptr - start;
-        strncpy(buffer, start, length);
-        buffer[length] = '\0';
+        strlcpy(buffer, start, length + 1);
         return 0;
     }
 
