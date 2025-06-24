@@ -5,6 +5,7 @@
 #include "defines.h"
 #include "image.h"
 #include "lighting.h"
+#include "map_record.h"
 #include "span.h"
 #include "terrain.h"
 
