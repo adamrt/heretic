@@ -45,7 +45,7 @@ void transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32
 }
 
 bool transition_has_active(waittype_e type) {
-    opcode_id_t opcodes[2];
+    opcode_id_t opcodes[4];
     int count = 0;
 
     switch (type) {
@@ -56,7 +56,10 @@ bool transition_has_active(waittype_e type) {
         break;
     case WAITTYPE_CAMERA:
         opcodes[0] = OPCODE_ID_CAMERA;
-        count = 1;
+        opcodes[1] = OPCODE_ID_CAMERAFUSIONSTART;
+        opcodes[2] = OPCODE_ID_CAMERAFUSIONEND;
+        opcodes[3] = OPCODE_ID_FOCUS;
+        count = 4;
         break;
     case WAITTYPE_MAPDARKNESS:
         opcodes[0] = OPCODE_ID_MAPDARKNESS;
@@ -67,8 +70,9 @@ bool transition_has_active(waittype_e type) {
         count = 1;
         break;
     case WAITTYPE_BLOCKEND:
-        opcodes[0] = OPCODE_ID_BLOCKEND;
-        count = 1;
+        opcodes[0] = OPCODE_ID_BLOCKSTART;
+        opcodes[1] = OPCODE_ID_BLOCKEND;
+        count = 2;
         break;
     case WAITTYPE_UNITANIM:
         opcodes[0] = OPCODE_ID_UNITANIM;
@@ -97,7 +101,9 @@ bool transition_has_active(waittype_e type) {
         break;
     case WAITTYPE_EFFECT:
         opcodes[0] = OPCODE_ID_EFFECT;
-        count = 1;
+        opcodes[1] = OPCODE_ID_EFFECTSTART;
+        opcodes[2] = OPCODE_ID_EFFECTEND;
+        count = 3;
         break;
     case WAITTYPE_INFLICTSTATUS:
         opcodes[0] = OPCODE_ID_INFLICTSTATUS;

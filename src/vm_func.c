@@ -29,11 +29,6 @@ void fn_display_message(const instruction_t* instr) {
     char text[512];
     message_by_index(scene->event.messages, message_id, text);
 
-    /* printf("-- Messaage: %d %d @ %dx%d --\n", message_id, unit_id, x, y); */
-    /* printf("Dialog: type: %d, arrow: %d, alignment: %d\n", dialog.type, dialog.arrow, dialog.alignment); */
-    /* printf("Opening: speed: %d, remboucing: %d, darken: %d, arrow: %d\n", opening.speed, opening.remove_bouncing, opening.darken, opening.toggle_arrow_right); */
-    /* printf("Text: %s\n", text); */
-
     int speed = 10;
     if (opening.speed == DIALOG_SPEED_PLUS_50) {
         speed = 15;
