@@ -35,8 +35,6 @@ static uint32_t hash_map_state_rand_color(map_state_t state);
 static struct {
     bool show_sprite_window[F_FILE_COUNT];
     u8 current_palette_idx[F_FILE_COUNT];
-    // Event face has 8 rows, each with their own palette.
-    u8 current_palette_idx_evtface[16];
 
     bool show_window_scene;
 
@@ -312,40 +310,6 @@ static void _draw_window_sprite_paletted(file_entry_e entry, int width, int heig
     igSeparator();
 
     texture_t texture = sprite_get_paletted_texture(entry, *selected);
-    igImage(texture_imgui_id(texture), dims);
-    igEnd();
-}
-
-static void _draw_window_sprite_evtface(int row_idx) {
-    file_entry_e entry = F_EVENT__EVTFACE_BIN;
-    file_desc_t desc = file_list[entry];
-    ImVec2 dims = { 256 * 2, 48 * 2 };
-
-    igBegin(desc.name, &_state.show_sprite_window[entry], 0);
-    igPushIDInt(row_idx);
-
-    char buf[16];
-    u8* selected = &_state.current_palette_idx[row_idx];
-    snprintf(buf, sizeof(buf), "Palette %d", *selected);
-    if (igBeginCombo("Palette##combo", buf, 0)) {
-        for (int i = 0; i < 8; i++) {
-            bool is_selected = (*selected == i);
-
-            snprintf(buf, sizeof(buf), "Palette %d", i);
-            if (igSelectable(buf)) {
-                *selected = i;
-            }
-
-            if (is_selected)
-                igSetItemDefaultFocus();
-        }
-        igEndCombo();
-    }
-    igPopID();
-
-    igSeparator();
-
-    texture_t texture = sprite_get_evtface_bin_texture(row_idx, *selected);
     igImage(texture_imgui_id(texture), dims);
     igEnd();
 }
@@ -835,9 +799,6 @@ static void _draw(void) {
         if (igMenuItem("FONT.BIN")) {
             _state.show_sprite_window[F_EVENT__FONT_BIN] = !_state.show_sprite_window[F_EVENT__FONT_BIN];
         }
-        if (igMenuItem("EVTFACE.BIN")) {
-            _state.show_sprite_window[F_EVENT__EVTFACE_BIN] = !_state.show_sprite_window[F_EVENT__EVTFACE_BIN];
-        }
 
         for (usize i = 0; i < sizeof(image_desc_list) / sizeof(image_desc_t); i++) {
             image_desc_t desc = image_desc_list[i];
@@ -901,12 +862,6 @@ static void _draw(void) {
         if (_state.show_sprite_window[entry]) {
             image_desc_t desc = image_desc_list[i];
             _draw_window_sprite_paletted(entry, desc.width, desc.height);
-        }
-    }
-
-    if (_state.show_sprite_window[F_EVENT__EVTFACE_BIN]) {
-        for (int i = 0; i < 8; i++) {
-            _draw_window_sprite_evtface(i);
         }
     }
 

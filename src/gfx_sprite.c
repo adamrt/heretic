@@ -33,14 +33,6 @@ static struct {
     // cache the gpu texture for each file, they will be requested per frame.
     texture_t cache[F_FILE_COUNT];
 
-    // These are the same as above but they are for sprites that have multiple
-    // rows, each with thier own palette. We must track the palette index for
-    // each row and cache the texture for each row. Currently only used for
-    // EVTFACE.BIN, but most likely will be expanded for other files when we
-    // find them.
-    u8 current_palette_idx_evtface[8][8];
-    texture_t cache_evtface[8];
-
     sprite3d_t sprite3ds[100];
     sprite2d_t sprite2ds[100];
 
@@ -57,12 +49,6 @@ void gfx_sprite_init(void) {
     // Initialize the palette index to -1 to make them currently invalid
     for (usize i = 0; i < F_FILE_COUNT; i++) {
         _state.current_palette_idx[i] = UINT8_MAX;
-    }
-
-    for (usize row = 0; row < 8; row++) {
-        for (usize col = 0; col < 8; col++) {
-            _state.current_palette_idx_evtface[row][col] = UINT8_MAX;
-        }
     }
 
     _state.bindings = (sg_bindings) {
@@ -132,11 +118,6 @@ void gfx_sprite_shutdown(void) {
     for (usize i = 0; i < F_FILE_COUNT; i++) {
         if (texture_valid(_state.cache[i])) {
             texture_destroy(_state.cache[i]);
-        }
-    }
-    for (usize row = 0; row < 8; row++) {
-        if (texture_valid(_state.cache_evtface[row])) {
-            texture_destroy(_state.cache_evtface[row]);
         }
     }
 }
@@ -288,76 +269,4 @@ void gfx_sprite_render(void) {
             _sprite2d_render(&_state.sprite2ds[i]);
         }
     }
-}
-
-//
-// EVTFACE.BIN
-//
-
-// This reads a single row of portraits. Each row has it's own palette at the end.
-// We read them as individual rows so we can apply the palette per row.
-static image_t _read_image_row_evtface_bin(span_t* span, int row, int palette_idx) {
-    constexpr int width = 256;
-    constexpr int height = 48;
-    constexpr int dims = width * height;
-    constexpr int size = dims * 4;
-
-    // Basic dimensions
-    constexpr int cols = 8;
-    constexpr int portrait_width = 32;
-    constexpr int portrait_height = 48;
-    constexpr int bytes_per_row = 8192;
-    constexpr int bytes_per_portrait = 768;
-    constexpr int palette_offset = 6144; // per row
-
-    u8* data = memory_allocate(size);
-
-    u32 pal_offset = row * bytes_per_row + palette_offset;
-    span->offset = pal_offset;
-    image_t palette = image_read_palette(span, 16);
-
-    for (int col = 0; col < cols; col++) {
-        int tex_offset = row * bytes_per_row + col * bytes_per_portrait;
-        span->offset = tex_offset;
-        image_t portrait_image = image_read_4bpp_pal(span, portrait_width, portrait_height, palette, palette_idx);
-        int dest_x = col * portrait_width;
-
-        for (int y = 0; y < portrait_height; y++) {
-            int src_index = y * portrait_width * 4;
-            int dest_index = y * width * 4 + dest_x * 4;
-            memcpy(&data[dest_index], &portrait_image.data[src_index], portrait_width * 4);
-        }
-        image_destroy(portrait_image);
-    }
-
-    image_destroy(palette);
-
-    image_t row_image = {
-        .width = width,
-        .height = height,
-        .data = data,
-        .size = size,
-        .valid = true
-    };
-    return row_image;
-}
-
-texture_t sprite_get_evtface_bin_texture(int row_idx, int palette_idx) {
-    file_entry_e entry = F_EVENT__EVTFACE_BIN;
-    if (_state.current_palette_idx_evtface[row_idx][palette_idx] == palette_idx) {
-        return _state.cache_evtface[row_idx];
-    } else {
-        _state.current_palette_idx_evtface[row_idx][palette_idx] = palette_idx;
-    }
-
-    if (texture_valid(_state.cache_evtface[row_idx])) {
-        texture_destroy(_state.cache_evtface[row_idx]);
-    }
-
-    span_t span = filesystem_read_file(entry);
-    image_t image = _read_image_row_evtface_bin(&span, row_idx, palette_idx);
-    _state.cache_evtface[row_idx] = texture_create(image);
-    image_destroy(image);
-
-    return _state.cache_evtface[row_idx];
 }

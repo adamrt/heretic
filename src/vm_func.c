@@ -1,7 +1,6 @@
 #include "vm_func.h"
 
 #include "camera.h"
-#include "cglm/util.h"
 #include "dialog.h"
 #include "gfx.h"
 #include "gfx_model.h"
@@ -47,9 +46,11 @@ void fn_display_message(const instruction_t* instr) {
     transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 80.0f, speed);
     transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 40.0f, speed);
 
-    sprite2d_t* portrait = &sprites[1];
-    texture_t portrait_texture = sprite_get_evtface_bin_texture(portrait_row + 1, 0);
-    *portrait = gfx_sprite2d_create(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f);
+    (void)unit_id;
+    (void)portrait_row;
+    /* sprite2d_t* portrait = &sprites[1]; */
+    /* texture_t portrait_texture = sprite_get_evtface_bin_texture(portrait_row + 1, 0); */
+    /* *portrait = gfx_sprite2d_create(portrait_texture, (vec2s) { { unit_id * 32.0f, 0.0f } }, (vec2s) { { 32, 48 } }, x, y, 20.0f); */
 
     (void)dialog;
     (void)arrow_pos;

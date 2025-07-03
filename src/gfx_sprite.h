@@ -32,8 +32,4 @@ sprite3d_t gfx_sprite3d_create(texture_t, vec2s, vec2s, transform3d_t);
 
 sprite3d_t* gfx_sprite3d_get_internals(void);
 sprite2d_t* gfx_sprite2d_get_internals(void);
-
-// FIXME: These should be moved to another module.
-// resource.h? sprite_resource.h? sprite_loader.h?
 texture_t sprite_get_paletted_texture(file_entry_e, int);
-texture_t sprite_get_evtface_bin_texture(int, int);
