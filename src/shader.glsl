@@ -49,6 +49,7 @@ layout(binding=1) uniform fs_standard_params {
     vec4  u_light_directions[10];
     vec4  u_light_colors[10];
     int   u_light_count;
+    float u_dither;
 };
 
 layout(binding=0) uniform texture2D u_texture;
@@ -97,13 +98,6 @@ vec4 samplePalettedTexture(vec2 uv, float paletteIndex) {
     return texture(sampler2D(u_palette, u_sampler), pal_uv);
 }
 
-vec4 quantizeTo555(vec4 color) {
-    color.r = floor(color.r * 31.0) / 31.0;
-    color.g = floor(color.g * 31.0) / 31.0;
-    color.b = floor(color.b * 31.0) / 31.0;
-    return color;
-}
-
 void main() {
    // Handle untextured triangles
     if (v_is_textured < 0.5) { // Assuming a_is_textured is 1.0 for textured and 0.0 for untextured
@@ -116,8 +110,10 @@ void main() {
 
     vec3 norm = normalize(v_normal);
     color = applyLight(norm, color);
-    color = quantizeTo555(color);     // optional PS1-style quantization
-    color = applyDither(color);
+
+    if (u_dither > 0) {
+        color = applyDither(color);
+    }
 
     frag_color = color;
 }
@@ -143,6 +139,7 @@ void main() {
 layout(binding=0) uniform fs_background_params {
     vec4 u_top_color;
     vec4 u_bottom_color;
+    int  u_dither;
 };
 
 in vec2 v_uv;
@@ -167,7 +164,10 @@ vec4 applyDither(vec4 color) {
 
 void main() {
     vec4 color = mix(u_top_color, u_bottom_color, v_uv.y);
-    color = applyDither(color);
+    if (u_dither > 0) {
+        color = applyDither(color);
+    }
+
     frag_color = color;
 
 }

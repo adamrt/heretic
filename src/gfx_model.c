@@ -122,6 +122,7 @@ void gfx_model_render(void) {
     fs_standard_params_t fs_params;
     fs_params.u_ambient_color = _state.model.lighting.ambient_color;
     fs_params.u_ambient_strength = _state.model.lighting.ambient_strength;
+    fs_params.u_dither = *gfx_get_dither();
 
     int light_count = 0;
     for (int i = 0; i < LIGHTING_MAX_LIGHTS; i++) {

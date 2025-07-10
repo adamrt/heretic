@@ -56,6 +56,7 @@ void gfx_background_render(void) {
     fs_background_params_t fs_params;
     fs_params.u_top_color = _state.top_color;
     fs_params.u_bottom_color = _state.bottom_color;
+    fs_params.u_dither = *gfx_get_dither();
 
     sg_apply_pipeline(_state.pipeline);
     sg_apply_bindings(&_state.bindings);

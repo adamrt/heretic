@@ -18,6 +18,8 @@ static gfx_t _state;
 // quad. The offscreen is rendered in a lower resolution and then upscaled to
 // the window size to keep the pixelated look.
 void gfx_init(void) {
+    _state.dither = true;
+
     sg_setup(&(sg_desc) {
         .environment = sglue_environment(),
         .logger.func = slog_func,
@@ -136,4 +138,8 @@ sg_face_winding gfx_get_face_winding(void) {
     default:
         return SG_FACEWINDING_CCW;
     }
+}
+
+bool* gfx_get_dither(void) {
+    return &_state.dither;
 }

@@ -23,8 +23,11 @@ sg_face_winding gfx_get_face_winding(void);
 
 int gfx_get_scale_divisor(void);
 void gfx_set_scale_divisor(int);
+bool* gfx_get_dither(void);
 
 typedef struct {
+    bool dither;
+
     sg_sampler sampler;
     sg_buffer quad_vbuf;
     sg_pipeline pipeline;

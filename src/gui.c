@@ -386,6 +386,8 @@ static void _draw_window_scene(void) {
     igText("Map: %d - %s", scene->current_map, map_list[scene->current_map].name);
     igNewLine();
 
+    igCheckbox("Enable Dithering", gfx_get_dither());
+
     if (igCollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen)) {
         transform3d_t* transform = gfx_model_get_transform();
         igSliderFloat3("Model", (float*)&transform->translation.raw, -1000.0f, 1000.0f);
