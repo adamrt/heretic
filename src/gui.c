@@ -457,7 +457,7 @@ static void _draw_window_map_lights(void) {
     igEnd();
 }
 
-void _row_instr_camera(instruction_t* instr) {
+void _row_instr_fn_camera(instruction_t* instr) {
     igTableSetColumnIndex(1);
 
     param_t* p = instr->params;
@@ -477,37 +477,21 @@ void _row_instr_camera(instruction_t* instr) {
     }
 
     igTableSetColumnIndex(2);
-    igText("X: ");
-    igSameLine();
-    igText("%0.2f", x);
+    igText("X: %0.2f", x);
     igTableSetColumnIndex(3);
-    igText("Y: ");
-    igSameLine();
-    igText("%0.2f", y);
+    igText("Y: %0.2f", y);
     igTableSetColumnIndex(4);
-    igText("Z: ");
-    igSameLine();
-    igText("%0.2f", z);
+    igText("Z: %0.2f", z);
     igTableSetColumnIndex(5);
-    igText("Pitch: ");
-    igSameLine();
-    igText("%0.2f°", glm_deg(pitch));
+    igText("Pitch %0.2f°", glm_deg(pitch));
     igTableSetColumnIndex(6);
-    igText("Yaw: ");
-    igSameLine();
-    igText("%0.2f°", glm_deg(yaw));
+    igText("Yaw: %0.2f°", glm_deg(yaw));
     igTableSetColumnIndex(7);
-    igText("MapRot: ");
-    igSameLine();
-    igText("%0.2f°", glm_deg(maprot));
+    igText("MapRot: %0.2f°", glm_deg(maprot));
     igTableSetColumnIndex(8);
-    igText("Zoom: ");
-    igSameLine();
-    igText("%0.2f", zoom);
+    igText("Zoom: %0.2f", zoom);
     igTableSetColumnIndex(9);
-    igText("Time: ");
-    igSameLine();
-    igText("%d", duration);
+    igText("Time: %d", duration);
 }
 
 static void _draw_window_event_instructions(void) {
@@ -523,9 +507,9 @@ static void _draw_window_event_instructions(void) {
         igTableSetupColumnEx("5", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("6", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
         igTableSetupColumnEx("7", ImGuiTableColumnFlags_WidthStretch, 0.0f, 0);
-        igTableSetupColumnEx("8", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
-        igTableSetupColumnEx("9", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
-        igTableSetupColumnEx("10", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
+        igTableSetupColumnEx("8", ImGuiTableColumnFlags_WidthFixed, 60.0f, 0);
+        igTableSetupColumnEx("9", ImGuiTableColumnFlags_WidthFixed, 60.0f, 0);
+        igTableSetupColumnEx("10", ImGuiTableColumnFlags_WidthFixed, 60.0f, 0);
         igTableSetupColumnEx("Extra", ImGuiTableColumnFlags_WidthFixed, 40.0f, 0);
 
         igTableHeadersRow();
@@ -544,7 +528,7 @@ static void _draw_window_event_instructions(void) {
 
             if (instr->opcode == OPCODE_ID_CAMERA) {
                 igPushIDInt(i);
-                _row_instr_camera(instr);
+                _row_instr_fn_camera(instr);
                 igPopID();
                 continue;
             }
