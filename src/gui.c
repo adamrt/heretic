@@ -494,6 +494,14 @@ void _row_instr_fn_camera(instruction_t* instr) {
     igText("Time: %d", duration);
 }
 
+void _row_instr_fn_waitforinstruction(instruction_t* instr) {
+    igTableSetColumnIndex(2);
+    waittype_e waittype = (waittype_e)instr->params[0].value.u8;
+    u8 always_zero = instr->params[1].value.u8;
+    (void)always_zero; // This is always 0, so we ignore it.
+    igText("Wait: %s", waittype_str(waittype));
+}
+
 static void _draw_window_event_instructions(void) {
     scene_t* scene = scene_get_internals();
     igBegin("Event Instructions", &_state.show_window_event_instructions, 0);
@@ -529,6 +537,11 @@ static void _draw_window_event_instructions(void) {
             if (instr->opcode == OPCODE_ID_CAMERA) {
                 igPushIDInt(i);
                 _row_instr_fn_camera(instr);
+                igPopID();
+                continue;
+            } else if (instr->opcode == OPCODE_ID_WAITFORINSTRUCTION) {
+                igPushIDInt(i);
+                _row_instr_fn_waitforinstruction(instr);
                 igPopID();
                 continue;
             }
