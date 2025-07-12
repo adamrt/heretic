@@ -24,3 +24,4 @@ void vm_update(void);
 void vm_reset(void);
 int vm_get_current_instruction(void);
 void vm_wait(waittype_e);
+const char* waittype_str(waittype_e waittype);

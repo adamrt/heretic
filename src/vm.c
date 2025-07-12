@@ -90,3 +90,36 @@ static void vm_unwait(waittype_e type) {
         }
     }
 }
+
+const char* waittype_str(waittype_e waittype) {
+    switch (waittype) {
+    case WAITTYPE_DIALOG:
+        return "Dialog";
+    case WAITTYPE_CAMERA:
+        return "Camera";
+    case WAITTYPE_MAPDARKNESS:
+        return "Map Darkness";
+    case WAITTYPE_MAPLIGHT:
+        return "Map Light";
+    case WAITTYPE_BLOCKEND:
+        return "Block End";
+    case WAITTYPE_UNITANIM:
+        return "Unit Animation";
+    case WAITTYPE_COLORSCREEN:
+        return "Color Screen";
+    case WAITTYPE_LOADEVTCHR:
+        return "Load Event Character";
+    case WAITTYPE_DARKSCREEN:
+        return "Dark Screen";
+    case WAITTYPE_DISPLAYCONDITIONS:
+        return "Display Conditions";
+    case WAITTYPE_SHOWGRAPHIC:
+        return "Show Graphic";
+    case WAITTYPE_EFFECT:
+        return "Effect";
+    case WAITTYPE_INFLICTSTATUS:
+        return "Inflict Status";
+    default:
+        return "Unknown Wait Type";
+    }
+}
