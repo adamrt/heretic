@@ -81,7 +81,7 @@ typedef struct {
     i8 pos_x;               // 0x19
     i8 pos_y;               // 0x1A
     direction_e direction;  // 0x1B
-    u16 experience;         // 0x1C
+    u8 experience;          // 0x1C
     u8 unknown_1D;          // 0x1D,
     u16 unknown_1E;         // 0x1E,
     u8 unit_id;             // 0x20
