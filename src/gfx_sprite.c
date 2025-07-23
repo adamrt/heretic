@@ -33,8 +33,7 @@ static struct {
     // cache the gpu texture for each file, they will be requested per frame.
     texture_t cache[F_FILE_COUNT];
 
-    sprite3d_t sprite3ds[100];
-    sprite2d_t sprite2ds[100];
+    sprite_t sprites[100];
 
     sg_pipeline pipeline_3d;
     sg_pipeline pipeline_2d;
@@ -42,8 +41,7 @@ static struct {
 } _state;
 
 // Getters
-sprite3d_t* gfx_sprite3d_get_internals(void) { return _state.sprite3ds; }
-sprite2d_t* gfx_sprite2d_get_internals(void) { return _state.sprite2ds; }
+sprite_t* gfx_sprite_get_internals(void) { return _state.sprites; }
 
 void gfx_sprite_init(void) {
     // Initialize the palette index to -1 to make them currently invalid
@@ -124,39 +122,37 @@ void gfx_sprite_shutdown(void) {
 
 void gfx_sprite_reset(void) {
     for (usize i = 0; i < 100; i++) {
-        _state.sprite2ds[i] = (sprite2d_t) {};
-        _state.sprite3ds[i] = (sprite3d_t) {};
+        _state.sprites[i] = (sprite_t) {};
     }
 }
 
-sprite2d_t gfx_sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, f32 y, f32 scale) {
-    vec2s uv_min = (vec2s) {
-        .x = min.x / texture.width,
-        .y = (min.y + size.y) / texture.height,
-    };
-    vec2s uv_max = (vec2s) {
-        .x = (min.x + size.x) / texture.width,
-        .y = (min.y) / texture.height,
-    };
+sprite_t gfx_sprite_create(sprite_type_e type, texture_t texture, vec2s min, vec2s size, transform_t transform) {
+    vec2s uv_min, uv_max;
 
-    sprite2d_t sprite = {
-        .texture = texture,
-        .uv_min = uv_min,
-        .uv_max = uv_max,
-        .transform = {
-            .translation = { { x, y, 0.0f } },
-            .rotation = { { 0.0f, 0.0f, 0.0f } },
-            .scale = { { scale, scale, scale } },
-        },
-    };
-    return sprite;
-}
+    if (type == SPRITE_2D) {
+        // 2D sprites use flipped Y coordinates
+        uv_min = (vec2s) {
+            .x = min.x / texture.width,
+            .y = (min.y + size.y) / texture.height,
+        };
+        uv_max = (vec2s) {
+            .x = (min.x + size.x) / texture.width,
+            .y = (min.y) / texture.height,
+        };
+    } else {
+        // 3D sprites use normal Y coordinates
+        uv_min = (vec2s) {
+            .x = min.x / texture.width,
+            .y = min.y / texture.height,
+        };
+        uv_max = (vec2s) {
+            .x = (min.x + size.x) / texture.width,
+            .y = (min.y + size.y) / texture.height,
+        };
+    }
 
-sprite3d_t gfx_sprite3d_create(texture_t texture, vec2s min, vec2s size, transform_t transform) {
-    vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
-    vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
-
-    sprite3d_t sprite = {
+    sprite_t sprite = {
+        .type = type,
         .texture = texture,
         .uv_min = uv_min,
         .uv_max = uv_max,
@@ -165,7 +161,7 @@ sprite3d_t gfx_sprite3d_create(texture_t texture, vec2s min, vec2s size, transfo
     return sprite;
 }
 
-void _sprite2d_render(const sprite2d_t* sprite) {
+void _sprite2d_render(const sprite_t* sprite) {
     mat4s ortho_proj = glms_ortho(0.0f, GFX_RENDER_WIDTH, 0.0f, GFX_RENDER_HEIGHT, -1.0f, 1.0f);
 
     // Model matrix for screen position
@@ -193,7 +189,7 @@ void _sprite2d_render(const sprite2d_t* sprite) {
     sg_draw(0, 6, 1);
 }
 
-void _sprite3d_render(const sprite3d_t* sprite) {
+void _sprite3d_render(const sprite_t* sprite) {
     // Get the sprite's model matrix (translation and scale)
     mat4s model_mat = transform_to_matrix(sprite->transform);
 
@@ -263,11 +259,12 @@ texture_t sprite_get_paletted_texture(file_entry_e entry, int palette_idx) {
 
 void gfx_sprite_render(void) {
     for (int i = 0; i < 100; i++) {
-        if (texture_valid(_state.sprite3ds[i].texture)) {
-            _sprite3d_render(&_state.sprite3ds[i]);
-        }
-        if (texture_valid(_state.sprite2ds[i].texture)) {
-            _sprite2d_render(&_state.sprite2ds[i]);
+        if (texture_valid(_state.sprites[i].texture)) {
+            if (_state.sprites[i].type == SPRITE_2D) {
+                _sprite2d_render(&_state.sprites[i]);
+            } else if (_state.sprites[i].type == SPRITE_3D) {
+                _sprite3d_render(&_state.sprites[i]);
+            }
         }
     }
 }
