@@ -15,6 +15,7 @@ typedef enum {
 typedef struct {
     mode_e mode;
     map_t* map;
+    map_state_t map_state;
     int current_scenario_id;
     int current_map;
     event_t event;

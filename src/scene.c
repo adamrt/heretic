@@ -72,6 +72,7 @@ void scene_load_map(int num, map_state_t map_state) {
     gfx_background_set(model.lighting.bg_top, model.lighting.bg_bottom);
 
     _state.map = map;
+    _state.map_state = map_state;
     _state.current_map = num;
 }
 
