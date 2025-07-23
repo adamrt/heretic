@@ -9,11 +9,11 @@
 
 static transition_manager_t _state;
 
-void transition_reset(void) {
+void vm_transition_reset(void) {
     _state.transaction_count = 0;
 }
 
-void transition_update(void) {
+void vm_transition_update(void) {
     for (usize i = 0; i < _state.transaction_count;) {
         transition_t* t = &_state.transitions[i];
         t->frame_current++;
@@ -32,8 +32,8 @@ void transition_update(void) {
     }
 }
 
-void transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32 duration) {
-    ASSERT(_state.transaction_count <= TRANSITION_MAX, "Too many transitions");
+void vm_transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32 duration) {
+    ASSERT(_state.transaction_count <= VM_TRANSITION_MAX, "Too many transitions");
 
     transition_t* t = &_state.transitions[_state.transaction_count++];
     t->opcode_id = opcode_id;
@@ -44,7 +44,7 @@ void transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32
     t->target = target;
 }
 
-bool transition_has_active(waittype_e type) {
+bool vm_transition_has_active(waittype_e type) {
     opcode_id_t opcodes[4];
     int count = 0;
 

@@ -13,11 +13,11 @@ usize read_instructions(span_t* span, instruction_t* out_instructions) {
 
         for (int i = 0; i < desc.param_count; i++) {
             param_t param = { 0 };
-            if (desc.param_sizes[i] == PARAM_TYPE_U16) {
-                param.type = PARAM_TYPE_U16;
+            if (desc.param_sizes[i] == VM_PARAM_TYPE_U16) {
+                param.type = VM_PARAM_TYPE_U16;
                 param.value.u16 = span_read_u16(span);
-            } else if (desc.param_sizes[i] == PARAM_TYPE_U8) {
-                param.type = PARAM_TYPE_U8;
+            } else if (desc.param_sizes[i] == VM_PARAM_TYPE_U8) {
+                param.type = VM_PARAM_TYPE_U8;
                 param.value.u8 = span_read_u8(span);
             } else {
                 ASSERT(false, "Unknown param type %d %s", desc.param_sizes[i], desc.name);
@@ -26,7 +26,7 @@ usize read_instructions(span_t* span, instruction_t* out_instructions) {
             instruction.param_count++;
         }
         out_instructions[count++] = instruction;
-        ASSERT(count < INSTRUCTION_MAX, "Instruction count exceeded");
+        ASSERT(count < VM_INSTRUCTION_MAX, "Instruction count exceeded");
     }
     return count;
 }

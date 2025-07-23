@@ -8,8 +8,8 @@
 #include "vm_message.h"
 
 enum {
-    EVENT_SIZE = 8192,
-    EVENT_COUNT = 491
+    VM_EVENT_SIZE = 8192,
+    VM_EVENT_COUNT = 491
 };
 
 // An event is a list of text and instructions for a particular scenario.
@@ -25,10 +25,10 @@ typedef struct {
     int messages_len;
     int message_count;
 
-    instruction_t instructions[INSTRUCTION_MAX];
+    instruction_t instructions[VM_INSTRUCTION_MAX];
     usize instruction_count;
 
-    u8 data[EVENT_SIZE];
+    u8 data[VM_EVENT_SIZE];
     bool valid;
 } event_t;
 
@@ -42,6 +42,6 @@ typedef struct {
 
 extern event_desc_t event_desc_list[];
 
-event_t event_get_event(int);
-event_desc_t event_get_desc_by_event_id(int);
-event_desc_t event_get_desc_by_scenario_id(int);
+event_t vm_event_get_event(int);
+event_desc_t vm_event_get_desc_by_event_id(int);
+event_desc_t vm_event_get_desc_by_scenario_id(int);

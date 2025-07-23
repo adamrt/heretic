@@ -11,7 +11,7 @@
 #include "vm_message.h"
 #include "vm_transition.h"
 
-void fn_display_message(const instruction_t* instr) {
+void vm_func_display_message(const instruction_t* instr) {
     scene_t* scene = scene_get_internals();
 
     (void)instr->params[0].value.u8; // unused, typically 0x10
@@ -49,8 +49,8 @@ void fn_display_message(const instruction_t* instr) {
     };
     *sprite = gfx_sprite_create(SPRITE_2D, texture, (vec2s) { { 0.0f, 0.0f } }, (vec2s) { { 32, 32 } }, transform);
 
-    transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 80.0f, speed);
-    transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 40.0f, speed);
+    vm_transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 80.0f, speed);
+    vm_transition_add(instr->opcode, &sprite->transform.scale, 20.0f, 40.0f, speed);
 
     (void)unit_id;
     (void)portrait_row;
@@ -63,7 +63,7 @@ void fn_display_message(const instruction_t* instr) {
     (void)opening;
 }
 
-void fn_camera(const instruction_t* instr) {
+void vm_func_camera(const instruction_t* instr) {
     camera_t* cam = camera_get_internals();
     transform_t* transform = gfx_model_get_transform();
 
@@ -76,22 +76,22 @@ void fn_camera(const instruction_t* instr) {
     f32 zoom = parse_zoom(instr->params[6].value.i16);
     f32 duration = (f32)instr->params[7].value.i16;
 
-    transition_add(instr->opcode, &cam->position.x, cam->position.x, x, duration);
-    transition_add(instr->opcode, &cam->position.y, cam->position.y, y, duration);
-    transition_add(instr->opcode, &cam->position.z, cam->position.z, z, duration);
-    transition_add(instr->opcode, &cam->yaw_rad, cam->yaw_rad, yaw_rad, duration);
-    transition_add(instr->opcode, &cam->pitch_rad, cam->pitch_rad, pitch_rad, duration);
-    transition_add(instr->opcode, &cam->zoom, cam->zoom, zoom, duration);
+    vm_transition_add(instr->opcode, &cam->position.x, cam->position.x, x, duration);
+    vm_transition_add(instr->opcode, &cam->position.y, cam->position.y, y, duration);
+    vm_transition_add(instr->opcode, &cam->position.z, cam->position.z, z, duration);
+    vm_transition_add(instr->opcode, &cam->yaw_rad, cam->yaw_rad, yaw_rad, duration);
+    vm_transition_add(instr->opcode, &cam->pitch_rad, cam->pitch_rad, pitch_rad, duration);
+    vm_transition_add(instr->opcode, &cam->zoom, cam->zoom, zoom, duration);
 
-    transition_add(instr->opcode, &transform->rotation.y, transform->rotation.y, maprot_rad, duration);
+    vm_transition_add(instr->opcode, &transform->rotation.y, transform->rotation.y, maprot_rad, duration);
 }
 
-void fn_wait_for_instruction(const instruction_t* instr) {
+void vm_func_wait_for_instruction(const instruction_t* instr) {
     waittype_e waittype = instr->params[0].value.u8;
     vm_wait(waittype);
 }
 
-void fn_warp_unit(const instruction_t* instr) {
+void vm_func_warp_unit(const instruction_t* instr) {
     u8 unit_id = instr->params[0].value.u8;
     u8 unused = instr->params[1].value.u8; // always 0x00
     u8 tile_x = instr->params[2].value.u8;

@@ -7,7 +7,7 @@
 #include "vm_opcode.h"
 
 enum {
-    TRANSITION_MAX = 64,
+    VM_TRANSITION_MAX = 64,
 };
 
 // Transition struct to simplify interpolation of values.
@@ -21,11 +21,11 @@ typedef struct {
 } transition_t;
 
 typedef struct {
-    transition_t transitions[TRANSITION_MAX];
+    transition_t transitions[VM_TRANSITION_MAX];
     size_t transaction_count;
 } transition_manager_t;
 
-void transition_reset(void);
-void transition_update(void);
-void transition_add(opcode_id_t, void*, f32, f32, f32);
-bool transition_has_active(waittype_e);
+void vm_transition_reset(void);
+void vm_transition_update(void);
+void vm_transition_add(opcode_id_t, void*, f32, f32, f32);
+bool vm_transition_has_active(waittype_e);

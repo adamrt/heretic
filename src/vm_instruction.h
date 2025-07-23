@@ -5,13 +5,13 @@
 #include "vm_opcode.h"
 
 enum {
-    INSTRUCTION_MAX = 768,
+    VM_INSTRUCTION_MAX = 768,
 };
 
 typedef enum {
-    PARAM_TYPE_NONE = 0,
-    PARAM_TYPE_U8 = 1,
-    PARAM_TYPE_U16 = 2,
+    VM_PARAM_TYPE_NONE = 0,
+    VM_PARAM_TYPE_U8 = 1,
+    VM_PARAM_TYPE_U16 = 2,
 } param_type_e;
 
 typedef struct {

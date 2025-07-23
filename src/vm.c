@@ -22,10 +22,10 @@ void vm_init(void) {
     vm_reset();
 
     // Setup the opcode handlers
-    _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = fn_display_message;
-    _state.handlers[OPCODE_ID_CAMERA] = fn_camera;
-    _state.handlers[OPCODE_ID_WAITFORINSTRUCTION] = fn_wait_for_instruction;
-    _state.handlers[OPCODE_ID_WARPUNIT] = fn_warp_unit;
+    _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = vm_func_display_message;
+    _state.handlers[OPCODE_ID_CAMERA] = vm_func_camera;
+    _state.handlers[OPCODE_ID_WAITFORINSTRUCTION] = vm_func_wait_for_instruction;
+    _state.handlers[OPCODE_ID_WARPUNIT] = vm_func_warp_unit;
 }
 
 // Reset the virtual machine state
@@ -46,6 +46,9 @@ void vm_execute_event(const event_t* event) {
     _state.is_executing = true;
 }
 
+// Update the virtual machine state
+//
+// IMPORTANT: Call vm_transition_update() before returning unless resetting.
 void vm_update(void) {
     if (!_state.is_executing) {
         return;
@@ -61,8 +64,11 @@ void vm_update(void) {
     // These types are different than opcode_ids (waittype_e).
     for (int i = 0; i < _state.waiting_count; i++) {
         waittype_e waittype = _state.waiting[i];
-        if (transition_has_active(waittype)) {
+        if (vm_transition_has_active(waittype)) {
             // We are waiting on a transition, do not execute the next instr.
+            //
+            // Update the transition manager after executing the instruction
+            vm_transition_update();
             return;
         } else {
             // If we are not waiting, we can unwait this type.
@@ -75,6 +81,9 @@ void vm_update(void) {
     if (fn != NULL) {
         fn(instr);
     }
+
+    // Update the transition manager after executing the instruction
+    vm_transition_update();
 }
 
 int vm_get_current_instruction(void) {
@@ -82,7 +91,7 @@ int vm_get_current_instruction(void) {
 }
 
 void vm_wait(waittype_e type) {
-    if (transition_has_active(type)) {
+    if (vm_transition_has_active(type)) {
         _state.waiting[_state.waiting_count++] = type;
     }
 }
@@ -95,7 +104,7 @@ static void vm_unwait(waittype_e type) {
     }
 }
 
-const char* waittype_str(waittype_e waittype) {
+const char* vm_waittype_str(waittype_e waittype) {
     switch (waittype) {
     case WAITTYPE_DIALOG:
         return "Dialog";

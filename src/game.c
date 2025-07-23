@@ -8,7 +8,6 @@
 #include "scene.h"
 #include "time.h"
 #include "vm.h"
-#include "vm_transition.h"
 
 #if defined(__EMSCRIPTEN__)
 #    include <emscripten/emscripten.h>
@@ -53,7 +52,6 @@ void game_update(void) {
     }
     time_update();
     vm_update();
-    transition_update();
     scene_render();
 }
 

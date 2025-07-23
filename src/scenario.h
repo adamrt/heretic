@@ -22,4 +22,4 @@ typedef struct {
 
 scenario_t scenario_get_scenario(int);
 
-static_assert(EVENT_COUNT == SCENARIO_COUNT, "Event/scenario count mismatch");
+static_assert(VM_EVENT_COUNT == SCENARIO_COUNT, "Event/scenario count mismatch");

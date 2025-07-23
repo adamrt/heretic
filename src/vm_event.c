@@ -10,23 +10,23 @@
 
 static event_t read_event(span_t*);
 
-event_t event_get_event(int id) {
-    ASSERT(id < EVENT_COUNT, "Event id %d out of bounds", id);
+event_t vm_event_get_event(int id) {
+    ASSERT(id < VM_EVENT_COUNT, "Event id %d out of bounds", id);
     span_t file = filesystem_read_file(F_EVENT__TEST_EVT);
     span_t span = {
-        .data = file.data + (id * EVENT_SIZE),
-        .size = EVENT_SIZE,
+        .data = file.data + (id * VM_EVENT_SIZE),
+        .size = VM_EVENT_SIZE,
     };
     event_t event = read_event(&span);
     return event;
 }
 
-event_desc_t event_get_desc_by_event_id(int event_id) {
+event_desc_t vm_event_get_desc_by_event_id(int event_id) {
     return event_desc_list[event_id];
 }
 
-event_desc_t event_get_desc_by_scenario_id(int scenario_id) {
-    for (usize i = 0; i < EVENT_COUNT; i++) {
+event_desc_t vm_event_get_desc_by_scenario_id(int scenario_id) {
+    for (usize i = 0; i < VM_EVENT_COUNT; i++) {
         if (event_desc_list[i].scenario_id == scenario_id) {
             return event_desc_list[i];
         }
@@ -42,9 +42,9 @@ static event_t read_event(span_t* span) {
         return event;
     }
 
-    memcpy(event.data, span->data, EVENT_SIZE);
+    memcpy(event.data, span->data, VM_EVENT_SIZE);
 
-    usize text_size = EVENT_SIZE - text_offset;
+    usize text_size = VM_EVENT_SIZE - text_offset;
     span_t text_span = { .data = event.data + text_offset, .size = text_size };
     usize messages_len = read_messages(&text_span, event.messages);
     int msg_count = message_count(event.messages);
@@ -69,7 +69,7 @@ static event_t read_event(span_t* span) {
 // The ID always matchess the scenario.event_id.
 //
 // Names from: https://github.com/Glain/FFTPatcher/blob/master/EntryEdit/EntryData/PSX/ScenarioNames.xml
-event_desc_t event_desc_list[EVENT_COUNT] = {
+event_desc_t event_desc_list[VM_EVENT_COUNT] = {
     { 0x0001, 0x0000, false, "Orbonne Prayer (Setup)" },
     { 0x0002, 0x0001, true, "Orbonne Prayer" },
     { 0x0003, 0x0002, false, "Orbonne Battle (Setup)" },

@@ -340,7 +340,7 @@ static void _draw_window_scene(void) {
     camera_t* cam = camera_get_internals();
     scene_t* scene = scene_get_internals();
     igBegin("Scene", &_state.show_window_scene, 0);
-    event_desc_t desc = event_get_desc_by_scenario_id(scene->current_scenario_id);
+    event_desc_t desc = vm_event_get_desc_by_scenario_id(scene->current_scenario_id);
 
     if (igRadioButton("Events", scene->mode == MODE_EVENT)) {
         scene->mode = MODE_EVENT;
@@ -505,7 +505,7 @@ void _row_instr_fn_waitforinstruction(instruction_t* instr) {
     waittype_e waittype = (waittype_e)instr->params[0].value.u8;
     u8 always_zero = instr->params[1].value.u8;
     (void)always_zero; // This is always 0, so we ignore it.
-    igText("Wait: %s", waittype_str(waittype));
+    igText("Wait: %s", vm_waittype_str(waittype));
 }
 
 static void _draw_window_event_instructions(void) {
@@ -570,9 +570,9 @@ static void _draw_window_event_instructions(void) {
                     set = true;
                 }
 
-                if (instr->params[j].type == PARAM_TYPE_U8) {
+                if (instr->params[j].type == VM_PARAM_TYPE_U8) {
                     igText("0x%02X", instr->params[j].value.u8);
-                } else if (instr->params[j].type == PARAM_TYPE_U16) {
+                } else if (instr->params[j].type == VM_PARAM_TYPE_U16) {
                     igText("0x%04X", instr->params[j].value.u16);
                 }
             }

@@ -40,7 +40,7 @@ void scene_reset(void) {
     _state.current_map = 0;
 
     vm_reset();
-    transition_reset();
+    vm_transition_reset();
     camera_reset();
 
     map_destroy(_state.map);
@@ -89,7 +89,7 @@ void scene_load_scenario(int scenario_id) {
         .layout = 0,
     };
 
-    _state.event = event_get_event(scenario.event_id);
+    _state.event = vm_event_get_event(scenario.event_id);
     scene_load_map(scenario.map_id, scenario_state);
     scene_load_units(scenario.entd_id);
 }
@@ -117,7 +117,7 @@ static void _scene_switch(switch_e dir) {
             if (_state.current_scenario_id > SCENARIO_COUNT - 1) {
                 _state.current_scenario_id = 0;
             }
-            event_desc_t desc = event_get_desc_by_scenario_id(_state.current_scenario_id);
+            event_desc_t desc = vm_event_get_desc_by_scenario_id(_state.current_scenario_id);
             if (!desc.usable) {
                 _state.current_scenario_id = is_prev ? _state.current_scenario_id - 1 : _state.current_scenario_id + 1;
                 continue;
