@@ -13,14 +13,14 @@ typedef struct {
     texture_t texture;
     vec2s uv_min;
     vec2s uv_max;
-    transform2d_t transform;
+    transform_t transform;
 } sprite2d_t;
 
 typedef struct {
     texture_t texture;
     vec2s uv_min;
     vec2s uv_max;
-    transform3d_t transform;
+    transform_t transform;
 } sprite3d_t;
 
 void gfx_sprite_init(void);
@@ -28,7 +28,7 @@ void gfx_sprite_shutdown(void);
 void gfx_sprite_reset(void);
 void gfx_sprite_render(void);
 sprite2d_t gfx_sprite2d_create(texture_t, vec2s, vec2s, f32, f32, f32);
-sprite3d_t gfx_sprite3d_create(texture_t, vec2s, vec2s, transform3d_t);
+sprite3d_t gfx_sprite3d_create(texture_t, vec2s, vec2s, transform_t);
 
 sprite3d_t* gfx_sprite3d_get_internals(void);
 sprite2d_t* gfx_sprite2d_get_internals(void);

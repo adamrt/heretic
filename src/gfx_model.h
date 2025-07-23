@@ -18,7 +18,7 @@ typedef struct {
 
     lighting_t lighting;
 
-    transform3d_t transform;
+    transform_t transform;
     int vertex_count;
     vec3s model_center;
     vec3s offset_center;
@@ -32,7 +32,7 @@ model_t gfx_model_create(const map_t*, map_state_t);
 void gfx_model_set(model_t);
 void gfx_model_destroy();
 
-transform3d_t* gfx_model_get_transform(void);
+transform_t* gfx_model_get_transform(void);
 vec3s gfx_model_get_model_center(void);
 lighting_t* gfx_model_get_lighting(void);
 void gfx_model_set_y_rotation(f32 maprot);

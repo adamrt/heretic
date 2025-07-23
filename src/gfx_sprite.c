@@ -144,14 +144,15 @@ sprite2d_t gfx_sprite2d_create(texture_t texture, vec2s min, vec2s size, f32 x, 
         .uv_min = uv_min,
         .uv_max = uv_max,
         .transform = {
+            .translation = { { x, y, 0.0f } },
+            .rotation = { { 0.0f, 0.0f, 0.0f } },
             .scale = { { scale, scale, scale } },
-            .screen_pos = { { x, y } },
         },
     };
     return sprite;
 }
 
-sprite3d_t gfx_sprite3d_create(texture_t texture, vec2s min, vec2s size, transform3d_t transform) {
+sprite3d_t gfx_sprite3d_create(texture_t texture, vec2s min, vec2s size, transform_t transform) {
     vec2s uv_min = (vec2s) { { min.x / texture.width, min.y / texture.height } };
     vec2s uv_max = (vec2s) { { (min.x + size.x) / texture.width, (min.y + size.y) / texture.height } };
 
@@ -169,7 +170,7 @@ void _sprite2d_render(const sprite2d_t* sprite) {
 
     // Model matrix for screen position
     mat4s model_mat = glms_mat4_identity();
-    model_mat = glms_translate(model_mat, (vec3s) { { sprite->transform.screen_pos.x, sprite->transform.screen_pos.y, 0.0f } });
+    model_mat = glms_translate(model_mat, (vec3s) { { sprite->transform.translation.x, sprite->transform.translation.y, 0.0f } });
     model_mat = glms_scale(model_mat, sprite->transform.scale);
 
     // Set up uniforms

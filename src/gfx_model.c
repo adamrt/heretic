@@ -158,7 +158,7 @@ void gfx_model_render(void) {
 // Getters
 void gfx_model_set(model_t model) { _state.model = model; }
 void gfx_model_set_y_rotation(f32 maprot) { _state.model.transform.rotation.y = maprot; }
-transform3d_t* gfx_model_get_transform(void) { return &_state.model.transform; }
+transform_t* gfx_model_get_transform(void) { return &_state.model.transform; }
 lighting_t* gfx_model_get_lighting(void) { return &_state.model.lighting; }
 vec3s gfx_model_get_model_center(void) { return _state.model.model_center; }
 vec3s gfx_model_get_offset_center(void) { return _state.model.offset_center; }

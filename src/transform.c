@@ -2,7 +2,7 @@
 
 #include "transform.h"
 
-mat4s transform_to_matrix(transform3d_t transform) {
+mat4s transform_to_matrix(transform_t transform) {
     mat4s model_matrix = glms_mat4_identity();
     model_matrix = glms_translate(model_matrix, transform.translation);
     model_matrix = glms_rotate_x(model_matrix, transform.rotation.x);
@@ -12,7 +12,7 @@ mat4s transform_to_matrix(transform3d_t transform) {
     return model_matrix;
 }
 
-mat4s transform_to_matrix_around_center(transform3d_t transform, vec3s center) {
+mat4s transform_to_matrix_around_center(transform_t transform, vec3s center) {
     mat4s model = glms_mat4_identity();
 
     // Step 1: move model so center is at origin

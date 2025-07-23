@@ -59,7 +59,7 @@ void fn_display_message(const instruction_t* instr) {
 
 void fn_camera(const instruction_t* instr) {
     camera_t* cam = camera_get_internals();
-    transform3d_t* transform = gfx_model_get_transform();
+    transform_t* transform = gfx_model_get_transform();
 
     f32 x = parse_coord(instr->params[0].value.i16);
     f32 y = parse_coord(instr->params[1].value.i16);
@@ -101,7 +101,7 @@ void fn_warp_unit(const instruction_t* instr) {
     }
 
     texture_t texture = sprite_get_paletted_texture(F_EVENT__UNIT_BIN, 0);
-    transform3d_t transform = {
+    transform_t transform = {
         .translation = { { tile_x * 24.0f, elevation * 5.0f, tile_y * 24.0f } },
         .rotation = { { 0.0f, facing * 90.0f, 0.0f } },
         .scale = { { 15.0f, 15.0f, 15.0f } }
