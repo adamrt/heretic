@@ -1,4 +1,4 @@
-#include "opcode.h"
+#include "vm_opcode.h"
 
 // clang-format off
 const opcode_desc_t opcode_desc_list[] = {

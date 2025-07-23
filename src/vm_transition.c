@@ -2,10 +2,10 @@
 
 #include "cglm/util.h"
 
-#include "opcode.h"
-#include "transition.h"
 #include "util.h"
 #include "vm.h"
+#include "vm_opcode.h"
+#include "vm_transition.h"
 
 static transition_manager_t _state;
 

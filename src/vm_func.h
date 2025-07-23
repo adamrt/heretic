@@ -1,6 +1,6 @@
 #pragma once
 
-#include "instruction.h"
+#include "vm_instruction.h"
 
 // Function pointer type for opcode functions
 typedef void (*opcode_fn_t)(const instruction_t*);

@@ -10,7 +10,6 @@
 #include "sokol_log.h"
 
 #include "camera.h"
-#include "event.h"
 #include "filesystem.h"
 #include "font.h"
 #include "gfx.h"
@@ -20,13 +19,14 @@
 #include "map.h"
 #include "map_record.h"
 #include "memory.h"
-#include "message.h"
-#include "opcode.h"
 #include "parse.h"
 #include "scene.h"
 #include "unit.h"
 #include "util.h"
 #include "vm.h"
+#include "vm_event.h"
+#include "vm_message.h"
+#include "vm_opcode.h"
 
 static void _draw(void);
 static uint32_t hash_int_rand_color(u32 v);

@@ -1,12 +1,12 @@
 #include <string.h>
 
 #include "defines.h"
-#include "event.h"
 #include "filesystem.h"
-#include "instruction.h"
-#include "message.h"
 #include "span.h"
 #include "util.h"
+#include "vm_event.h"
+#include "vm_instruction.h"
+#include "vm_message.h"
 
 static event_t read_event(span_t*);
 

@@ -1,9 +1,9 @@
 #include <string.h>
 
 #include "font.h"
-#include "message.h"
 #include "span.h"
 #include "util.h"
+#include "vm_message.h"
 
 usize read_messages(span_t* span, char* out_text) {
     usize length = 0;

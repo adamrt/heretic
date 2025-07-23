@@ -4,7 +4,6 @@
 #include "cglm/types-struct.h"
 #include "shader.glsl.h"
 
-#include "event.h"
 #include "gfx.h"
 #include "gfx_background.h"
 #include "gfx_line.h"
@@ -13,10 +12,11 @@
 #include "map.h"
 #include "scenario.h"
 #include "scene.h"
-#include "transition.h"
 #include "unit.h"
 #include "util.h"
 #include "vm.h"
+#include "vm_event.h"
+#include "vm_transition.h"
 
 static scene_t _state;
 

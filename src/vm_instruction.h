@@ -1,8 +1,8 @@
 #pragma once
 
 #include "defines.h"
-#include "opcode.h"
 #include "span.h"
+#include "vm_opcode.h"
 
 constexpr int INSTRUCTION_MAX = 768;
 

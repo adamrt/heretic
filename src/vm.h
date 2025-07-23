@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event.h"
+#include "vm_event.h"
 
 typedef enum {
     WAITTYPE_DIALOG = 0x01,

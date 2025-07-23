@@ -3,8 +3,8 @@
 #include <stdbool.h>
 
 #include "defines.h"
-#include "opcode.h"
 #include "vm.h"
+#include "vm_opcode.h"
 
 constexpr int TRANSITION_MAX = 64;
 

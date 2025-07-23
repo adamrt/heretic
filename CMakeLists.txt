@@ -57,9 +57,9 @@ add_library(cimgui
 # Add Heretic executable
 add_executable(heretic
     src/main.c
+
     src/camera.c
     src/dialog.c
-    src/event.c
     src/filesystem.c
     src/font.c
     src/game.c
@@ -70,13 +70,10 @@ add_executable(heretic
     src/gfx_sprite.c
     src/gui.c
     src/image.c
-    src/instruction.c
     src/lighting.c
     src/map.c
     src/map_record.c
     src/memory.c
-    src/message.c
-    src/opcode.c
     src/mesh.c
     src/parse.c
     src/scenario.c
@@ -86,10 +83,14 @@ add_executable(heretic
     src/texture.c
     src/time.c
     src/transform.c
-    src/transition.c
     src/unit.c
     src/vm.c
-    src/vm_func.c)
+    src/vm_event.c
+    src/vm_func.c
+    src/vm_instruction.c
+    src/vm_message.c
+    src/vm_opcode.c
+    src/vm_transition.c)
 
 option(CGLM_SHARED "Shared build" OFF)
 option(CGLM_STATIC "Static build"  ON)

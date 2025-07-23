@@ -2,10 +2,10 @@
 
 #include <stdbool.h>
 
-#include "event.h"
 #include "map.h"
 #include "map_record.h"
 #include "unit.h"
+#include "vm_event.h"
 
 typedef enum {
     MODE_EVENT,

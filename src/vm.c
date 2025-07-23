@@ -1,7 +1,7 @@
 #include "vm.h"
-#include "opcode.h"
-#include "transition.h"
 #include "vm_func.h"
+#include "vm_opcode.h"
+#include "vm_transition.h"
 
 // Virtual machine state
 static struct {

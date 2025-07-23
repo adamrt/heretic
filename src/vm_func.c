@@ -5,11 +5,11 @@
 #include "gfx.h"
 #include "gfx_model.h"
 #include "gfx_sprite.h"
-#include "message.h"
 #include "parse.h"
 #include "scene.h"
-#include "transition.h"
 #include "vm.h"
+#include "vm_message.h"
+#include "vm_transition.h"
 
 void fn_display_message(const instruction_t* instr) {
     scene_t* scene = scene_get_internals();

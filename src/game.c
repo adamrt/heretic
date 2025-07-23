@@ -7,8 +7,8 @@
 #include "memory.h"
 #include "scene.h"
 #include "time.h"
-#include "transition.h"
 #include "vm.h"
+#include "vm_transition.h"
 
 #if defined(__EMSCRIPTEN__)
 #    include <emscripten/emscripten.h>

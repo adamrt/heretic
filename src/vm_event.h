@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #include "defines.h"
-#include "instruction.h"
-#include "message.h"
+#include "vm_instruction.h"
+#include "vm_message.h"
 
 constexpr int EVENT_SIZE = 8192;
 constexpr int EVENT_COUNT = 491;

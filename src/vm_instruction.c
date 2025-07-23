@@ -1,6 +1,6 @@
-#include "instruction.h"
-#include "opcode.h"
+#include "vm_instruction.h"
 #include "util.h"
+#include "vm_opcode.h"
 
 usize read_instructions(span_t* span, instruction_t* out_instructions) {
     usize count = 0;
