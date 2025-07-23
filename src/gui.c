@@ -372,6 +372,12 @@ static void _draw_window_scene(void) {
         if (igButton("Play Event")) {
             vm_execute_event(&scene->event);
         }
+        if (vm_is_executing()) {
+            igSameLine();
+            if (igButton("Pause Event")) {
+                vm_reset();
+            }
+        }
         igText("Event: %d - %s", desc.event_id, desc.name);
     } else {
         if (igButton("Prev Map (j)")) {

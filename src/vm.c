@@ -35,6 +35,10 @@ void vm_reset(void) {
     _state.is_executing = false;
 }
 
+bool vm_is_executing(void) {
+    return _state.is_executing;
+}
+
 void vm_execute_event(const event_t* event) {
     vm_reset();
 
