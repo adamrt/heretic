@@ -7,7 +7,7 @@ project(
 
 set(CMAKE_BUILD_TYPE Debug)
 
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
@@ -126,6 +126,7 @@ target_compile_options(heretic PUBLIC
     -Wpedantic
     -Werror
     -Wno-unused-function
+    -Wvla
     -Wshadow
     -Wunreachable-code
     -Wnull-dereference

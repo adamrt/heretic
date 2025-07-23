@@ -31,7 +31,7 @@ event_desc_t event_get_desc_by_scenario_id(int scenario_id) {
             return event_desc_list[i];
         }
     }
-    return (event_desc_t) {};
+    return (event_desc_t) { 0 };
 }
 
 static event_t read_event(span_t* span) {

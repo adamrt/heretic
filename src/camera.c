@@ -8,10 +8,10 @@
 
 #include "camera.h"
 
-constexpr f32 MAX_PHI = 89.9f * GLM_PIf / 180.0f; // glm_rad isn't constexpr, so we do it ourselves
-constexpr f32 DEFAULT_DISTANCE = -256.0f * 2.0f;
-constexpr f32 ZOOM_SENSITIVITY = 0.002f;
-constexpr vec3s INVERTED_YUP = { { 0.0f, -1.0f, 0.0f } };
+static const f32 MAX_PHI = 89.9f * GLM_PIf / 180.0f; // glm_rad isn't constexpr, so we do it ourselves
+static const f32 DEFAULT_DISTANCE = -256.0f * 2.0f;
+static const f32 ZOOM_SENSITIVITY = 0.002f;
+static const vec3s INVERTED_YUP = { { 0.0f, -1.0f, 0.0f } };
 
 static camera_t _state;
 
@@ -33,7 +33,7 @@ void camera_freefly_motion(freefly_motion_t m) {
     f32 yaw_rad = _state.yaw_rad + glm_rad(m.yaw_deg);
     f32 pitch_rad = -glm_clamp((_state.pitch_rad + glm_rad(m.pitch_deg)), -MAX_PHI, MAX_PHI);
 
-    vec3s forward = {};
+    vec3s forward = {0};
     forward.x = cosf(pitch_rad) * sinf(yaw_rad);
     forward.y = sinf(pitch_rad);
     forward.z = -cosf(pitch_rad) * cosf(yaw_rad);
@@ -122,7 +122,7 @@ mat4s camera_get_proj(void) {
 }
 
 static vec3s _to_cartesian(spherical_t s) {
-    vec3s pos = {};
+    vec3s pos = {0};
     pos.x = s.radius * cosf(s.phi_rad) * sinf(s.theta_rad);
     pos.y = s.radius * sinf(s.phi_rad);
     pos.z = s.radius * cosf(s.phi_rad) * cosf(s.theta_rad);
@@ -130,7 +130,7 @@ static vec3s _to_cartesian(spherical_t s) {
 }
 
 static spherical_t _to_spherical(vec3s pos) {
-    spherical_t s = {};
+    spherical_t s = {0};
     s.radius = sqrtf(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
     s.theta_rad = atan2f(pos.x, pos.z);
     s.phi_rad = asinf(pos.y / s.radius);

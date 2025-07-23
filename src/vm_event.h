@@ -7,8 +7,10 @@
 #include "vm_instruction.h"
 #include "vm_message.h"
 
-constexpr int EVENT_SIZE = 8192;
-constexpr int EVENT_COUNT = 491;
+enum {
+    EVENT_SIZE = 8192,
+    EVENT_COUNT = 491
+};
 
 // An event is a list of text and instructions for a particular scenario.
 //

@@ -6,10 +6,13 @@
 #include "memory.h"
 #include "util.h"
 
+enum {
+    MAP_IMAGE_WIDTH = 256,
+    MAP_IMAGE_HEIGHT = 1024,
+};
+
 static map_image_t _read_map_texture(span_t* span, map_state_t state) {
-    constexpr int width = 256;
-    constexpr int height = 1024;
-    image_t image = image_read_4bpp(span, width, height);
+    image_t image = image_read_4bpp(span, MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT);
     return (map_image_t) {
         .state = state,
         .image = image,

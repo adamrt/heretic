@@ -21,8 +21,10 @@ typedef double f64;
 typedef size_t usize;
 
 // Maximum number of bytes that can be stored in a bytes_t.
-// This is used for resources and textures aare the largest.
-constexpr int BYTES_MAX = 131072;
+// This is used for resources. Textures are the largest.
+enum {
+    BYTES_MAX = 131072,
+};
 
 typedef struct {
     u8 data[BYTES_MAX];

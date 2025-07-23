@@ -5,8 +5,10 @@
 #include "map_record.h"
 #include "vm_event.h"
 
-constexpr int SCENARIO_COUNT = 491;
-constexpr int SCENARIO_SIZE = 24;
+enum {
+    SCENARIO_COUNT = 491,
+    SCENARIO_SIZE = 24
+};
 
 typedef struct {
     int event_id;

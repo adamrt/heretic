@@ -55,7 +55,7 @@ static int _compare_font_chars(const void* a, const void* b) {
 }
 
 static font_atlas_t read_font_atlas(span_t* span) {
-    font_atlas_t atlas = {};
+    font_atlas_t atlas = {0};
 
     for (int glyph = 0; glyph < FONT_CHAR_COUNT; ++glyph) {
         int atlas_row = glyph / FONT_ATLAS_COLS;

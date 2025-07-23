@@ -3,7 +3,7 @@
 #include <string.h>
 
 terrain_t read_terrain(span_t* span) {
-    terrain_t terrain = {};
+    terrain_t terrain = { 0 };
 
     u32 intra_file_ptr = span_readat_u32(span, 0x68);
     if (intra_file_ptr == 0) {
@@ -20,15 +20,16 @@ terrain_t read_terrain(span_t* span) {
     for (u8 level = 0; level < 2; level++) {
         for (u8 z = 0; z < z_count; z++) {
             for (u8 x = 0; x < x_count; x++) {
-                tile_t tile = {};
+                // FIXME: This code needs to be validated that it is reading everything correctly.
+                tile_t tile = { 0 };
 
                 u8 raw_surface = span_read_u8(span);
-                tile.surface = (surface_e)(raw_surface & 0b00111111);
-                span_read_u8(span); // Padding
+                tile.surface = (surface_e)(raw_surface & 0x3F); // 0b00111111
+                span_read_u8(span);
                 tile.sloped_height_bottom = span_read_u8(span);
                 u8 slope_top_and_depth = span_read_u8(span);
-                tile.depth = (slope_top_and_depth >> 5) & 0b00000111;
-                tile.sloped_height_top = slope_top_and_depth & 0b00011111;
+                tile.depth = (slope_top_and_depth >> 5) & 0x07;      // 0b11100000 -> 0b00000111
+                tile.sloped_height_top = slope_top_and_depth & 0x1F; // 0b00011111
                 tile.slope = (slope_e)span_read_u8(span);
                 span_read_u8(span); // Padding
 
@@ -64,7 +65,7 @@ const char* terrain_surface_str(surface_e value) {
         return ostring;
         SURFACE_INDEX
 #undef X
-    default:
+    default:;
         static char buf[32];
         snprintf(buf, sizeof(buf), "Unknown 0x%02X", value);
         return buf;
@@ -78,7 +79,7 @@ const char* terrain_slope_str(slope_e value) {
         return ostring;
         SLOPE_INDEX
 #undef X
-    default:
+    default:;
         static char buf[32];
         snprintf(buf, sizeof(buf), "Unknown 0x%02X", value);
         return buf;

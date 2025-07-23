@@ -30,7 +30,7 @@ void gfx_model_render(void);
 
 model_t gfx_model_create(const map_t*, map_state_t);
 void gfx_model_set(model_t);
-void gfx_model_destroy();
+void gfx_model_destroy(void);
 
 transform_t* gfx_model_get_transform(void);
 vec3s gfx_model_get_model_center(void);

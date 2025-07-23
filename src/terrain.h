@@ -3,6 +3,21 @@
 #include "defines.h"
 #include "span.h"
 
+enum {
+    TERRAIN_LEVEL_COUNT = 2,
+    TERRAIN_X_MAX = 17,
+    TERRAIN_Z_MAX = 18,
+    TERRAIN_TILE_MAX = 256,
+
+    TILE_WIDTH = 28,
+    TILE_DEPTH = 28,
+    TILE_HEIGHT = 12,
+
+    UNIT_HEIGHT = TILE_HEIGHT * 3, // Regular unit
+
+    TERRAIN_STR_SIZE = 128
+};
+
 #define SURFACE_INDEX                                   \
     X(SURFACE_NATURAL_SURFACE, 0x00, "Natural Surface") \
     X(SURFACE_SAND, 0x01, "Sand")                       \
@@ -79,18 +94,6 @@ typedef enum {
     SLOPE_INDEX
 #undef X
 } slope_e;
-
-constexpr int TERRAIN_LEVEL_COUNT = 2;
-constexpr int TERRAIN_X_MAX = 17;
-constexpr int TERRAIN_Z_MAX = 18;
-constexpr int TERRAIN_TILE_MAX = 256;
-
-constexpr i16 TILE_WIDTH = 28;
-constexpr i16 TILE_DEPTH = 28;
-constexpr i16 TILE_HEIGHT = 12;
-constexpr i16 UNIT_HEIGHT = TILE_HEIGHT * 3; // Regular unit
-
-constexpr size_t TERRAIN_STR_SIZE = 128;
 
 typedef struct {
     surface_e surface;

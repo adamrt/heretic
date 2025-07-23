@@ -5,7 +5,7 @@
 #include "span.h"
 #include "util.h"
 
-constexpr int SCENARIO_OFFSET = 0x10938;
+static const int SCENARIO_OFFSET = 0x10938;
 
 static scenario_t read_scenario(span_t*);
 
@@ -13,7 +13,7 @@ scenario_t scenario_get_scenario(int id) {
     ASSERT(id < SCENARIO_COUNT, "Scenario id %d out of bounds", id);
     span_t file = filesystem_read_file(F_EVENT__ATTACK_OUT);
 
-    span_t span = {};
+    span_t span = {0};
     span.data = file.data + SCENARIO_OFFSET + (id * SCENARIO_SIZE);
     span.size = SCENARIO_SIZE;
 
@@ -22,7 +22,7 @@ scenario_t scenario_get_scenario(int id) {
 }
 
 static scenario_t read_scenario(span_t* span) {
-    scenario_t scenario = {};
+    scenario_t scenario = {0};
     scenario.event_id = span_readat_u16(span, 0);
     scenario.map_id = span_readat_u8(span, 2);
     scenario.weather = span_readat_u8(span, 3);

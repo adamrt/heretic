@@ -4,7 +4,9 @@
 #include "span.h"
 #include "vm_opcode.h"
 
-constexpr int INSTRUCTION_MAX = 768;
+enum {
+    INSTRUCTION_MAX = 768,
+};
 
 typedef enum {
     PARAM_TYPE_NONE = 0,

@@ -9,11 +9,13 @@
 #include "span.h"
 #include "terrain.h"
 
-constexpr int MESH_MAX_TEX_TRIS = 512;
-constexpr int MESH_MAX_TEX_QUADS = 768;
-constexpr int MESH_MAX_UNTEX_TRIS = 64;
-constexpr int MESH_MAX_UNTEX_QUADS = 256;
-constexpr int MESH_MAX_VERTICES = 7620;
+enum {
+    MESH_MAX_TEX_TRIS = 512,
+    MESH_MAX_TEX_QUADS = 768,
+    MESH_MAX_UNTEX_TRIS = 64,
+    MESH_MAX_UNTEX_QUADS = 256,
+    MESH_MAX_VERTICES = 7620
+};
 
 typedef struct {
     vec3s position;

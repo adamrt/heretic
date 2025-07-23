@@ -23,7 +23,7 @@ dialog_opening_t parse_dialog_opening(u8 byte) {
     const u8 DARKEN_MASK = 0x04;         // 00000100 (Bit 2)
     const u8 TOGGLE_ARROW_MASK = 0x10;   // 00010000 (Bit 4)
 
-    dialog_opening_t dialog = {};
+    dialog_opening_t dialog = {0};
 
     if (byte & SPEED_PLUS_50_MASK) {
         dialog.speed = DIALOG_SPEED_PLUS_50;

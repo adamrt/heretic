@@ -122,7 +122,7 @@ void gfx_sprite_shutdown(void) {
 
 void gfx_sprite_reset(void) {
     for (usize i = 0; i < 100; i++) {
-        _state.sprites[i] = (sprite_t) {};
+        _state.sprites[i] = (sprite_t) {0};
     }
 }
 

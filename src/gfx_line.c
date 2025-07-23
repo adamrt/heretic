@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "color.h"
 #include "gfx_line.h"
+#include "terrain.h"
 
 #include "shader.glsl.h"
 
@@ -12,12 +13,13 @@ static struct {
     sg_buffer vbuf;
 } _state;
 
-// 28 represents the width and depth of a tile.
-static constexpr f32 dim = 28.0f * 3.0f; // Use constants
+// Just do a simple axis with a length of 3 tiles.
+static const f32 AXIS_LEN = TILE_WIDTH * 3.0f;
+
 static const vec3s axis_verts[] = {
-    { { 0, 0, 0 } }, { { dim, 0, 0 } }, // X
-    { { 0, 0, 0 } }, { { 0, dim, 0 } }, // Y
-    { { 0, 0, 0 } }, { { 0, 0, dim } }, // Z
+    { { 0, 0, 0 } }, { { AXIS_LEN, 0, 0 } }, // X
+    { { 0, 0, 0 } }, { { 0, AXIS_LEN, 0 } }, // Y
+    { { 0, 0, 0 } }, { { 0, 0, AXIS_LEN } }, // Z
 };
 
 void gfx_line_init(void) {

@@ -5,7 +5,7 @@
 #include "sokol_imgui.h"
 
 texture_t texture_create(image_t image) {
-    sg_image_desc desc = {};
+    sg_image_desc desc = {0};
     desc.width = image.width;
     desc.height = image.height;
     desc.data.subimage[0][0].size = image.size;
@@ -14,7 +14,7 @@ texture_t texture_create(image_t image) {
 
     sg_image gpu_image = sg_make_image(&desc);
 
-    texture_t texture = {};
+    texture_t texture = {0};
     texture.width = image.width;
     texture.height = image.height;
     texture.gpu_image = gpu_image;

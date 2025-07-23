@@ -43,8 +43,8 @@ void gfx_model_shutdown(void) {
 }
 
 model_t gfx_model_create(const map_t* map, map_state_t map_state) {
-    mesh_t final_mesh = {};
-    map_image_t final_texture = {};
+    mesh_t final_mesh = {0};
+    map_image_t final_texture = {0};
     if (map->primary_mesh.valid) {
         final_mesh = map->primary_mesh;
     } else {

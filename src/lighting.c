@@ -10,7 +10,7 @@ static vec4s read_rgb8(span_t*);
 // are used to affect the lighting model but it isn't understood yet.
 // https://ffhacktics.com/wiki/Maps/Mesh#Light_colors_and_positions.2C_background_gradient_colors
 lighting_t read_lighting(span_t* span) {
-    lighting_t lighting = {};
+    lighting_t lighting = {0};
 
     u32 intra_file_ptr = span_readat_u32(span, 0x64);
     if (intra_file_ptr == 0) {
@@ -57,7 +57,7 @@ lighting_t read_lighting(span_t* span) {
 }
 
 static vec4s read_rgb8(span_t* span) {
-    vec4s color = {};
+    vec4s color = {0};
     color.r = span_read_u8(span) / 255.0f;
     color.g = span_read_u8(span) / 255.0f;
     color.b = span_read_u8(span) / 255.0f;

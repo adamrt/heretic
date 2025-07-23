@@ -12,7 +12,7 @@ usize read_instructions(span_t* span, instruction_t* out_instructions) {
         };
 
         for (int i = 0; i < desc.param_count; i++) {
-            param_t param = {};
+            param_t param = { 0 };
             if (desc.param_sizes[i] == PARAM_TYPE_U16) {
                 param.type = PARAM_TYPE_U16;
                 param.value.u16 = span_read_u16(span);

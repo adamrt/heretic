@@ -70,7 +70,7 @@ units_t unit_get_units(int entd_id) {
     usize intra_file_offset = (entd_id % EVENTS_PER_FILE) * EVENT_BYTE_SIZE;
     span.offset = intra_file_offset;
 
-    units_t units = {};
+    units_t units = {0};
 
     for (int i = 0; i < UNITS_PER_EVENT; i++) {
         unit_t unit = read_unit(&span);

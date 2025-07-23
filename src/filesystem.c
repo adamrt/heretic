@@ -5,6 +5,12 @@
 #include "memory.h"
 #include "util.h"
 
+enum {
+    SECTOR_HEADER_SIZE = 24,
+    SECTOR_SIZE = 2048,
+    SECTOR_SIZE_RAW = 2352
+};
+
 static struct {
     FILE* file;
 
@@ -79,26 +85,22 @@ file_entry_e filesystem_entry_by_sector(u32 sector) {
 }
 
 static void _read_file(file_entry_e file, u8* out_bytes) {
-    constexpr int sector_header_size = 24;
-    constexpr int sector_size = 2048;
-    constexpr int sector_size_raw = 2352;
-
     file_desc_t desc = file_list[file];
 
     usize offset = 0;
-    usize occupied_sectors = ceil(desc.size / (f64)sector_size);
+    usize occupied_sectors = ceil(desc.size / (f64)SECTOR_SIZE);
 
     for (usize i = 0; i < occupied_sectors; i++) {
-        usize seek_to = ((desc.sector + i) * sector_size_raw) + sector_header_size;
+        usize seek_to = ((desc.sector + i) * SECTOR_SIZE_RAW) + SECTOR_HEADER_SIZE;
         usize sn = fseek(_state.file, seek_to, SEEK_SET);
         ASSERT(sn == 0, "Failed to seek to sector");
 
-        u8 sector[sector_size];
-        usize rn = fread(sector, sizeof(u8), sector_size, _state.file);
-        ASSERT(rn == sector_size, "Failed to read correct number of bytes from sector");
+        u8 sector[SECTOR_SIZE];
+        usize rn = fread(sector, sizeof(u8), SECTOR_SIZE, _state.file);
+        ASSERT(rn == SECTOR_SIZE, "Failed to read correct number of bytes from sector");
 
         usize remaining_size = desc.size - offset;
-        usize bytes_to_copy = (remaining_size < sector_size) ? remaining_size : sector_size;
+        usize bytes_to_copy = (remaining_size < SECTOR_SIZE) ? remaining_size : SECTOR_SIZE;
 
         memcpy(out_bytes + offset, sector, bytes_to_copy);
         offset += bytes_to_copy;

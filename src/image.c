@@ -6,13 +6,15 @@
 #include "span.h"
 #include "util.h"
 
-constexpr int pal_col_count = 16;
-constexpr int pal_row_size = pal_col_count * 4; // 4 bytes per color
+enum {
+    PAL_COL_COUNT = 16,
+    PAL_ROW_SIZE = PAL_COL_COUNT * 4, // 4 bytes per color
+};
 
 image_t image_read_palette(span_t* span, int rows) {
     // Each color is 16 colors * 2 bytes per color = 32 bytes per row
     // FIXME: There are exception to this with 512 byte palettes.
-    return image_read_16bpp(span, pal_col_count, rows);
+    return image_read_16bpp(span, PAL_COL_COUNT, rows);
 }
 
 image_t image_read_4bpp(span_t* span, int width, int height) {
@@ -26,8 +28,8 @@ image_t image_read_4bpp(span_t* span, int width, int height) {
     for (int i = 0; i < size_on_disk; i++) {
         u8 raw_pixel = span_read_u8(span);
 
-        u8 right = (raw_pixel & 0b00001111);
-        u8 left = (raw_pixel & 0b11110000) >> 4;
+        u8 right = (raw_pixel & 0x0F);
+        u8 left = (raw_pixel & 0xF0) >> 4;
 
         for (int j = 0; j < 4; j++) {
             data[write_idx++] = right;
@@ -56,9 +58,9 @@ image_t image_read_16bpp(span_t* span, int width, int height) {
     usize write_idx = 0;
     for (int i = 0; i < dims; i++) {
         u16 val = span_read_u16(span);
-        data[write_idx++] = (val & 0b0000000000011111) << 3;
-        data[write_idx++] = (val & 0b0000001111100000) >> 2;
-        data[write_idx++] = (val & 0b0111110000000000) >> 7;
+        data[write_idx++] = (val & 0x001F) << 3; // 0b0000000000011111
+        data[write_idx++] = (val & 0x03E0) >> 2; // 0b0000001111100000
+        data[write_idx++] = (val & 0x7C00) >> 7; // 0b0111110000000000
         data[write_idx++] = (val == 0) ? 0x00 : 0xFF;
     }
 
@@ -75,7 +77,7 @@ image_t image_read_16bpp(span_t* span, int width, int height) {
 // The image's rgba values are the index of the palette.
 image_t image_read_4bpp_pal(span_t* span, int width, int height, image_t palette, usize pal_idx) {
     const int dims = width * height;
-    const int pal_offset = (pal_row_size * pal_idx);
+    const int pal_offset = (PAL_ROW_SIZE * pal_idx);
 
     image_t image = image_read_4bpp(span, width, height);
 

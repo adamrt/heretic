@@ -1,6 +1,8 @@
 #pragma once
 
-constexpr int MESSAGES_MAX_LEN = 16384;
+enum {
+    MESSAGES_MAX_LEN = 16384,
+};
 
 #include "span.h"
 

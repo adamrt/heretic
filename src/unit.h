@@ -17,7 +17,7 @@
 // - ENTD3.ENT (IDs 0x100 to 0x17F)
 // - ENTD4.ENT (IDs 0x180 to 0x1FF)
 
-typedef enum : u8 {
+typedef enum {
     FLAGA_MALE = 0x01,
     FLAGA_FEMALE = 0x02,
     FLAGA_MONSTER = 0x04,
@@ -28,7 +28,7 @@ typedef enum : u8 {
     FLAGA_SAVE_FORMATION = 0x80,
 } unit_flags_a_e;
 
-typedef enum : u8 {
+typedef enum {
     FLAGB_ALWAYS_P = 0x01,
     FLAGB_RANDOMLY_P = 0x02,
     FLAGB_TEAM_C = 0x0C, // 2 bits
@@ -38,7 +38,7 @@ typedef enum : u8 {
     FLAGB_UNKNOWN_2 = 0x80,
 } unit_flags_b_e;
 
-typedef enum : u8 {
+typedef enum {
     FLAGC_FOCUS_U = 0x01,
     FLAGC_STAY_NEAR_XY = 0x02,
     FLAGC_AGGRESSIVE = 0x04,
@@ -49,7 +49,7 @@ typedef enum : u8 {
     FLAGC_UNKNOWN_4 = 0x80,
 } unit_flags_c_e;
 
-typedef enum : u8 {
+typedef enum {
     DIRECTION_SOUTH = 0x00,
     DIRECTION_EAST = 0x01,
     DIRECTION_NORTH = 0x02,

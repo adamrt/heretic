@@ -6,7 +6,9 @@
 #include "vm.h"
 #include "vm_opcode.h"
 
-constexpr int TRANSITION_MAX = 64;
+enum {
+    TRANSITION_MAX = 64,
+};
 
 // Transition struct to simplify interpolation of values.
 typedef struct {

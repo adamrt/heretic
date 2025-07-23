@@ -16,7 +16,7 @@ static vec3s _read_normal(span_t*);
 static vec2s _process_tex_coords(f32 u, f32 v, u8 page);
 
 mesh_t read_mesh(span_t* span) {
-    mesh_t mesh = {};
+    mesh_t mesh = { 0 };
 
     mesh.geometry = _read_geometry(span);
     mesh.palette = _read_palette(span);
@@ -30,7 +30,7 @@ mesh_t read_mesh(span_t* span) {
 }
 
 static geometry_t _read_geometry(span_t* span) {
-    geometry_t geometry = {};
+    geometry_t geometry = { 0 };
 
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
@@ -166,8 +166,8 @@ static geometry_t _read_geometry(span_t* span) {
     // Polygon tile locations (length N * 2 + P * 2)
     for (int i = 0; i < N; i++) {
         u8 zy = span_read_u8(span);
-        u8 z = (zy >> 1) & 0b11111110;
-        u8 y = (zy >> 0) & 0b00000001;
+        u8 z = (zy >> 1) & 0xFE; // 0b11111110
+        u8 y = (zy >> 0) & 0x01; // 0b00000001
         u8 x = span_read_u8(span);
         geometry.tex_tris[i].terrain_x = x;
         geometry.tex_tris[i].terrain_z = z;
@@ -176,8 +176,8 @@ static geometry_t _read_geometry(span_t* span) {
 
     for (int i = 0; i < P; i++) {
         u8 zy = span_read_u8(span);
-        u8 z = (zy >> 1) & 0b11111110;
-        u8 y = (zy >> 0) & 0b00000001;
+        u8 z = (zy >> 1) & 0xFE; // 0b11111110
+        u8 y = (zy >> 0) & 0x01; // 0b00000001
         u8 x = span_read_u8(span);
         geometry.tex_quads[i].terrain_x = x;
         geometry.tex_quads[i].terrain_z = z;
@@ -238,7 +238,7 @@ void merge_meshes(mesh_t* dst, const mesh_t* src) {
 }
 
 vertices_t geometry_to_vertices(const geometry_t* geometry) {
-    vertices_t vertices = {};
+    vertices_t vertices = { 0 };
 
     int vcount = 0;
 
@@ -320,7 +320,7 @@ static vec2s _process_tex_coords(f32 u, f32 v, u8 page) {
 static image_t _read_palette(span_t* span) {
     u32 intra_file_ptr = span_readat_u32(span, 0x44);
     if (intra_file_ptr == 0) {
-        return (image_t) {};
+        return (image_t) { 0 };
     }
     span->offset = intra_file_ptr;
 
