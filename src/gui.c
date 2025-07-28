@@ -540,12 +540,12 @@ static void _draw_window_event_instructions(void) {
             igTableSetColumnIndex(0);
             igText("0x%02X - %s", instr->opcode, opcode_desc_list[instr->opcode].name);
 
-            if (instr->opcode == OPCODE_ID_CAMERA) {
+            if (instr->opcode == OPCODE_CAMERA) {
                 igPushIDInt(i);
                 _row_instr_fn_camera(instr);
                 igPopID();
                 continue;
-            } else if (instr->opcode == OPCODE_ID_WAITFORINSTRUCTION) {
+            } else if (instr->opcode == OPCODE_WAITFORINSTRUCTION) {
                 igPushIDInt(i);
                 _row_instr_fn_waitforinstruction(instr);
                 igPopID();

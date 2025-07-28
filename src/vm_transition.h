@@ -17,7 +17,7 @@ typedef struct {
     f32 frame_total;
     f32 frame_current;
     void* target;
-    opcode_id_t opcode_id;
+    opcode_e opcode;
 } transition_t;
 
 typedef struct {
@@ -27,5 +27,5 @@ typedef struct {
 
 void vm_transition_reset(void);
 void vm_transition_update(void);
-void vm_transition_add(opcode_id_t, void*, f32, f32, f32);
+void vm_transition_add(opcode_e, void*, f32, f32, f32);
 bool vm_transition_has_active(waittype_e);

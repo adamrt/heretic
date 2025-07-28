@@ -32,11 +32,11 @@ void vm_transition_update(void) {
     }
 }
 
-void vm_transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, f32 duration) {
+void vm_transition_add(opcode_e opcode, void* target, f32 start, f32 end, f32 duration) {
     ASSERT(_state.transaction_count <= VM_TRANSITION_MAX, "Too many transitions");
 
     transition_t* t = &_state.transitions[_state.transaction_count++];
-    t->opcode_id = opcode_id;
+    t->opcode = opcode;
     t->start = start;
     t->end = end;
     t->frame_total = duration;
@@ -45,75 +45,75 @@ void vm_transition_add(opcode_id_t opcode_id, void* target, f32 start, f32 end, 
 }
 
 bool vm_transition_has_active(waittype_e type) {
-    opcode_id_t opcodes[4];
+    opcode_e opcodes[4];
     int count = 0;
 
     switch (type) {
     case WAITTYPE_DIALOG:
-        opcodes[0] = OPCODE_ID_DISPLAYMESSAGE;
-        opcodes[1] = OPCODE_ID_CHANGEDIALOG;
+        opcodes[0] = OPCODE_DISPLAYMESSAGE;
+        opcodes[1] = OPCODE_CHANGEDIALOG;
         count = 2;
         break;
     case WAITTYPE_CAMERA:
-        opcodes[0] = OPCODE_ID_CAMERA;
-        opcodes[1] = OPCODE_ID_CAMERAFUSIONSTART;
-        opcodes[2] = OPCODE_ID_CAMERAFUSIONEND;
-        opcodes[3] = OPCODE_ID_FOCUS;
+        opcodes[0] = OPCODE_CAMERA;
+        opcodes[1] = OPCODE_CAMERAFUSIONSTART;
+        opcodes[2] = OPCODE_CAMERAFUSIONEND;
+        opcodes[3] = OPCODE_FOCUS;
         count = 4;
         break;
     case WAITTYPE_MAPDARKNESS:
-        opcodes[0] = OPCODE_ID_MAPDARKNESS;
+        opcodes[0] = OPCODE_MAPDARKNESS;
         count = 1;
         break;
     case WAITTYPE_MAPLIGHT:
-        opcodes[0] = OPCODE_ID_MAPLIGHT;
+        opcodes[0] = OPCODE_MAPLIGHT;
         count = 1;
         break;
     case WAITTYPE_BLOCKEND:
-        opcodes[0] = OPCODE_ID_BLOCKSTART;
-        opcodes[1] = OPCODE_ID_BLOCKEND;
+        opcodes[0] = OPCODE_BLOCKSTART;
+        opcodes[1] = OPCODE_BLOCKEND;
         count = 2;
         break;
     case WAITTYPE_UNITANIM:
-        opcodes[0] = OPCODE_ID_UNITANIM;
+        opcodes[0] = OPCODE_UNITANIM;
         count = 1;
         break;
     case WAITTYPE_COLORSCREEN:
-        opcodes[0] = OPCODE_ID_COLORSCREEN;
+        opcodes[0] = OPCODE_COLORSCREEN;
         count = 1;
         break;
     case WAITTYPE_LOADEVTCHR:
-        opcodes[0] = OPCODE_ID_LOADEVTCHR;
+        opcodes[0] = OPCODE_LOADEVTCHR;
         count = 1;
         break;
     case 0x36:
-        opcodes[0] = OPCODE_ID_DARKSCREEN;
-        opcodes[1] = OPCODE_ID_REMOVEDARKSCREEN;
+        opcodes[0] = OPCODE_DARKSCREEN;
+        opcodes[1] = OPCODE_REMOVEDARKSCREEN;
         count = 2;
         break;
     case WAITTYPE_DISPLAYCONDITIONS:
-        opcodes[0] = OPCODE_ID_DISPLAYCONDITIONS;
+        opcodes[0] = OPCODE_DISPLAYCONDITIONS;
         count = 1;
         break;
     case WAITTYPE_SHOWGRAPHIC:
-        opcodes[0] = OPCODE_ID_SHOWGRAPHIC;
+        opcodes[0] = OPCODE_SHOWGRAPHIC;
         count = 1;
         break;
     case WAITTYPE_EFFECT:
-        opcodes[0] = OPCODE_ID_EFFECT;
-        opcodes[1] = OPCODE_ID_EFFECTSTART;
-        opcodes[2] = OPCODE_ID_EFFECTEND;
+        opcodes[0] = OPCODE_EFFECT;
+        opcodes[1] = OPCODE_EFFECTSTART;
+        opcodes[2] = OPCODE_EFFECTEND;
         count = 3;
         break;
     case WAITTYPE_INFLICTSTATUS:
-        opcodes[0] = OPCODE_ID_INFLICTSTATUS;
+        opcodes[0] = OPCODE_INFLICTSTATUS;
         count = 1;
         break;
     }
 
     for (usize i = 0; i < _state.transaction_count; i++) {
         for (int j = 0; j < count; j++) {
-            if (_state.transitions[i].opcode_id == opcodes[j]) {
+            if (_state.transitions[i].opcode == opcodes[j]) {
                 return true;
             }
         }

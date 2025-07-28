@@ -25,7 +25,7 @@ typedef struct {
 } param_t;
 
 typedef struct {
-    opcode_id_t opcode;
+    opcode_e opcode;
     param_t params[OPCODE_PARAM_MAX];
     u8 param_count;
 } instruction_t;

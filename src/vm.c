@@ -5,7 +5,7 @@
 
 // Virtual machine state
 static struct {
-    opcode_fn_t handlers[OPCODE_ID_MAX];
+    opcode_fn_t handlers[OPCODE_COUNT];
     const event_t* current_event;
     size_t current_instruction;
     bool is_executing;
@@ -22,10 +22,10 @@ void vm_init(void) {
     vm_reset();
 
     // Setup the opcode handlers
-    _state.handlers[OPCODE_ID_DISPLAYMESSAGE] = vm_func_display_message;
-    _state.handlers[OPCODE_ID_CAMERA] = vm_func_camera;
-    _state.handlers[OPCODE_ID_WAITFORINSTRUCTION] = vm_func_wait_for_instruction;
-    _state.handlers[OPCODE_ID_WARPUNIT] = vm_func_warp_unit;
+    _state.handlers[OPCODE_DISPLAYMESSAGE] = vm_func_display_message;
+    _state.handlers[OPCODE_CAMERA] = vm_func_camera;
+    _state.handlers[OPCODE_WAITFORINSTRUCTION] = vm_func_wait_for_instruction;
+    _state.handlers[OPCODE_WARPUNIT] = vm_func_warp_unit;
 }
 
 // Reset the virtual machine state
@@ -61,7 +61,7 @@ void vm_update(void) {
     }
 
     // Check if we are waiting on any active transition.
-    // These types are different than opcode_ids (waittype_e).
+    // These types are different than opcodes (waittype_e).
     for (int i = 0; i < _state.waiting_count; i++) {
         waittype_e waittype = _state.waiting[i];
         if (vm_transition_has_active(waittype)) {
